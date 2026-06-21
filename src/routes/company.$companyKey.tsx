@@ -8,7 +8,6 @@ import {
 } from "../lib/scoring"
 import {
   ArrowLeft,
-  ShieldCheck,
   ExternalLink,
   Database,
   ToggleLeft,
@@ -45,7 +44,7 @@ function CompanyDetailPage() {
       <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
         <Card className="max-w-md p-8 text-center">
           <CardHeader>
-            <div className="mx-auto mb-2 w-fit rounded-none bg-destructive/10 p-3 text-destructive">
+            <div className="mx-auto mb-2 w-fit rounded-full bg-destructive/10 p-3 text-destructive">
               <AlertTriangle className="h-6 w-6" />
             </div>
             <CardTitle className="text-xl font-bold">
@@ -126,32 +125,7 @@ function CompanyDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground selection:bg-accent selection:text-accent-foreground">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="h-8 w-8 text-primary" />
-            <Link
-              to="/"
-              className="text-xl font-bold tracking-tight text-foreground"
-            >
-              PrivacyGPT
-            </Link>
-          </div>
-          <nav className="flex items-center gap-6">
-            <Link to="/" className="text-sm font-semibold text-primary">
-              Dashboard
-            </Link>
-            <Link
-              to="/methodology"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Methodology
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <>
 
       {/* Main content wrapper */}
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -437,10 +411,6 @@ function CompanyDetailPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="mt-20 border-t border-border bg-background py-8 text-center text-xs text-muted-foreground">
-        <p>© 2026 PrivacyGPT. All claims cited from primary sources.</p>
-      </footer>
-    </div>
+    </>
   )
 }

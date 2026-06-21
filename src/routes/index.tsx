@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { getCompaniesFn } from "../lib/api"
 import { useState, useMemo } from "react"
 import { 
-  ShieldCheck, 
   Search, 
   AlertTriangle, 
   SlidersHorizontal,
@@ -78,7 +77,6 @@ function App() {
 
   // Calculate scores and grades for all companies
   const scoredCompanies = useMemo(() => {
-    if (!allCompanies) return []
     return allCompanies.map((company) => {
       const subScores = calculateSubScores(company)
       const totalScore = calculateTotalScore(subScores, weights)
@@ -212,36 +210,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground selection:bg-accent selection:text-accent-foreground">
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md transition-all duration-300">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="h-8 w-8 text-primary" />
-            <Link
-              to="/"
-              className="text-xl font-bold tracking-tight text-foreground"
-            >
-              PrivacyGPT
-            </Link>
-          </div>
-          <nav className="flex items-center gap-6">
-            <Link
-              to="/"
-              className="border-b-2 border-primary pb-1 text-sm font-semibold text-primary"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/methodology"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Methodology
-            </Link>
-          </nav>
-        </div>
-      </header>
-
+    <>
       {/* Hero Banner */}
       <section className="border-b border-border bg-muted/40 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -628,9 +597,11 @@ function App() {
                 </div>
 
                 {/* Nuance summary snippet */}
-                <p className="line-clamp-2 border border-border/30 bg-muted/30 p-2.5 text-xs text-muted-foreground">
-                  {company.trainsOnDataNuance}
-                </p>
+                <div className="border border-border/30 bg-muted/30 p-2.5">
+                  <p className="line-clamp-2 text-xs text-muted-foreground">
+                    {company.trainsOnDataNuance}
+                  </p>
+                </div>
               </CardContent>
 
               <CardFooter className="mt-2 flex items-center justify-between gap-4">
@@ -662,7 +633,7 @@ function App() {
           {processedCompanies.length === 0 && (
             <Card className="col-span-full p-12 text-center">
               <CardHeader>
-                <div className="mx-auto mb-2 w-fit rounded-none bg-destructive/10 p-3 text-destructive">
+                <div className="mx-auto mb-2 w-fit rounded-full bg-destructive/10 p-3 text-destructive">
                   <AlertTriangle className="h-6 w-6" />
                 </div>
                 <CardTitle className="text-lg font-bold">
@@ -690,10 +661,6 @@ function App() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="mt-20 border-t border-border bg-background py-8 text-center text-xs text-muted-foreground">
-        <p>© 2026 PrivacyGPT. Built as an open, verifiable watchdog.</p>
-      </footer>
-    </div>
+    </>
   )
 }
