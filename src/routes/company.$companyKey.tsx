@@ -1,5 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { getCompanyByKeyFn } from "../lib/api"
+import { 
+  calculateSubScores, 
+  calculateTotalScore, 
+  mapScoreToGrade, 
+  DEFAULT_WEIGHTS 
+} from "../lib/scoring"
 import {
   ArrowLeft,
   ShieldCheck,
@@ -60,6 +66,11 @@ function CompanyDetailPage() {
     )
   }
 
+  // Calculate scores
+  const subScores = calculateSubScores(company)
+  const totalScore = calculateTotalScore(subScores, DEFAULT_WEIGHTS)
+  const overallGrade = mapScoreToGrade(totalScore)
+
   // Helper for boolean status badges
   const renderBooleanBadge = (val: boolean, reverse = false) => {
     const isWarning = reverse ? val : !val // True is warning for default training/human review (reverse=true)
@@ -109,6 +120,11 @@ function CompanyDetailPage() {
     }
   }
 
+  // Helper to render letter grade for individual sub-scores
+  const getSubScoreGrade = (score: number) => {
+    return mapScoreToGrade(score)
+  }
+
   return (
     <div className="min-h-screen bg-background font-sans text-foreground selection:bg-accent selection:text-accent-foreground">
       {/* Navigation */}
@@ -151,9 +167,9 @@ function CompanyDetailPage() {
         </div>
 
         {/* Company Jumbotron Card */}
-        <Card className="relative mb-8 overflow-hidden bg-muted/20">
+        <Card className="relative mb-6 overflow-hidden bg-muted/20">
           <CardHeader className="p-6 sm:p-8">
-            <div className="relative flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
               <div>
                 <div className="mb-2 flex flex-wrap items-center gap-3">
                   <CardTitle className="text-3xl font-extrabold tracking-tight text-foreground">
@@ -180,19 +196,80 @@ function CompanyDetailPage() {
                 </div>
               </div>
 
-              <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                {renderConfidenceBadge(company.confidence)}
-                <a
-                  href={company.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:underline"
-                >
-                  Primary Policy Source <ExternalLink className="h-3 w-3" />
-                </a>
+              {/* Large Grade Circle/Box */}
+              <div className="flex items-center gap-4 sm:self-center shrink-0">
+                <div className="flex flex-col items-center justify-center bg-primary text-primary-foreground p-4 h-20 w-20 border border-border select-none shadow-sm">
+                  <span className="text-2xl font-bold font-mono">{overallGrade}</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">{totalScore} Pts</span>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  {renderConfidenceBadge(company.confidence)}
+                  <a
+                    href={company.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:underline"
+                  >
+                    Primary Policy Source <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
               </div>
             </div>
           </CardHeader>
+        </Card>
+
+        {/* Sub-scores Grid Dashboard */}
+        <Card className="mb-8 p-6">
+          <CardHeader className="p-0 pb-4 mb-4 border-b border-border">
+            <CardTitle className="text-base font-bold">Privacy Grade Breakdown</CardTitle>
+            <CardDescription>
+              Scores are calculated based on default weights. Visit the Methodology page for the formulas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="border border-border p-3 flex flex-col justify-between bg-muted/10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Default Training</span>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-lg font-bold font-mono">{getSubScoreGrade(subScores.trainingScore)}</span>
+                <span className="text-xs text-muted-foreground">{subScores.trainingScore}/100</span>
+              </div>
+            </div>
+            <div className="border border-border p-3 flex flex-col justify-between bg-muted/10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Opt-Out Ease</span>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-lg font-bold font-mono">{getSubScoreGrade(subScores.optOutScore)}</span>
+                <span className="text-xs text-muted-foreground">{subScores.optOutScore}/100</span>
+              </div>
+            </div>
+            <div className="border border-border p-3 flex flex-col justify-between bg-muted/10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Data Retention</span>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-lg font-bold font-mono">{getSubScoreGrade(subScores.retentionScore)}</span>
+                <span className="text-xs text-muted-foreground">{subScores.retentionScore}/100</span>
+              </div>
+            </div>
+            <div className="border border-border p-3 flex flex-col justify-between bg-muted/10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Deletion Rights</span>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-lg font-bold font-mono">{getSubScoreGrade(subScores.deletionScore)}</span>
+                <span className="text-xs text-muted-foreground">{subScores.deletionScore}/100</span>
+              </div>
+            </div>
+            <div className="border border-border p-3 flex flex-col justify-between bg-muted/10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Third-Party Sharing</span>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-lg font-bold font-mono">{getSubScoreGrade(subScores.sharingScore)}</span>
+                <span className="text-xs text-muted-foreground">{subScores.sharingScore}/100</span>
+              </div>
+            </div>
+            <div className="border border-border p-3 flex flex-col justify-between bg-muted/10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Human Review</span>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-lg font-bold font-mono">{getSubScoreGrade(subScores.humanReviewScore)}</span>
+                <span className="text-xs text-muted-foreground">{subScores.humanReviewScore}/100</span>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         {/* Detailed Policy Grid */}
@@ -200,7 +277,7 @@ function CompanyDetailPage() {
           {/* Main policy factors (Left / Middle Columns) */}
           <div className="space-y-6 md:col-span-2">
             <h2 className="mb-4 border-b border-border pb-2 text-xl font-bold text-foreground">
-              Policy Breakdown
+              Policy Details & Nuances
             </h2>
 
             {/* Factor 1: Model Training */}

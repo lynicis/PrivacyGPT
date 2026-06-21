@@ -1,35 +1,31 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { getCompaniesFn } from "../lib/api"
 import { useState, useMemo } from "react"
-import {
-  ShieldCheck,
-  Search,
-  AlertTriangle,
+import { 
+  ShieldCheck, 
+  Search, 
+  AlertTriangle, 
   SlidersHorizontal,
   ExternalLink,
   BookOpen,
   ArrowUpDown,
   ChevronRight,
+  Settings2,
+  Undo2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { 
+  calculateSubScores, 
+  calculateTotalScore, 
+  mapScoreToGrade,
+  DEFAULT_WEIGHTS,
+} from "../lib/scoring"
+import type { Weights } from "../lib/scoring"
 
 export const Route = createFileRoute("/")({
   loader: () => getCompaniesFn(),
@@ -39,33 +35,93 @@ export const Route = createFileRoute("/")({
 function App() {
   const allCompanies = Route.useLoaderData()
 
-  // State for search and filters
+  // State for search, filters, and sorting
   const [searchQuery, setSearchQuery] = useState("")
   const [filterNoTraining, setFilterNoTraining] = useState(false)
   const [filterOptOut, setFilterOptOut] = useState(false)
   const [filterNoHumanReview, setFilterNoHumanReview] = useState(false)
-  const [sortBy, setSortBy] = useState<
-    "name-asc" | "name-desc" | "training-first" | "confidence-first"
-  >("name-asc")
+  const [sortBy, setSortBy] = useState<"score-desc" | "score-asc" | "name-asc" | "name-desc" | "training-first" | "confidence-first">("score-desc")
 
-  // Calculated Stats
+  // State for weights customization
+  const [isWeightsExpanded, setIsWeightsExpanded] = useState(false)
+  const [weights, setWeights] = useState<Weights>({
+    trainingWeight: DEFAULT_WEIGHTS.trainingWeight,
+    optOutWeight: DEFAULT_WEIGHTS.optOutWeight,
+    retentionWeight: DEFAULT_WEIGHTS.retentionWeight,
+    deletionWeight: DEFAULT_WEIGHTS.deletionWeight,
+    sharingWeight: DEFAULT_WEIGHTS.sharingWeight,
+    humanReviewWeight: DEFAULT_WEIGHTS.humanReviewWeight,
+  })
+
+  // Calculate sum of weights for percentage calculation
+  const totalWeightSum = useMemo(() => {
+    const sum = weights.trainingWeight + 
+                weights.optOutWeight + 
+                weights.retentionWeight + 
+                weights.deletionWeight + 
+                weights.sharingWeight + 
+                weights.humanReviewWeight;
+    return sum === 0 ? 1 : sum;
+  }, [weights]);
+
+  // Reset weights to default
+  const handleResetWeights = () => {
+    setWeights({
+      trainingWeight: DEFAULT_WEIGHTS.trainingWeight,
+      optOutWeight: DEFAULT_WEIGHTS.optOutWeight,
+      retentionWeight: DEFAULT_WEIGHTS.retentionWeight,
+      deletionWeight: DEFAULT_WEIGHTS.deletionWeight,
+      sharingWeight: DEFAULT_WEIGHTS.sharingWeight,
+      humanReviewWeight: DEFAULT_WEIGHTS.humanReviewWeight,
+    })
+  }
+
+  // Calculate scores and grades for all companies
+  const scoredCompanies = useMemo(() => {
+    if (!allCompanies) return []
+    return allCompanies.map((company) => {
+      const subScores = calculateSubScores(company)
+      const totalScore = calculateTotalScore(subScores, weights)
+      const grade = mapScoreToGrade(totalScore)
+      return {
+        ...company,
+        subScores,
+        totalScore,
+        grade,
+      }
+    })
+  }, [allCompanies, weights])
+
+  // Calculate global ranks based on the total weighted score
+  const companyRanks = useMemo(() => {
+    const sorted = [...scoredCompanies].sort((a, b) => b.totalScore - a.totalScore)
+    const ranks: Record<string, number> = {}
+    
+    let currentRank = 1
+    sorted.forEach((c, idx) => {
+      // Handle ties in score
+      if (idx > 0 && c.totalScore < sorted[idx - 1].totalScore) {
+        currentRank = idx + 1
+      }
+      ranks[c.companyKey] = currentRank
+    })
+    return ranks
+  }, [scoredCompanies])
+
+  // Calculated stats based on scored companies
   const stats = useMemo(() => {
-    if (allCompanies.length === 0)
-      return { total: 0, trainsDefault: 0, hasOptOut: 0, hasHumanReview: 0 }
-    const total = allCompanies.length
-    const trainsDefault = allCompanies.filter(
-      (c) => c.trainsOnDataByDefault
-    ).length
-    const hasOptOut = allCompanies.filter((c) => c.optOutAvailable).length
-    const hasHumanReview = allCompanies.filter(
-      (c) => c.humanReviewOfChats
-    ).length
+    const total = scoredCompanies.length
+    if (total === 0) return { total: 0, trainsDefault: 0, hasOptOut: 0, hasHumanReview: 0 }
+    
+    const trainsDefault = scoredCompanies.filter((c) => c.trainsOnDataByDefault).length
+    const hasOptOut = scoredCompanies.filter((c) => c.optOutAvailable).length
+    const hasHumanReview = scoredCompanies.filter((c) => c.humanReviewOfChats).length
     return { total, trainsDefault, hasOptOut, hasHumanReview }
-  }, [allCompanies])
+  }, [scoredCompanies])
 
   // Processed companies based on search, filtering, and sorting
   const processedCompanies = useMemo(() => {
-    let result = [...allCompanies]
+    let result = [...scoredCompanies]
 
     // Apply Search
     if (searchQuery.trim() !== "") {
@@ -91,6 +147,12 @@ function App() {
 
     // Apply Sorting
     result.sort((a, b) => {
+      if (sortBy === "score-desc") {
+        return b.totalScore - a.totalScore
+      }
+      if (sortBy === "score-asc") {
+        return a.totalScore - b.totalScore
+      }
       if (sortBy === "name-asc") {
         return a.companyName.localeCompare(b.companyName)
       }
@@ -98,7 +160,6 @@ function App() {
         return b.companyName.localeCompare(a.companyName)
       }
       if (sortBy === "training-first") {
-        // false (no training) first, true last
         return (
           (a.trainsOnDataByDefault ? 1 : 0) - (b.trainsOnDataByDefault ? 1 : 0)
         )
@@ -113,39 +174,9 @@ function App() {
     })
 
     return result
-  }, [
-    allCompanies,
-    searchQuery,
-    filterNoTraining,
-    filterOptOut,
-    filterNoHumanReview,
-    sortBy,
-  ])
+  }, [scoredCompanies, searchQuery, filterNoTraining, filterOptOut, filterNoHumanReview, sortBy])
 
-  // Rendering Helpers
-  const renderBooleanBadge = (
-    val: boolean,
-    labelYes = "Yes",
-    labelNo = "No",
-    warningIfTrue = false
-  ) => {
-    if (val) {
-      return (
-        <Badge variant={warningIfTrue ? "destructive" : "secondary"}>
-          {labelYes}
-        </Badge>
-      )
-    } else {
-      return (
-        <Badge
-          variant={warningIfTrue ? "outline" : "outline"}
-          className={warningIfTrue ? "border-muted" : "border-border"}
-        >
-          {labelNo}
-        </Badge>
-      )
-    }
-  }
+
 
   const renderConfidenceBadge = (confidence: string) => {
     switch (confidence) {
@@ -170,10 +201,14 @@ function App() {
             variant="outline"
             className="border-destructive/30 bg-destructive/5 text-[10px] font-semibold text-destructive"
           >
-            Needs Review
+            Review Needed
           </Badge>
         )
     }
+  }
+
+  const getSubScoreGrade = (score: number) => {
+    return mapScoreToGrade(score)
   }
 
   return (
@@ -285,10 +320,161 @@ function App() {
 
       {/* Main Dashboard Area */}
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        {/* Controls Panel */}
+        
+        {/* Customizable Weights Slider Controls Panel */}
+        <Card className="mb-6 p-5">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <Settings2 className="w-4 h-4 text-primary" /> Customizable Privacy Weights
+              </CardTitle>
+              <CardDescription>
+                Adjust the sliders below to weight the importance of each privacy factor.Ranks will update instantly.
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs"
+                onClick={handleResetWeights}
+              >
+                <Undo2 className="w-3.5 h-3.5 mr-1" /> Reset
+              </Button>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="text-xs"
+                onClick={() => setIsWeightsExpanded(!isWeightsExpanded)}
+              >
+                {isWeightsExpanded ? "Hide Settings" : "Configure Weights"}
+              </Button>
+            </div>
+          </div>
+
+          {isWeightsExpanded && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 border-t border-border mt-4 pt-4">
+              {/* Weight 1 */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-medium">
+                  <span>Default Training Disabled</span>
+                  <span className="text-muted-foreground font-mono">
+                    {weights.trainingWeight} ({Math.round(weights.trainingWeight / totalWeightSum * 100)}%)
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  value={weights.trainingWeight} 
+                  onChange={(e) => setWeights({ ...weights, trainingWeight: parseInt(e.target.value) })}
+                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                />
+              </div>
+
+              {/* Weight 2 */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-medium">
+                  <span>Opt-Out Ease</span>
+                  <span className="text-muted-foreground font-mono">
+                    {weights.optOutWeight} ({Math.round(weights.optOutWeight / totalWeightSum * 100)}%)
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  value={weights.optOutWeight} 
+                  onChange={(e) => setWeights({ ...weights, optOutWeight: parseInt(e.target.value) })}
+                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                />
+              </div>
+
+              {/* Weight 3 */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-medium">
+                  <span>Data Retention Timeline</span>
+                  <span className="text-muted-foreground font-mono">
+                    {weights.retentionWeight} ({Math.round(weights.retentionWeight / totalWeightSum * 100)}%)
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  value={weights.retentionWeight} 
+                  onChange={(e) => setWeights({ ...weights, retentionWeight: parseInt(e.target.value) })}
+                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                />
+              </div>
+
+              {/* Weight 4 */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-medium">
+                  <span>Deletion Rights</span>
+                  <span className="text-muted-foreground font-mono">
+                    {weights.deletionWeight} ({Math.round(weights.deletionWeight / totalWeightSum * 100)}%)
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  value={weights.deletionWeight} 
+                  onChange={(e) => setWeights({ ...weights, deletionWeight: parseInt(e.target.value) })}
+                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                />
+              </div>
+
+              {/* Weight 5 */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-medium">
+                  <span>Third-Party Sharing</span>
+                  <span className="text-muted-foreground font-mono">
+                    {weights.sharingWeight} ({Math.round(weights.sharingWeight / totalWeightSum * 100)}%)
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  value={weights.sharingWeight} 
+                  onChange={(e) => setWeights({ ...weights, sharingWeight: parseInt(e.target.value) })}
+                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                />
+              </div>
+
+              {/* Weight 6 */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-medium">
+                  <span>No Human Review</span>
+                  <span className="text-muted-foreground font-mono">
+                    {weights.humanReviewWeight} ({Math.round(weights.humanReviewWeight / totalWeightSum * 100)}%)
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  value={weights.humanReviewWeight} 
+                  onChange={(e) => setWeights({ ...weights, humanReviewWeight: parseInt(e.target.value) })}
+                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                />
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Filters Controls Panel */}
         <Card className="mb-8 space-y-4 p-5">
           <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-            {/* Search Input using shadcn Input */}
+            {/* Search Input */}
             <div className="relative max-w-md flex-1">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -300,7 +486,7 @@ function App() {
               />
             </div>
 
-            {/* Sorting Select using shadcn Select */}
+            {/* Sorting Select */}
             <div className="flex items-center gap-2 self-end lg:self-auto">
               <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 <ArrowUpDown className="h-3.5 w-3.5" /> Sort By:
@@ -313,27 +499,25 @@ function App() {
                   <SelectValue placeholder="Sort order" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="score-desc">Overall Score (High-Low)</SelectItem>
+                  <SelectItem value="score-asc">Overall Score (Low-High)</SelectItem>
                   <SelectItem value="name-asc">Company Name (A-Z)</SelectItem>
                   <SelectItem value="name-desc">Company Name (Z-A)</SelectItem>
-                  <SelectItem value="training-first">
-                    No Training First
-                  </SelectItem>
-                  <SelectItem value="confidence-first">
-                    Verified First
-                  </SelectItem>
+                  <SelectItem value="training-first">No Training First</SelectItem>
+                  <SelectItem value="confidence-first">Verified First</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Filtering Toggles using shadcn Switches */}
+          {/* Filtering Toggles */}
           <div className="flex flex-wrap items-center gap-6 border-t border-border pt-4">
             <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               <SlidersHorizontal className="h-3.5 w-3.5" /> Filters:
             </span>
-
+            
             <div className="flex items-center space-x-2">
-              <Switch
+              <Switch 
                 id="no-training"
                 checked={filterNoTraining}
                 onCheckedChange={setFilterNoTraining}
@@ -347,7 +531,7 @@ function App() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch
+              <Switch 
                 id="opt-out"
                 checked={filterOptOut}
                 onCheckedChange={setFilterOptOut}
@@ -361,7 +545,7 @@ function App() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch
+              <Switch 
                 id="no-human"
                 checked={filterNoHumanReview}
                 onCheckedChange={setFilterNoHumanReview}
@@ -378,64 +562,68 @@ function App() {
 
         {/* Results Counter */}
         <div className="mb-4 text-xs font-medium text-muted-foreground">
-          Showing {processedCompanies.length} of {allCompanies.length} companies
+          Showing {processedCompanies.length} of {scoredCompanies.length} companies
         </div>
 
-        {/* Grid View using shadcn Cards */}
+        {/* Grid View of Scored Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {processedCompanies.map((company) => (
             <Card
               key={company.id}
-              className="flex flex-col justify-between transition-shadow hover:shadow-md"
+              className="flex flex-col justify-between transition-all duration-300 hover:shadow-md"
             >
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-lg font-bold text-foreground">
-                      {company.companyName}
-                    </CardTitle>
-                    <CardDescription className="mt-0.5 text-xs font-medium">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold font-mono text-muted-foreground bg-muted px-1.5 py-0.5 border border-border">
+                        #{companyRanks[company.companyKey]}
+                      </span>
+                      <CardTitle className="text-lg font-bold text-foreground">
+                        {company.companyName}
+                      </CardTitle>
+                    </div>
+                    <CardDescription className="text-xs font-medium mt-0.5">
                       {company.productName}
                     </CardDescription>
                   </div>
-                  {renderConfidenceBadge(company.confidence)}
+
+                  {/* Overall Grade Display */}
+                  <div className="flex flex-col items-end gap-1.5">
+                    <div className="bg-primary text-primary-foreground font-mono font-bold text-sm px-2 py-0.5 border border-border select-none">
+                      {company.grade} ({company.totalScore})
+                    </div>
+                    {renderConfidenceBadge(company.confidence)}
+                  </div>
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-4 py-2">
-                {/* Quick Info */}
-                <div className="space-y-2.5 border-t border-border/60 pt-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-muted-foreground">
-                      Default Training:
-                    </span>
-                    {renderBooleanBadge(
-                      company.trainsOnDataByDefault,
-                      "Trains on Chats",
-                      "Private by Default",
-                      true
-                    )}
+                {/* Category mini-grades grid */}
+                <div className="grid grid-cols-3 gap-1.5 text-[10px] border-t border-b border-border/60 py-2.5 my-1">
+                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
+                    <span className="text-[9px] text-muted-foreground truncate" title="Default Training">Training</span>
+                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.trainingScore)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-muted-foreground">
-                      Opt-Out Available:
-                    </span>
-                    {renderBooleanBadge(
-                      company.optOutAvailable,
-                      "Available",
-                      "Not Offered"
-                    )}
+                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
+                    <span className="text-[9px] text-muted-foreground truncate" title="Opt-Out Ease">Opt-Out</span>
+                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.optOutScore)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-muted-foreground">
-                      Human Review:
-                    </span>
-                    {renderBooleanBadge(
-                      company.humanReviewOfChats,
-                      "Yes",
-                      "No Human Review",
-                      true
-                    )}
+                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
+                    <span className="text-[9px] text-muted-foreground truncate" title="Retention length">Retention</span>
+                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.retentionScore)}</span>
+                  </div>
+                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
+                    <span className="text-[9px] text-muted-foreground truncate" title="Deletion rights">Deletion</span>
+                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.deletionScore)}</span>
+                  </div>
+                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
+                    <span className="text-[9px] text-muted-foreground truncate" title="Third party sharing">Sharing</span>
+                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.sharingScore)}</span>
+                  </div>
+                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
+                    <span className="text-[9px] text-muted-foreground truncate" title="Human review">Review</span>
+                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.humanReviewScore)}</span>
                   </div>
                 </div>
 
@@ -445,7 +633,7 @@ function App() {
                 </p>
               </CardContent>
 
-              <CardFooter className="mt-2 flex items-center justify-between gap-4 pt-4">
+              <CardFooter className="mt-2 flex items-center justify-between gap-4">
                 <a
                   href={company.sourceUrl}
                   target="_blank"
