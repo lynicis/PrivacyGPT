@@ -1,8 +1,8 @@
 {
-  "projectName": "start-app",
+  "projectName": "privacygpt",
   "mode": "file-router",
   "typescript": true,
-  "packageManager": "pnpm",
+  "packageManager": "bun",
   "includeExamples": false,
   "tailwind": true,
   "addOnOptions": {},
@@ -12,5 +12,7 @@
   "routerOnly": false,
   "version": 1,
   "framework": "react",
-  "chosenAddOns": ["eslint"]
+  "chosenAddOns": [
+    "eslint"
+  ]
 }
