@@ -10,12 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MethodologyRouteImport } from './routes/methodology'
+import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CompanyCompanyKeyRouteImport } from './routes/company.$companyKey'
+import { Route as ChangelogFeedDotxmlRouteImport } from './routes/changelog.feed[.]xml'
 
 const MethodologyRoute = MethodologyRouteImport.update({
   id: '/methodology',
   path: '/methodology',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogRoute = ChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -28,33 +35,61 @@ const CompanyCompanyKeyRoute = CompanyCompanyKeyRouteImport.update({
   path: '/company/$companyKey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChangelogFeedDotxmlRoute = ChangelogFeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
+  getParentRoute: () => ChangelogRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRouteWithChildren
   '/methodology': typeof MethodologyRoute
+  '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRouteWithChildren
   '/methodology': typeof MethodologyRoute
+  '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRouteWithChildren
   '/methodology': typeof MethodologyRoute
+  '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/methodology' | '/company/$companyKey'
+  fullPaths:
+    | '/'
+    | '/changelog'
+    | '/methodology'
+    | '/changelog/feed.xml'
+    | '/company/$companyKey'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/methodology' | '/company/$companyKey'
-  id: '__root__' | '/' | '/methodology' | '/company/$companyKey'
+  to:
+    | '/'
+    | '/changelog'
+    | '/methodology'
+    | '/changelog/feed.xml'
+    | '/company/$companyKey'
+  id:
+    | '__root__'
+    | '/'
+    | '/changelog'
+    | '/methodology'
+    | '/changelog/feed.xml'
+    | '/company/$companyKey'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChangelogRoute: typeof ChangelogRouteWithChildren
   MethodologyRoute: typeof MethodologyRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
 }
@@ -66,6 +101,13 @@ declare module '@tanstack/react-router' {
       path: '/methodology'
       fullPath: '/methodology'
       preLoaderRoute: typeof MethodologyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog': {
+      id: '/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -82,11 +124,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompanyCompanyKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/changelog/feed.xml': {
+      id: '/changelog/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/changelog/feed.xml'
+      preLoaderRoute: typeof ChangelogFeedDotxmlRouteImport
+      parentRoute: typeof ChangelogRoute
+    }
   }
 }
 
+interface ChangelogRouteChildren {
+  ChangelogFeedDotxmlRoute: typeof ChangelogFeedDotxmlRoute
+}
+
+const ChangelogRouteChildren: ChangelogRouteChildren = {
+  ChangelogFeedDotxmlRoute: ChangelogFeedDotxmlRoute,
+}
+
+const ChangelogRouteWithChildren = ChangelogRoute._addFileChildren(
+  ChangelogRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChangelogRoute: ChangelogRouteWithChildren,
   MethodologyRoute: MethodologyRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
 }

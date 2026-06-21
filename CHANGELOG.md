@@ -14,3 +14,22 @@ All notable changes to the **PrivacyGPT** project will be documented in this fil
 - **Methodology Page**: Created `/methodology` to outline the assessment criteria, confidence ratings, and upcoming weights.
 - **Test Suite**: Added schema validation and data integrity tests in `src/lib/__tests__/schema.test.ts` running on Vitest.
 - **shadcn/ui Refactoring**: Integrated standard shadcn/ui components (`Card`, `Badge`, `Input`, `Select`, `Switch`, `Button`) and refactored all frontend views (dashboard, details, methodology) to use native shadcn CSS tokens and layout components.
+
+## [Phase 2] - 2026-06-21
+
+### Added
+- **Scoring Engine**: Implemented robust scoring computations inside `src/lib/scoring.ts` to compute points, weights, composite scores, and letter grades.
+- **Customizable Weights Panel**: Built an interactive weights console on the main dashboard for Data Retention, Opt-out control, Model Training, Policy Transparency, and Privacy Safeguards.
+- **Score Visualizations**: Integrated composite letter grade badges, ranking, and sub-category grading grids on the dashboard and profile pages.
+- **Methodology Documentation**: Documented the point breakdowns, grading scales, and calculation methodology on the Methodology page.
+- **Vitest Unit Tests**: Added `src/lib/__tests__/scoring.test.ts` to validate scoring logic and grading rules.
+
+## [Phase 3] - 2026-06-21
+
+### Added
+- **Watchdog Crawler Pipeline**: Implemented `src/lib/watchdog.ts` to fetch policy texts, strip boilerplate HTML elements, hash content, and detect changes.
+- **Change Log Timeline Route**: Created `/changelog` with status/company filters and statistics.
+- **Line-by-Line Diff Viewer**: Built an expandable diff visualizer showing added (green +) and removed (red -) policy statements.
+- **RSS XML Feed**: Added an RSS XML endpoint at `/changelog/feed.xml`.
+- **Vitest Unit Tests**: Added `src/lib/__tests__/watchdog.test.ts` to verify text extraction, hashing, and diff generation.
+
