@@ -170,9 +170,6 @@ function MethodologyPage() {
                     >
                       Verified
                     </Badge>
-                    <code className="border border-border/40 bg-muted/40 px-1 py-0.5 font-mono text-[9px] text-muted-foreground">
-                      verified_from_policy_text
-                    </code>
                   </div>
                   <CardTitle className="mt-2 text-sm font-semibold text-foreground">
                     Verified
@@ -196,9 +193,6 @@ function MethodologyPage() {
                     >
                       Inferred
                     </Badge>
-                    <code className="border border-border/40 bg-muted/40 px-1 py-0.5 font-mono text-[9px] text-muted-foreground">
-                      inferred
-                    </code>
                   </div>
                   <CardTitle className="mt-2 text-sm font-semibold text-foreground">
                     Inferred
@@ -222,9 +216,6 @@ function MethodologyPage() {
                     >
                       Review Needed
                     </Badge>
-                    <code className="border border-border/40 bg-muted/40 px-1 py-0.5 font-mono text-[9px] text-muted-foreground">
-                      needs_review
-                    </code>
                   </div>
                   <CardTitle className="mt-2 text-sm font-semibold text-foreground">
                     Needs Review

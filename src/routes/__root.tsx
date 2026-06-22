@@ -3,7 +3,7 @@ import {
   Link,
   Outlet,
   Scripts,
-  createRootRoute,
+  createRootRouteWithContext,
 } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
@@ -24,7 +24,11 @@ import {
 
 import appCss from "../styles.css?url"
 
-export const Route = createRootRoute({
+interface RouterContext {
+  router?: any
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       {
@@ -138,7 +142,7 @@ function RootLayout() {
               <div className="space-y-3 text-left">
                 <div className="flex items-center gap-2 font-semibold text-foreground">
                   <ShieldCheck className="h-5 w-5 text-primary" />
-                  <span>PrivacyGPT Watchdog</span>
+                  <span>PrivacyGPT</span>
                 </div>
                 <p className="max-w-xs text-xs text-muted-foreground">
                   Verifying AI privacy commitments through transparency, custom

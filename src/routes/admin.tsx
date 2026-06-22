@@ -37,15 +37,38 @@ import {
 } from "@/components/ui/select"
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: async () => {
-    await checkAdminAuthFn()
+  component: AdminPage,
+  beforeLoad: async ({ context }) => {
+    try {
+      await checkAdminAuthFn()
+      return { auth: { success: true } }
+    } catch (error) {
+      if (error instanceof Response) {
+        if (context.router) {
+          context.router.stores.statusCode.set(error.status)
+        }
+        return { auth: { success: false } }
+      }
+      throw error
+    }
   },
-  loader: async () => {
+  loader: async ({ context }) => {
+    if (!context.auth || !context.auth.success) {
+      return { changelogs: [], snapshots: [], unauthorized: true }
+    }
     const [changelogs, snapshots] = await Promise.all([
       getChangelogsFn(),
       getSnapshotCountsFn(),
     ])
-    return { changelogs, snapshots }
+    return { changelogs, snapshots, unauthorized: false }
+  },
+  headers: ({ loaderData }): Record<string, string> => {
+    if (loaderData && (loaderData as any).unauthorized) {
+      return {
+        "WWW-Authenticate": 'Basic realm="Admin Portal"',
+      }
+    }
+    return {}
   },
   head: () => ({
     meta: [
@@ -67,7 +90,7 @@ function ChangelogReview({ id }: { id: number }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSubmitting(true)
     setError(null)
@@ -112,11 +135,40 @@ function ChangelogReview({ id }: { id: number }) {
   )
 }
 
-export default function AdminPage() {
-  const { changelogs, snapshots } = Route.useLoaderData()
+function AdminPage() {
+  const { changelogs, snapshots, unauthorized } = Route.useLoaderData()
   const [companyFilter, setCompanyFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("pending_review") // Default to pending review
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
+
+  if (unauthorized) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-24 text-center">
+        <Card className="border-destructive/30 bg-destructive/5 p-6 shadow-sm">
+          <CardHeader className="flex flex-col items-center">
+            <Lock className="h-12 w-12 text-destructive" />
+            <CardTitle className="mt-4 text-xl font-bold">401 - Unauthorized</CardTitle>
+            <CardDescription className="mt-2 text-center text-sm text-muted-foreground">
+              You must be logged in as an administrator to access the admin portal.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="mt-4 flex flex-col gap-2">
+            <Button
+              onClick={() => window.location.reload()}
+              className="rounded-none bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+            >
+              Log In / Refresh Page
+            </Button>
+            <Link to="/">
+              <Button variant="outline" className="w-full rounded-none">
+                Back to Dashboard
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   // Get unique companies from snapshots for filter dropdown
   const trackedCompanies = Array.from(
@@ -291,11 +343,10 @@ export default function AdminPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`rounded-full p-1.5 ${
-                            isPending
-                              ? "bg-chart-1/20 text-chart-1"
-                              : "bg-chart-5/10 text-chart-5"
-                          }`}
+                          className={`rounded-full p-1.5 ${isPending
+                            ? "bg-chart-1/20 text-chart-1"
+                            : "bg-chart-5/10 text-chart-5"
+                            }`}
                         >
                           {isPending ? (
                             <AlertCircle className="h-4 w-4" />

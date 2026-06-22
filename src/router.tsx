@@ -10,6 +10,12 @@ export function getRouter() {
     defaultPreloadStaleTime: 0,
   })
 
+  // Inject router into its own context so routes can access it
+  router.options.context = {
+    ...router.options.context,
+    router,
+  }
+
   return router
 }
 
