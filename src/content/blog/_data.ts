@@ -58,7 +58,13 @@ async function extractFrontmatter(content: string): Promise<BlogPostMeta> {
   for (const line of lines) {
     const [key, ...valueParts] = line.split(":")
     if (key && valueParts.length > 0) {
-      const value = valueParts.join(":").trim()
+      let value = valueParts.join(":").trim()
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1)
+      }
       meta[key.trim()] = value
     }
   }
