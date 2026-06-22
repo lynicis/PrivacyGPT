@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "fs"
 import { join } from "path"
+import slugify from "slugify"
 
 export interface BlogPostMeta {
   title: string
@@ -84,7 +85,7 @@ async function extractFrontmatter(content: string): Promise<BlogPostMeta> {
 
   return {
     title: meta.title || "",
-    slug: meta.slug || "",
+    slug: slugify(meta.slug || meta.title || "", { lower: true, strict: true }),
     description: meta.description || "",
     author: meta.author || "PrivacyGPT",
     tags: parseTags(meta.tags),
