@@ -1,3 +1,5 @@
+"use server"
+
 import { createServerFn } from "@tanstack/react-start"
 import { db, companies } from "./db"
 import { changelogs, snapshots, subscriptions } from "./db/schema"

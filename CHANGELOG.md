@@ -4,7 +4,8 @@ All notable changes to the **PrivacyGPT** project will be documented in this fil
 
 ## [Phase 1] - 2026-06-21
 
-### Added
+### Added in Phase 1
+
 - **Database Schema**: Implemented the core Drizzle ORM schema defining the `companies` database table (for comparison records) along with placeholder tables for `snapshots` (change detection), `changelogs`, and email `subscriptions` to support future phases.
 - **LibSQL Client Connection**: Configured Drizzle connection with `@libsql/client` (SQLite) supporting local file development and serverless deployability on Vercel.
 - **Seeding Pipeline**: Built a dedicated, repeatable seed script in `src/lib/db/seed.ts` loaded with curated and verified primary-source privacy data for 10 AI platforms.
@@ -17,7 +18,8 @@ All notable changes to the **PrivacyGPT** project will be documented in this fil
 
 ## [Phase 2] - 2026-06-21
 
-### Added
+### Added in Phase 2
+
 - **Scoring Engine**: Implemented robust scoring computations inside `src/lib/scoring.ts` to compute points, weights, composite scores, and letter grades.
 - **Customizable Weights Panel**: Built an interactive weights console on the main dashboard for Data Retention, Opt-out control, Model Training, Policy Transparency, and Privacy Safeguards.
 - **Score Visualizations**: Integrated composite letter grade badges, ranking, and sub-category grading grids on the dashboard and profile pages.
@@ -26,17 +28,18 @@ All notable changes to the **PrivacyGPT** project will be documented in this fil
 
 ## [Phase 3] - 2026-06-21
 
-### Added
+### Added in Phase 3
+
 - **Watchdog Crawler Pipeline**: Implemented `src/lib/watchdog.ts` to fetch policy texts, strip boilerplate HTML elements, hash content, and detect changes.
 - **Change Log Timeline Route**: Created `/changelog` with status/company filters and statistics.
 - **Line-by-Line Diff Viewer**: Built an expandable diff visualizer showing added (green +) and removed (red -) policy statements.
 - **RSS XML Feed**: Added an RSS XML endpoint at `/changelog/feed.xml`.
 - **Vitest Unit Tests**: Added `src/lib/__tests__/watchdog.test.ts` to verify text extraction, hashing, and diff generation.
 
-
 ## [Phase 4] - 2026-06-22
 
-### Added
+### Added in Phase 4
+
 - **Subscription API Handlers**: Implemented double opt-in email subscriptions in `src/lib/api.ts` with `subscribeEmailHandler`, `confirmSubscriptionHandler`, and `unsubscribeHandler`.
 - **Alert Notifications**: Updated `reviewChangelogFn` to query confirmed subscribers and print mock notification alerts to the console whenever policy changes are approved.
 - **In-App Admin Review Panel**: Added a custom inline review notes text area and "Approve & Alert Subscribers" button directly on the `/changelog` route under pending timeline entries.
