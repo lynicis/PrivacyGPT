@@ -41,6 +41,32 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       {
         title: "PrivacyGPT - AI Privacy Watchdog",
       },
+      {
+        name: "description",
+        content:
+          "PrivacyGPT monitors how major AI companies handle your conversational data. Compare privacy policies, training defaults, and opt-out mechanisms across AI platforms.",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:site_name",
+        content: "PrivacyGPT",
+      },
+      {
+        property: "og:title",
+        content: "PrivacyGPT - AI Privacy Watchdog",
+      },
+      {
+        property: "og:description",
+        content:
+          "PrivacyGPT monitors how major AI companies handle your conversational data. Compare privacy policies, training defaults, and opt-out mechanisms across AI platforms.",
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
     ],
     links: [
       {

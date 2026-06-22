@@ -32,6 +32,25 @@ import { Badge } from "@/components/ui/badge"
 
 export const Route = createFileRoute("/company/$companyKey")({
   loader: ({ params }) => getCompanyByKeyFn({ data: params.companyKey }),
+  head: ({ loaderData }) => {
+    const company = loaderData
+    if (!company) {
+      return {
+        meta: [{ title: "Company Not Found | PrivacyGPT" }],
+      }
+    }
+    return {
+      meta: [
+        {
+          title: `${company.companyName} ${company.productName} Privacy Policy Analysis | PrivacyGPT`,
+        },
+        {
+          name: "description",
+          content: `Detailed privacy analysis for ${company.companyName} ${company.productName}. See how they handle data training, opt-out, data retention, deletion rights, third-party sharing, and human review — verified from official policy documents.`,
+        },
+      ],
+    }
+  },
   component: CompanyDetailPage,
 })
 

@@ -126,7 +126,7 @@ To maintain code quality and compatibility, adhere to the following guidelines:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **privacygpt** (297 symbols, 638 relationships, 21 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **PrivacyGPT** (306 symbols, 653 relationships, 23 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
@@ -150,10 +150,10 @@ This project is indexed by GitNexus as **privacygpt** (297 symbols, 638 relation
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/privacygpt/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/privacygpt/clusters` | All functional areas |
-| `gitnexus://repo/privacygpt/processes` | All execution flows |
-| `gitnexus://repo/privacygpt/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/PrivacyGPT/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/PrivacyGPT/clusters` | All functional areas |
+| `gitnexus://repo/PrivacyGPT/processes` | All execution flows |
+| `gitnexus://repo/PrivacyGPT/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

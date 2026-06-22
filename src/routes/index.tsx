@@ -41,6 +41,19 @@ import type { Weights } from "../lib/scoring"
 
 export const Route = createFileRoute("/")({
   loader: () => getCompaniesFn(),
+  head: () => ({
+    meta: [
+      {
+        title:
+          "AI Privacy Watchdog — Compare AI Company Data Policies | PrivacyGPT",
+      },
+      {
+        name: "description",
+        content:
+          "Compare how major AI companies handle your conversational data. PrivacyGPT tracks model training defaults, opt-out mechanisms, and retention policies from verified source documents.",
+      },
+    ],
+  }),
   component: App,
 })
 

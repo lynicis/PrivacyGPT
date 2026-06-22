@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscribeUnsubscribeRouteImport } from './routes/subscribe.unsubscribe'
 import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
+import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as CompanyCompanyKeyRouteImport } from './routes/company.$companyKey'
 import { Route as ChangelogFeedDotxmlRouteImport } from './routes/changelog.feed[.]xml'
 import { Route as ApiCronWatchdogRouteImport } from './routes/api.cron.watchdog'
@@ -49,6 +50,11 @@ const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
   path: '/subscribe/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapXmlRoute = SitemapXmlRouteImport.update({
+  id: '/sitemap/xml',
+  path: '/sitemap/xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompanyCompanyKeyRoute = CompanyCompanyKeyRouteImport.update({
   id: '/company/$companyKey',
   path: '/company/$companyKey',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/subscribe/confirm': typeof SubscribeConfirmRoute
   '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
+    | '/sitemap/xml'
     | '/subscribe/confirm'
     | '/subscribe/unsubscribe'
     | '/api/cron/watchdog'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
+    | '/sitemap/xml'
     | '/subscribe/confirm'
     | '/subscribe/unsubscribe'
     | '/api/cron/watchdog'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
+    | '/sitemap/xml'
     | '/subscribe/confirm'
     | '/subscribe/unsubscribe'
     | '/api/cron/watchdog'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   ChangelogRoute: typeof ChangelogRouteWithChildren
   MethodologyRoute: typeof MethodologyRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
+  SitemapXmlRoute: typeof SitemapXmlRoute
   SubscribeConfirmRoute: typeof SubscribeConfirmRoute
   SubscribeUnsubscribeRoute: typeof SubscribeUnsubscribeRoute
   ApiCronWatchdogRoute: typeof ApiCronWatchdogRoute
@@ -190,6 +203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscribeConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap/xml': {
+      id: '/sitemap/xml'
+      path: '/sitemap/xml'
+      fullPath: '/sitemap/xml'
+      preLoaderRoute: typeof SitemapXmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/company/$companyKey': {
       id: '/company/$companyKey'
       path: '/company/$companyKey'
@@ -232,6 +252,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChangelogRoute: ChangelogRouteWithChildren,
   MethodologyRoute: MethodologyRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
+  SitemapXmlRoute: SitemapXmlRoute,
   SubscribeConfirmRoute: SubscribeConfirmRoute,
   SubscribeUnsubscribeRoute: SubscribeUnsubscribeRoute,
   ApiCronWatchdogRoute: ApiCronWatchdogRoute,

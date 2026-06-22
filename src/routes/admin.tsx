@@ -80,6 +80,10 @@ export const Route = createFileRoute("/admin")({
         content:
           "Admin portal to review and approve policy change log entries.",
       },
+      {
+        name: "robots",
+        content: "noindex, nofollow",
+      },
     ],
   }),
 })
@@ -147,15 +151,18 @@ function AdminPage() {
         <Card className="border-destructive/30 bg-destructive/5 p-6 shadow-sm">
           <CardHeader className="flex flex-col items-center">
             <Lock className="h-12 w-12 text-destructive" />
-            <CardTitle className="mt-4 text-xl font-bold">401 - Unauthorized</CardTitle>
+            <CardTitle className="mt-4 text-xl font-bold">
+              401 - Unauthorized
+            </CardTitle>
             <CardDescription className="mt-2 text-center text-sm text-muted-foreground">
-              You must be logged in as an administrator to access the admin portal.
+              You must be logged in as an administrator to access the admin
+              portal.
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-4 flex flex-col gap-2">
             <Button
               onClick={() => window.location.reload()}
-              className="rounded-none bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              className="rounded-none bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
             >
               Log In / Refresh Page
             </Button>
@@ -343,10 +350,11 @@ function AdminPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`rounded-full p-1.5 ${isPending
-                            ? "bg-chart-1/20 text-chart-1"
-                            : "bg-chart-5/10 text-chart-5"
-                            }`}
+                          className={`rounded-full p-1.5 ${
+                            isPending
+                              ? "bg-chart-1/20 text-chart-1"
+                              : "bg-chart-5/10 text-chart-5"
+                          }`}
                         >
                           {isPending ? (
                             <AlertCircle className="h-4 w-4" />

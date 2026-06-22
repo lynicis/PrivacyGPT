@@ -11,6 +11,18 @@ import {
 import { Badge } from "@/components/ui/badge"
 
 export const Route = createFileRoute("/methodology")({
+  head: () => ({
+    meta: [
+      {
+        title: "AI Privacy Scoring Methodology & Rubric | PrivacyGPT",
+      },
+      {
+        name: "description",
+        content:
+          "Understand how PrivacyGPT scores AI companies on data privacy. Our rubric covers model training, opt-out ease, retention, deletion rights, third-party sharing, and human review — all cited to primary sources.",
+      },
+    ],
+  }),
   component: MethodologyPage,
 })
 
