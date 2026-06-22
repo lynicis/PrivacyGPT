@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
-import { getBlogPosts } from "../content/blog/_data"
+import { getBlogPostsFn } from "../lib/api"
 
 export const Route = createFileRoute("/blog/")({
   loader: async () => {
-    const posts = await getBlogPosts()
+    const posts = await getBlogPostsFn()
     return { posts }
   },
   component: BlogIndex,

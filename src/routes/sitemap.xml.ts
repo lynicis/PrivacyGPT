@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { getDb, companies } from "../lib/db"
-import { getBlogPosts } from "@/content/blog/_data"
+import { getBlogPostsFn } from "../lib/api"
 
 export const Route = createFileRoute("/sitemap/xml")({
   server: {
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/sitemap/xml")({
                 lastVerifiedDate: companies.lastVerifiedDate,
               })
               .from(companies),
-            getBlogPosts(),
+            getBlogPostsFn(),
           ])
 
           const siteUrl = "https://privacygpt.lynicis.dev"

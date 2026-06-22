@@ -5,6 +5,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server"
 import { getDb, companies } from "./db"
 import { changelogs, snapshots } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
+import { getBlogPosts, getBlogPostBySlug } from "../content/blog/_data"
 
 export const getCompaniesFn = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -206,7 +207,7 @@ export const getRssFeedFn = createServerFn({ method: "GET" }).handler(
     <description>Automated tracking of privacy policy changes across major AI companies.</description>
     <language>en-us</language>
     <lastBuildDate>${now}</lastBuildDate>
-${items}
+    ${items}
   </channel>
 </rss>`
     } catch (error) {
@@ -215,3 +216,15 @@ ${items}
     }
   }
 )
+
+export const getBlogPostsFn = createServerFn({ method: "GET" }).handler(
+  async () => {
+    return getBlogPosts()
+  }
+)
+
+export const getBlogPostBySlugFn = createServerFn({ method: "GET" })
+  .validator((slug: string) => slug)
+  .handler(async ({ data: slug }) => {
+    return getBlogPostBySlug(slug)
+  })

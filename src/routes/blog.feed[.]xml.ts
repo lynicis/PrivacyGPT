@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { getBlogPosts } from "@/content/blog/_data"
+import { getBlogPostsFn } from "../lib/api"
 
 export const Route = createFileRoute("/blog/feed.xml")({
   server: {
     handlers: {
       GET: async () => {
         try {
-          const posts = await getBlogPosts()
+          const posts = await getBlogPostsFn()
 
           const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">

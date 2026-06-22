@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeft, Calendar, Clock, User, Tag } from "lucide-react"
-import { getBlogPostBySlug } from "../content/blog/_data"
+import { getBlogPostBySlugFn } from "../lib/api"
 import { lazy, Suspense, useMemo } from "react"
 
 const postModules = import.meta.glob<{ default: React.ComponentType<any> }>(
@@ -9,7 +9,7 @@ const postModules = import.meta.glob<{ default: React.ComponentType<any> }>(
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params }) => {
-    const post = await getBlogPostBySlug(params.slug)
+    const post = await getBlogPostBySlugFn({ data: params.slug })
     if (!post) {
       throw new Error("Post not found")
     }
