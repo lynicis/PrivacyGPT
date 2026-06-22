@@ -1,7 +1,7 @@
 import { db } from "./db"
 import { companies, snapshots, changelogs } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
-import { createHash } from "crypto"
+import { createHash } from "node:crypto"
 
 /**
  * Strips HTML of scripts, styles, nav, footer, and tag markup,
@@ -163,7 +163,7 @@ export async function runWatchdog(): Promise<{
       .where(eq(snapshots.companyId, company.id))
       .orderBy(desc(snapshots.fetchedAt))
       .limit(1)
-      .then((rows) => rows[0] || null)
+      .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
 
     if (!latestSnapshot) {
       // First run — store baseline snapshot

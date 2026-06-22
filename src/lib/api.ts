@@ -105,7 +105,7 @@ export const reviewChangelogFn = createServerFn({ method: "POST" })
         .from(changelogs)
         .leftJoin(companies, eq(changelogs.companyId, companies.id))
         .where(eq(changelogs.id, data.id))
-        .then((rows) => rows[0] || null)
+        .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
 
       if (changelogEntry && changelogEntry.companyId) {
         const { companyId, companyName } = changelogEntry
@@ -242,7 +242,7 @@ export async function subscribeEmailHandler(data: {
           : isNull(subscriptions.companyId)
       )
     )
-    .then((rows) => rows[0] || null)
+    .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
 
   if (existing) {
     if (existing.status === "confirmed") {
@@ -314,7 +314,7 @@ export async function confirmSubscriptionHandler(data: { token: string }) {
     .select()
     .from(subscriptions)
     .where(eq(subscriptions.token, data.token))
-    .then((rows) => rows[0] || null)
+    .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
 
   if (!sub) {
     return { success: false, error: "Invalid confirmation token" }
@@ -333,7 +333,7 @@ export async function confirmSubscriptionHandler(data: { token: string }) {
       .select({ companyName: companies.companyName })
       .from(companies)
       .where(eq(companies.id, sub.companyId))
-      .then((rows) => rows[0] || null)
+      .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
     if (comp) {
       companyName = comp.companyName
     }
@@ -347,7 +347,7 @@ export async function unsubscribeHandler(data: { token: string }) {
     .select()
     .from(subscriptions)
     .where(eq(subscriptions.token, data.token))
-    .then((rows) => rows[0] || null)
+    .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
 
   if (!sub) {
     return { success: false, error: "Invalid unsubscribe token" }

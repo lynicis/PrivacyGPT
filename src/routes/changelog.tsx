@@ -68,12 +68,8 @@ function ChangelogReview({ id }: { id: number }) {
     setSubmitting(true)
     setError(null)
     try {
-      const res = await reviewChangelogFn({ data: { id, reviewNotes: notes } })
-      if (res.success) {
-        router.invalidate()
-      } else {
-        setError("Failed to approve change log entry.")
-      }
+      await reviewChangelogFn({ data: { id, reviewNotes: notes } })
+      router.invalidate()
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred.")
     } finally {
