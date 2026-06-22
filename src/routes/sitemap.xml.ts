@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { getDb, companies } from "../lib/db"
+import { getBlogPosts } from "@/content/blog/_data"
 
 export const Route = createFileRoute("/sitemap/xml")({
   server: {
@@ -7,12 +8,15 @@ export const Route = createFileRoute("/sitemap/xml")({
       GET: async () => {
         try {
           const db = await getDb()
-          const rows = await db
-            .select({
-              companyKey: companies.companyKey,
-              lastVerifiedDate: companies.lastVerifiedDate,
-            })
-            .from(companies)
+          const [rows, blogPosts] = await Promise.all([
+            db
+              .select({
+                companyKey: companies.companyKey,
+                lastVerifiedDate: companies.lastVerifiedDate,
+              })
+              .from(companies),
+            getBlogPosts(),
+          ])
 
           const siteUrl = "https://privacygpt.lynicis.dev"
           const now = new Date().toISOString()
@@ -36,11 +40,25 @@ export const Route = createFileRoute("/sitemap/xml")({
               changefreq: "daily",
               priority: "0.7",
             },
+            {
+              loc: `${siteUrl}/blog`,
+              lastmod: now,
+              changefreq: "weekly",
+              priority: "0.8",
+            },
             ...rows.map((row) => ({
               loc: `${siteUrl}/company/${row.companyKey}`,
               lastmod: row.lastVerifiedDate || now,
               changefreq: "weekly" as const,
               priority: "0.9",
+            })),
+            ...blogPosts.map((post) => ({
+              loc: `${siteUrl}/blog/${post.slug}`,
+              lastmod: post.publishDate
+                ? new Date(post.publishDate).toISOString()
+                : now,
+              changefreq: "monthly" as const,
+              priority: "0.7",
             })),
           ]
 
