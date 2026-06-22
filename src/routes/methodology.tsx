@@ -56,11 +56,14 @@ function MethodologyPage() {
               <Award className="h-6 w-6" /> Grounded in Primary Evidence
             </CardTitle>
             <CardDescription className="mt-2 text-sm leading-relaxed text-primary-foreground/80">
-              PrivacyGPT is built on three core pillars: **falsifiability,
-              visible citations, and strict neutrality**. Unlike static review
-              blogs, we do not guess or rely on hearsay. Every data point in our
-              tracker is mapped to a specific clause in the company's publicly
-              available legal terms and cited with a clickable direct URL.
+              PrivacyGPT is built on three core pillars:{" "}
+              <strong>
+                falsifiability, visible citations, and strict neutrality
+              </strong>
+              . Unlike static review blogs, we do not guess or rely on hearsay.
+              Every data point in our tracker is mapped to a specific clause in
+              the company's publicly available legal terms and cited with a
+              clickable direct URL.
             </CardDescription>
           </CardHeader>
         </Card>
