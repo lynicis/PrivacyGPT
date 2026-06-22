@@ -120,6 +120,19 @@ function RootLayout() {
                 Methodology
               </Link>
               <Link
+                to="/compare"
+                activeProps={{
+                  className:
+                    "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
+                }}
+                inactiveProps={{
+                  className:
+                    "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                }}
+              >
+                Compare
+              </Link>
+              <Link
                 to="/changelog"
                 activeProps={{
                   className:

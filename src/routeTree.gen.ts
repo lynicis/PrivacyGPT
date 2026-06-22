@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MethodologyRouteImport } from './routes/methodology'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,6 +22,11 @@ import { Route as ApiCronWatchdogRouteImport } from './routes/api.cron.watchdog'
 const MethodologyRoute = MethodologyRouteImport.update({
   id: '/methodology',
   path: '/methodology',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChangelogRoute = ChangelogRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/changelog': typeof ChangelogRouteWithChildren
+  '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/changelog': typeof ChangelogRouteWithChildren
+  '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/changelog': typeof ChangelogRouteWithChildren
+  '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/changelog'
+    | '/compare'
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/changelog'
+    | '/compare'
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/changelog'
+    | '/compare'
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ChangelogRoute: typeof ChangelogRouteWithChildren
+  CompareRoute: typeof CompareRoute
   MethodologyRoute: typeof MethodologyRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
   SitemapXmlRoute: typeof SitemapXmlRoute
@@ -140,6 +153,13 @@ declare module '@tanstack/react-router' {
       path: '/methodology'
       fullPath: '/methodology'
       preLoaderRoute: typeof MethodologyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/changelog': {
@@ -210,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ChangelogRoute: ChangelogRouteWithChildren,
+  CompareRoute: CompareRoute,
   MethodologyRoute: MethodologyRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
   SitemapXmlRoute: SitemapXmlRoute,
