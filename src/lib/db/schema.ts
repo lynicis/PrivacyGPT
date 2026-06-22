@@ -17,6 +17,7 @@ export const companies = sqliteTable("companies", {
   // Opt Out Policy
   optOutAvailable: integer("opt_out_available", { mode: "boolean" }).notNull(),
   optOutHow: text("opt_out_how").notNull(), // Settings toggle vs. support form, etc.
+  optOutUrl: text("opt_out_url"), // Nullable — direct link to opt-out page
 
   // Retention & Deletion
   retentionPeriod: text("retention_period").notNull(), // E.g., '30 days if history disabled'
