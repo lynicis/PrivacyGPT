@@ -190,10 +190,10 @@ function CompanyDetailPage() {
                     {company.productName}
                   </Badge>
                 </div>
-                {company.trainsOnDataByDefault && (
-                  <div className="mb-3 inline-flex items-center gap-1.5 border border-red-500/20 bg-red-500/5 px-3 py-1 text-sm font-semibold text-red-600 dark:text-red-400">
+                {company.confidence === "unverified" && (
+                  <div className="mb-3 inline-flex items-center gap-1.5 border border-amber-500/20 bg-amber-500/5 px-3 py-1 text-sm font-semibold text-amber-600 dark:text-amber-400">
                     <AlertTriangle className="h-4 w-4" />
-                    Trains on your data by default
+                    Privacy policy not verified — data may be inaccurate
                   </div>
                 )}
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
