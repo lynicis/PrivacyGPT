@@ -15,8 +15,8 @@ interface Score {
 }
 
 interface CompareScoresProps {
-  scoresA: Record<string, Score>
-  scoresB: Record<string, Score>
+  scoresA: Record<string, Score | undefined>
+  scoresB: Record<string, Score | undefined>
   totalA: Score
   totalB: Score
   nameA: string

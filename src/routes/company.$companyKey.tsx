@@ -64,7 +64,7 @@ export const Route = createFileRoute("/company/$companyKey")({
 function CompanyDetailPage() {
   const company = Route.useLoaderData()
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+   
   if (!company) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">

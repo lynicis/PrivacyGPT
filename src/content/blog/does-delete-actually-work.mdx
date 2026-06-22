@@ -11,79 +11,68 @@ type: "BlogPosting"
 
 import { CompanyLink } from "@/components/CompanyLink"
 
-# Does Delete Actually Work?
+# Does delete actually work?
 
-You hit "delete" on that embarrassing AI conversation. But does it actually disappear?
+You hit delete on that embarrassing or confidential AI conversation. It disappears from your sidebar, and you move on. But hiding a chat from your own screen is not the same as purging it from the company's servers.
 
-## The Short Answer
+## The short answer
 
-**It depends.** Some platforms delete your data. Others keep it for "safety" or "improvement" purposes. And almost none of them delete it from trained models.
+Usually, no.
 
-## What "Delete" Really Means
+When you delete a conversation, the platform hides it from your history immediately, but the underlying data continues to exist elsewhere. It remains in server backups for weeks or months, stays in safety logs for compliance monitoring, and, if the company used your logs to train the model, it is baked into the neural network forever.
 
-When you delete data from most AI platforms, here's what typically happens:
+## What delete actually means
 
-1. **Your account data is removed** from active databases
-2. **Backup copies may persist** for weeks or months
-3. **Aggregated/anonymized data** is often retained
-4. **AI models** that were trained on your data cannot be "untrained"
+When you click the delete button on most AI platforms, a few things happen in the background:
 
-## Platform Breakdown
+- The app removes the chat from your active dashboard.
+- The company keeps the raw conversation logs on its servers for a safety period, usually 30 days, to detect policy violations.
+- The data remains inside system-wide database backups until those backups are naturally overwritten.
+- If the model already trained on your prompts, the system cannot selectively delete or forget your specific words without retraining the model from scratch.
+
+## Where the major platforms stand
 
 ### ChatGPT (OpenAI)
 
-<CompanyLink name="openai">OpenAI</CompanyLink> allows you to delete
-conversations, but:
-
-- Deleted conversations are removed from your history
-- OpenAI may retain data for up to 30 days for safety
-- Data used for training is not removed from models
+If you use <CompanyLink name="openai">OpenAI</CompanyLink>'s ChatGPT, deleting a chat removes it from your sidebar. However, the company retains all deleted conversations for up to 30 days to check for abuse. If you did not turn off chat history and training in your settings before having the conversation, your data was likely used to train future models, and you cannot get it removed.
 
 ### Claude (Anthropic)
 
-<CompanyLink name="anthropic">Anthropic</CompanyLink>'s deletion policy:
-
-- Conversations can be deleted from your account
-- Anthropic retains data for up to 30 days
-- Training data is not retroactively removed
+<CompanyLink name="anthropic">Anthropic</CompanyLink>'s approach to Claude is
+similar. Deleting a conversation removes it from your history, but the logs
+remain on their servers for up to 30 days. They state they do not train on
+consumer data by default, but if you are on a legacy plan or opted in, any data
+already used for training remains in the model weights permanently.
 
 ### Gemini (Google)
 
-Google's approach:
-
-- You can delete Gemini conversations
-- Google may retain data for improvement purposes
-- Data used for training persists in models
+Google's policy has a significant caveat. While deleting Gemini activity removes the logs from your Google Account, the company employs human reviewers to read and annotate selected prompts. If a reviewer has annotated your prompt to help improve Google's services, that snippet is detached from your account and retained for up to three years.
 
 ### Grok (xAI)
 
-<CompanyLink name="xai">xAI</CompanyLink>'s policy:
+The policies at <CompanyLink name="xai">xAI</CompanyLink> are less transparent. You can clear your conversation history, but the company shares very little information about how long they keep deleted logs or exactly how they handle training data for Grok.
 
-- Conversations can be deleted
-- Limited information on retention periods
-- Training data policies unclear
+## The realities of AI deletion
 
-## The Uncomfortable Truth
+Purging conversational data is technically complex for several reasons.
 
-Even when platforms delete your data:
+First, models cannot unlearn specific details. Once a model trains on your prompts, those words are converted into mathematical weights across billions of parameters. There is no delete key for a model's memory. The only way to remove your data is to retrain the model entirely, which is too expensive for companies to do for individual requests.
 
-1. **Models remember** — AI models don't "forget" what they learned
-2. **Backups persist** — Your data may exist in backups for months
-3. **Anonymization isn't perfect** — "Anonymized" data can often be re-identified
-4. **Third parties** — Data shared with partners may not be deleted
+Second, anonymization is fragile. Many companies claim they strip usernames and personal details before saving chats for research. However, security researchers have demonstrated that unique writing styles, specific code structures, and context clues make it easy to link supposedly anonymous text back to a specific person.
 
-## What You Should Do
+Finally, backups and partners create extra copies. Even when a platform deletes a conversation from its main database, that log persists in backup files for months. Furthermore, if the company shared your chats with human labelers or third-party contractors, managing the deletion of those external copies is difficult to verify.
 
-1. **Read the privacy policy** — know what you're agreeing to
-2. **Delete conversations regularly** — don't wait
-3. **Use privacy-focused tools** — prefer platforms with strong deletion policies
-4. **Minimize sensitive data** — don't share more than necessary
-5. **Check PrivacyGPT** — see which companies actually delete your data
+## How to protect your data
 
-## How PrivacyGPT Helps
+- Turn off training options immediately. Every major chat interface has a setting to disable training. Turn this off before you write anything sensitive.
+- Keep secrets out of the prompt window. Never paste API keys, customer databases, proprietary source code, or personal medical information into a public chat box.
+- Clear your history regularly. While this does not instantly wipe the servers, it prevents someone who gains access to your account from reading your past conversations.
+- Check PrivacyGPT. We track these policies continuously. You can view our [company profiles](/) to see which platforms offer the best privacy controls and keep your data for the shortest periods.
 
-Our [company profiles](/) detail exactly how each AI company handles data deletion, retention periods, and whether they actually honor deletion requests.
+## How PrivacyGPT helps
+
+Our [company profiles](/) show the exact retention periods, deletion behaviors, and training settings for every major AI provider, helping you decide which tools are safe for your work.
 
 ---
 
-_Last verified: June 2026. Privacy policies change frequently. Always check the platform's current policies._
+Last verified: June 2026. Privacy policies change frequently. Always check the platform's current policies.

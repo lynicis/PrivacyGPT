@@ -53,7 +53,7 @@ export const Route = createFileRoute("/admin")({
     }
   },
   loader: async ({ context }) => {
-    if (!context.auth || !context.auth.success) {
+    if (!context.auth.success) {
       return { changelogs: [], snapshots: [], unauthorized: true }
     }
     const [changelogs, snapshots] = await Promise.all([

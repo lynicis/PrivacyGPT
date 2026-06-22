@@ -36,7 +36,9 @@ function BlogPost() {
 
   const PostComponent = useMemo(() => {
     const matchKey = `../content/blog/${post.slug}.mdx`
-    const loadPost = postModules[matchKey]
+    const loadPost = postModules[matchKey] as
+      | (() => Promise<{ default: React.ComponentType<any> }>)
+      | undefined
     if (!loadPost) return null
     return lazy(loadPost)
   }, [post.slug])
@@ -91,7 +93,7 @@ function BlogPost() {
       </header>
 
       {/* Content */}
-      <div className="prose prose-neutral dark:prose-invert mt-8 max-w-none">
+      <div className="prose mt-8 max-w-none prose-neutral dark:prose-invert">
         {PostComponent ? (
           <Suspense fallback={<div>Loading post...</div>}>
             <PostComponent />

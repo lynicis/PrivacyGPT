@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync } from "fs"
-import { join } from "path"
+import { readdirSync, readFileSync } from "node:fs"
+import { join } from "node:path"
 import slugify from "slugify"
 
 export interface BlogPostMeta {
@@ -75,7 +75,7 @@ async function extractFrontmatter(content: string): Promise<BlogPostMeta> {
     if (!tagsStr) return []
     try {
       // Remove outer brackets and quotes/spaces
-      const clean = tagsStr.replace(/[\[\]"]/g, "").trim()
+      const clean = tagsStr.replace(/[[\]"]/g, "").trim()
       if (!clean) return []
       return clean.split(",").map((t) => t.trim())
     } catch {
