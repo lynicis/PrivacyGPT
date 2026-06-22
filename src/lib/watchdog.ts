@@ -2,6 +2,7 @@ import { getDb } from "./db"
 import { companies, snapshots, changelogs } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
 import { createHash } from "node:crypto"
+import FirecrawlApp from "@mendable/firecrawl-js"
 
 /**
  * Strips HTML of scripts, styles, nav, footer, and tag markup,
@@ -63,8 +64,40 @@ export function stripHtmlToText(html: string): string {
 }
 
 /**
+ * Attempts to scrape a URL using Firecrawl API.
+ * Returns null if FIRECRAWL_API_KEY is not set or scraping fails.
+ */
+async function scrapeWithFirecrawl(
+  url: string
+): Promise<{ text: string; raw: string } | null> {
+  const apiKey = process.env.FIRECRAWL_API_KEY
+  if (!apiKey) return null
+
+  try {
+    const app = new FirecrawlApp({
+      apiKey,
+      apiUrl: "https://api.firecrawl.dev",
+    })
+    const result = await app.scrape(url, {
+      formats: ["markdown"],
+      onlyMainContent: true,
+      timeout: 30000,
+    })
+
+    const markdown = (result as any).markdown
+    if (!markdown) return null
+
+    console.log(`[watchdog] Firecrawl fallback succeeded for ${url}`)
+    return { text: markdown, raw: markdown }
+  } catch (error) {
+    console.warn(`[watchdog] Firecrawl fallback failed for ${url}:`, error)
+    return null
+  }
+}
+
+/**
  * Fetches the raw HTML from a URL and returns cleaned text.
- * Wraps the network call in a try/catch to handle bot protection or downtime.
+ * Uses plain fetch first; falls back to Firecrawl if blocked or on error.
  */
 export async function fetchPolicyText(
   url: string
@@ -79,19 +112,21 @@ export async function fetchPolicyText(
       signal: AbortSignal.timeout(15000),
     })
 
-    if (!response.ok) {
-      console.warn(
-        `[watchdog] HTTP ${response.status} fetching ${url} — skipping`
-      )
-      return null
+    if (response.ok) {
+      const raw = await response.text()
+      const text = stripHtmlToText(raw)
+      return { text, raw }
     }
 
-    const raw = await response.text()
-    const text = stripHtmlToText(raw)
-    return { text, raw }
+    // Fetch failed — try Firecrawl as fallback
+    console.warn(
+      `[watchdog] HTTP ${response.status} fetching ${url} — trying Firecrawl fallback`
+    )
+    return await scrapeWithFirecrawl(url)
   } catch (error) {
-    console.warn(`[watchdog] Failed to fetch ${url}:`, error)
-    return null
+    // Network error or timeout — try Firecrawl as fallback
+    console.warn(`[watchdog] Failed to fetch ${url}, trying Firecrawl:`, error)
+    return await scrapeWithFirecrawl(url)
   }
 }
 
