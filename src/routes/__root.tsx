@@ -1,3 +1,4 @@
+import { useState } from "react"
 import {
   HeadContent,
   Link,
@@ -84,6 +85,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootLayout() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const navLinks = [
+    { to: "/", label: "Dashboard", exact: true },
+    { to: "/methodology", label: "Methodology" },
+    { to: "/compare", label: "Compare" },
+    { to: "/changelog", label: "Change Log" },
+  ]
+
   return (
     <ThemeProvider defaultTheme="system" storageKey="theme">
       <div className="flex min-h-screen flex-col bg-background font-sans text-foreground selection:bg-accent selection:text-accent-foreground">
@@ -99,63 +109,97 @@ function RootLayout() {
                 PrivacyGPT
               </Link>
             </div>
-            <nav className="flex items-center gap-6">
-              <Link
-                to="/"
-                activeProps={{
-                  className:
-                    "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
-                }}
-                inactiveProps={{
-                  className:
-                    "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                }}
-                activeOptions={{ exact: true }}
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/methodology"
-                activeProps={{
-                  className:
-                    "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
-                }}
-                inactiveProps={{
-                  className:
-                    "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                }}
-              >
-                Methodology
-              </Link>
-              <Link
-                to="/compare"
-                activeProps={{
-                  className:
-                    "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
-                }}
-                inactiveProps={{
-                  className:
-                    "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                }}
-              >
-                Compare
-              </Link>
-              <Link
-                to="/changelog"
-                activeProps={{
-                  className:
-                    "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
-                }}
-                inactiveProps={{
-                  className:
-                    "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                }}
-              >
-                Change Log
-              </Link>
+
+            {/* Desktop nav */}
+            <nav className="hidden items-center gap-6 md:flex">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  activeProps={{
+                    className:
+                      "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
+                  }}
+                  inactiveProps={{
+                    className:
+                      "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                  }}
+                  activeOptions={{ exact: link.exact }}
+                >
+                  {link.label}
+                </Link>
+              ))}
               <ThemeToggle />
             </nav>
+
+            {/* Mobile controls */}
+            <div className="flex items-center gap-3 md:hidden">
+              <ThemeToggle />
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-expanded={mobileMenuOpen}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              >
+                {mobileMenuOpen ? (
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile menu dropdown */}
+          {mobileMenuOpen && (
+            <nav className="border-t border-border bg-background/95 backdrop-blur-md md:hidden">
+              <div className="space-y-1 px-4 py-3">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setMobileMenuOpen(false)}
+                    activeProps={{
+                      className:
+                        "block rounded-md bg-accent/50 px-3 py-2 text-sm font-semibold text-primary",
+                    }}
+                    inactiveProps={{
+                      className:
+                        "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground",
+                    }}
+                    activeOptions={{ exact: link.exact }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          )}
         </header>
 
         {/* Page Content */}
@@ -236,15 +280,16 @@ function RootLayout() {
             </div>
 
             {/* Bottom bar */}
-            <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 sm:flex-row">
+            <div className="mt-10 flex flex-col items-center gap-3 border-t border-border/60 pt-6 sm:flex-row sm:justify-between">
               <p className="text-xs text-muted-foreground/60">
                 &copy; {new Date().getFullYear()} PrivacyGPT
               </p>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground/60">
-                <span>
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground/60">
+                <span className="hidden sm:inline">
                   Built as an open, verifiable watchdog for AI privacy
+                  <span className="mx-2 text-border/40">|</span>
                 </span>
-                <span className="text-border/40">|</span>
+                <span className="sm:hidden">Open watchdog for AI privacy</span>
                 <span>
                   Built by{" "}
                   <a
