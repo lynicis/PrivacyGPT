@@ -1,5 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { getChangelogsFn, getSnapshotCountsFn } from "../lib/api"
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
+import {
+  getChangelogsFn,
+  getSnapshotCountsFn,
+  reviewChangelogFn,
+} from "../lib/api"
 import { useState } from "react"
 import {
   ArrowLeft,
@@ -17,7 +21,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -54,6 +57,61 @@ export const Route = createFileRoute("/changelog")({
   }),
 })
 
+function ChangelogReview({ id }: { id: number }) {
+  const router = useRouter()
+  const [notes, setNotes] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setError(null)
+    try {
+      const res = await reviewChangelogFn({ data: { id, reviewNotes: notes } })
+      if (res.success) {
+        router.invalidate()
+      } else {
+        setError("Failed to approve change log entry.")
+      }
+    } catch (err: any) {
+      setError(err?.message || "An unexpected error occurred.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="space-y-1.5">
+        <label
+          htmlFor={`notes-${id}`}
+          className="text-xs font-medium text-muted-foreground"
+        >
+          Review Notes / Summary of Changes
+        </label>
+        <textarea
+          id={`notes-${id}`}
+          rows={3}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="e.g. Google updated their data collection wording regarding workspace integration..."
+          className="w-full rounded-none border border-border bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+          required
+        />
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <Button
+        type="submit"
+        disabled={submitting}
+        className="h-auto rounded-none bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95"
+      >
+        {submitting ? "Approving..." : "Approve & Alert Subscribers"}
+      </Button>
+    </form>
+  )
+}
+
 function ChangelogPage() {
   const { changelogs, snapshots } = Route.useLoaderData()
   const [companyFilter, setCompanyFilter] = useState<string>("all")
@@ -62,9 +120,7 @@ function ChangelogPage() {
 
   // Get unique companies from snapshots for filter dropdown
   const trackedCompanies = Array.from(
-    new Map(
-      snapshots.map((s) => [s.companyKey, s.companyName])
-    ).entries()
+    new Map(snapshots.map((s) => [s.companyKey, s.companyName])).entries()
   ).sort((a, b) => (a[1] || "").localeCompare(b[1] || ""))
 
   // Filter changelogs
@@ -210,17 +266,10 @@ function ChangelogPage() {
               </CardTitle>
               <CardDescription>
                 {changelogs.length === 0
-                  ? "The watchdog crawler has not detected any privacy policy changes yet. Run the crawler to start monitoring."
+                  ? "The watchdog crawler has not detected any privacy policy changes yet."
                   : "Try adjusting your filters to see more results."}
               </CardDescription>
             </CardHeader>
-            {changelogs.length === 0 && (
-              <CardFooter className="justify-center">
-                <code className="bg-muted px-3 py-1.5 text-xs">
-                  bun run src/lib/watchdog.ts
-                </code>
-              </CardFooter>
-            )}
           </Card>
         ) : (
           <div className="space-y-4">
@@ -275,9 +324,7 @@ function ChangelogPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge
-                          variant={isPending ? "outline" : "secondary"}
-                        >
+                        <Badge variant={isPending ? "outline" : "secondary"}>
                           {isPending ? "Pending Review" : "Reviewed"}
                         </Badge>
                       </div>
@@ -313,7 +360,7 @@ function ChangelogPage() {
                         )}
 
                         {/* Review notes */}
-                        {entry.reviewNotes && (
+                        {entry.reviewNotes ? (
                           <div className="border border-border bg-muted/30 p-3">
                             <div className="mb-1 text-xs font-medium text-muted-foreground">
                               Review Notes
@@ -328,6 +375,15 @@ function ChangelogPage() {
                               </p>
                             )}
                           </div>
+                        ) : (
+                          isPending && (
+                            <div className="border border-border bg-muted/20 p-4">
+                              <div className="mb-2 text-xs font-medium text-muted-foreground">
+                                Admin Review Action
+                              </div>
+                              <ChangelogReview id={entry.id} />
+                            </div>
+                          )
                         )}
                       </div>
                     )}
@@ -347,10 +403,7 @@ function ChangelogPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {/* Group snapshots by company and show latest */}
               {(() => {
-                const latestByCompany = new Map<
-                  string,
-                  (typeof snapshots)[0]
-                >()
+                const latestByCompany = new Map<string, (typeof snapshots)[0]>()
                 for (const snap of snapshots) {
                   const key = snap.companyKey || ""
                   if (!latestByCompany.has(key)) {
@@ -370,16 +423,13 @@ function ChangelogPage() {
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
                         Last fetched:{" "}
-                        {new Date(snap.fetchedAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {new Date(snap.fetchedAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </Card>
                   )

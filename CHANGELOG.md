@@ -33,3 +33,15 @@ All notable changes to the **PrivacyGPT** project will be documented in this fil
 - **RSS XML Feed**: Added an RSS XML endpoint at `/changelog/feed.xml`.
 - **Vitest Unit Tests**: Added `src/lib/__tests__/watchdog.test.ts` to verify text extraction, hashing, and diff generation.
 
+
+## [Phase 4] - 2026-06-22
+
+### Added
+- **Subscription API Handlers**: Implemented double opt-in email subscriptions in `src/lib/api.ts` with `subscribeEmailHandler`, `confirmSubscriptionHandler`, and `unsubscribeHandler`.
+- **Alert Notifications**: Updated `reviewChangelogFn` to query confirmed subscribers and print mock notification alerts to the console whenever policy changes are approved.
+- **In-App Admin Review Panel**: Added a custom inline review notes text area and "Approve & Alert Subscribers" button directly on the `/changelog` route under pending timeline entries.
+- **Scheduled Watchdog Cron Endpoint**: Exposed `/api/cron/watchdog` supporting secure execution (authenticated via `Authorization` header check matching `CRON_SECRET`) for Vercel Cron.
+- **Subscription Confirmation/Unsubscription Routes**: Built `/subscribe/confirm` and `/subscribe/unsubscribe` page routes to handle double opt-in verification and quick opt-out actions.
+- **Cleaned Vercel UX**: Removed CLI commands from `/changelog` empty state for clean public-facing UX.
+- **Global Footer Subscription Form**: Added subscription email input and target company selector widget to the primary site layout footer.
+- **Unit Tests**: Added `src/lib/__tests__/subscriptions.test.ts` to test invalid email filtering, pending subscriptions, token confirmations, and unsubscriptions.

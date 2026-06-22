@@ -177,9 +177,7 @@ export async function runWatchdog(): Promise<{
       baselines++
     } else if (latestSnapshot.contentHash !== contentHash) {
       // Change detected!
-      console.log(
-        `[watchdog] ⚠ CHANGE DETECTED for ${company.companyName}!`
-      )
+      console.log(`[watchdog] ⚠ CHANGE DETECTED for ${company.companyName}!`)
 
       const { diffHtml } = generateDiff(latestSnapshot.rawContent, result.text)
 

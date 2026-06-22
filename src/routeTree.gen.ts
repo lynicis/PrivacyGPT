@@ -12,8 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SubscribeUnsubscribeRouteImport } from './routes/subscribe.unsubscribe'
+import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as CompanyCompanyKeyRouteImport } from './routes/company.$companyKey'
 import { Route as ChangelogFeedDotxmlRouteImport } from './routes/changelog.feed[.]xml'
+import { Route as ApiCronWatchdogRouteImport } from './routes/api.cron.watchdog'
 
 const MethodologyRoute = MethodologyRouteImport.update({
   id: '/methodology',
@@ -30,6 +33,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SubscribeUnsubscribeRoute = SubscribeUnsubscribeRouteImport.update({
+  id: '/subscribe/unsubscribe',
+  path: '/subscribe/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
+  id: '/subscribe/confirm',
+  path: '/subscribe/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompanyCompanyKeyRoute = CompanyCompanyKeyRouteImport.update({
   id: '/company/$companyKey',
   path: '/company/$companyKey',
@@ -40,6 +53,11 @@ const ChangelogFeedDotxmlRoute = ChangelogFeedDotxmlRouteImport.update({
   path: '/feed.xml',
   getParentRoute: () => ChangelogRoute,
 } as any)
+const ApiCronWatchdogRoute = ApiCronWatchdogRouteImport.update({
+  id: '/api/cron/watchdog',
+  path: '/api/cron/watchdog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +65,9 @@ export interface FileRoutesByFullPath {
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
+  '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +75,9 @@ export interface FileRoutesByTo {
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
+  '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +86,9 @@ export interface FileRoutesById {
   '/methodology': typeof MethodologyRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
+  '/subscribe/confirm': typeof SubscribeConfirmRoute
+  '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
+  '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,6 +98,9 @@ export interface FileRouteTypes {
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
+    | '/subscribe/confirm'
+    | '/subscribe/unsubscribe'
+    | '/api/cron/watchdog'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -78,6 +108,9 @@ export interface FileRouteTypes {
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
+    | '/subscribe/confirm'
+    | '/subscribe/unsubscribe'
+    | '/api/cron/watchdog'
   id:
     | '__root__'
     | '/'
@@ -85,6 +118,9 @@ export interface FileRouteTypes {
     | '/methodology'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
+    | '/subscribe/confirm'
+    | '/subscribe/unsubscribe'
+    | '/api/cron/watchdog'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -92,6 +128,9 @@ export interface RootRouteChildren {
   ChangelogRoute: typeof ChangelogRouteWithChildren
   MethodologyRoute: typeof MethodologyRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
+  SubscribeConfirmRoute: typeof SubscribeConfirmRoute
+  SubscribeUnsubscribeRoute: typeof SubscribeUnsubscribeRoute
+  ApiCronWatchdogRoute: typeof ApiCronWatchdogRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -117,6 +156,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/subscribe/unsubscribe': {
+      id: '/subscribe/unsubscribe'
+      path: '/subscribe/unsubscribe'
+      fullPath: '/subscribe/unsubscribe'
+      preLoaderRoute: typeof SubscribeUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subscribe/confirm': {
+      id: '/subscribe/confirm'
+      path: '/subscribe/confirm'
+      fullPath: '/subscribe/confirm'
+      preLoaderRoute: typeof SubscribeConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/company/$companyKey': {
       id: '/company/$companyKey'
       path: '/company/$companyKey'
@@ -130,6 +183,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/changelog/feed.xml'
       preLoaderRoute: typeof ChangelogFeedDotxmlRouteImport
       parentRoute: typeof ChangelogRoute
+    }
+    '/api/cron/watchdog': {
+      id: '/api/cron/watchdog'
+      path: '/api/cron/watchdog'
+      fullPath: '/api/cron/watchdog'
+      preLoaderRoute: typeof ApiCronWatchdogRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -151,6 +211,9 @@ const rootRouteChildren: RootRouteChildren = {
   ChangelogRoute: ChangelogRouteWithChildren,
   MethodologyRoute: MethodologyRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
+  SubscribeConfirmRoute: SubscribeConfirmRoute,
+  SubscribeUnsubscribeRoute: SubscribeUnsubscribeRoute,
+  ApiCronWatchdogRoute: ApiCronWatchdogRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

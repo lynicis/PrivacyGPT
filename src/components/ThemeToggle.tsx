@@ -2,7 +2,13 @@ import * as React from "react"
 import { Moon, Sun, Monitor } from "lucide-react"
 import { useTheme } from "./ThemeProvider"
 import type { Theme } from "./ThemeProvider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
@@ -13,17 +19,23 @@ export function ThemeToggle() {
   }, [])
 
   if (!mounted) {
-    return <div className="w-[110px] h-8 border border-border bg-background/50" />
+    return (
+      <div className="h-8 w-[110px] border border-border bg-background/50" />
+    )
   }
 
   return (
     <Select value={theme} onValueChange={(val) => setTheme(val as Theme)}>
-      <SelectTrigger className="w-[110px] h-8 rounded-none border-border bg-background px-2 text-xs">
+      <SelectTrigger className="h-8 w-[110px] rounded-none border-border bg-background px-2 text-xs">
         <SelectValue>
           <span className="flex items-center gap-1.5 font-medium">
-            {theme === "light" && <Sun className="h-3.5 w-3.5 text-amber-500" />}
+            {theme === "light" && (
+              <Sun className="h-3.5 w-3.5 text-amber-500" />
+            )}
             {theme === "dark" && <Moon className="h-3.5 w-3.5 text-blue-400" />}
-            {theme === "system" && <Monitor className="h-3.5 w-3.5 text-muted-foreground" />}
+            {theme === "system" && (
+              <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
             <span className="capitalize">{theme}</span>
           </span>
         </SelectValue>

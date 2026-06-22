@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest"
-import { 
-  calculateSubScores, 
-  calculateTotalScore, 
+import {
+  calculateSubScores,
+  calculateTotalScore,
   mapScoreToGrade,
-  DEFAULT_WEIGHTS
+  DEFAULT_WEIGHTS,
 } from "../scoring"
 
 describe("PrivacyGPT Scoring Logic Validation", () => {
@@ -60,7 +60,8 @@ describe("PrivacyGPT Scoring Logic Validation", () => {
       const safetyReviewCompany = {
         ...perfectCompany,
         humanReviewOfChats: true,
-        humanReviewConditions: "Reviewed only for abuse reports and security violations.",
+        humanReviewConditions:
+          "Reviewed only for abuse reports and security violations.",
       }
       const scores = calculateSubScores(safetyReviewCompany)
       expect(scores.humanReviewScore).toBe(80) // Safety restricted
@@ -77,7 +78,7 @@ describe("PrivacyGPT Scoring Logic Validation", () => {
     it("should return the correct weighted score for a mixed company", () => {
       const subScores = calculateSubScores(worstCompany)
       const total = calculateTotalScore(subScores, DEFAULT_WEIGHTS)
-      
+
       // Expected math:
       // trainingScore: 0 * 30 = 0
       // optOutScore: 40 * 20 = 800

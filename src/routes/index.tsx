@@ -1,26 +1,39 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { getCompaniesFn } from "../lib/api"
 import { useState, useMemo } from "react"
-import { 
-  Search, 
-  AlertTriangle, 
+import {
+  Search,
+  AlertTriangle,
   SlidersHorizontal,
   ExternalLink,
   BookOpen,
   ArrowUpDown,
   ChevronRight,
   Settings2,
-  Undo2
+  Undo2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { 
-  calculateSubScores, 
-  calculateTotalScore, 
+import {
+  calculateSubScores,
+  calculateTotalScore,
   mapScoreToGrade,
   DEFAULT_WEIGHTS,
 } from "../lib/scoring"
@@ -39,7 +52,14 @@ function App() {
   const [filterNoTraining, setFilterNoTraining] = useState(false)
   const [filterOptOut, setFilterOptOut] = useState(false)
   const [filterNoHumanReview, setFilterNoHumanReview] = useState(false)
-  const [sortBy, setSortBy] = useState<"score-desc" | "score-asc" | "name-asc" | "name-desc" | "training-first" | "confidence-first">("score-desc")
+  const [sortBy, setSortBy] = useState<
+    | "score-desc"
+    | "score-asc"
+    | "name-asc"
+    | "name-desc"
+    | "training-first"
+    | "confidence-first"
+  >("score-desc")
 
   // State for weights customization
   const [isWeightsExpanded, setIsWeightsExpanded] = useState(false)
@@ -54,14 +74,15 @@ function App() {
 
   // Calculate sum of weights for percentage calculation
   const totalWeightSum = useMemo(() => {
-    const sum = weights.trainingWeight + 
-                weights.optOutWeight + 
-                weights.retentionWeight + 
-                weights.deletionWeight + 
-                weights.sharingWeight + 
-                weights.humanReviewWeight;
-    return sum === 0 ? 1 : sum;
-  }, [weights]);
+    const sum =
+      weights.trainingWeight +
+      weights.optOutWeight +
+      weights.retentionWeight +
+      weights.deletionWeight +
+      weights.sharingWeight +
+      weights.humanReviewWeight
+    return sum === 0 ? 1 : sum
+  }, [weights])
 
   // Reset weights to default
   const handleResetWeights = () => {
@@ -92,9 +113,11 @@ function App() {
 
   // Calculate global ranks based on the total weighted score
   const companyRanks = useMemo(() => {
-    const sorted = [...scoredCompanies].sort((a, b) => b.totalScore - a.totalScore)
+    const sorted = [...scoredCompanies].sort(
+      (a, b) => b.totalScore - a.totalScore
+    )
     const ranks: Record<string, number> = {}
-    
+
     let currentRank = 1
     sorted.forEach((c, idx) => {
       // Handle ties in score
@@ -109,11 +132,16 @@ function App() {
   // Calculated stats based on scored companies
   const stats = useMemo(() => {
     const total = scoredCompanies.length
-    if (total === 0) return { total: 0, trainsDefault: 0, hasOptOut: 0, hasHumanReview: 0 }
-    
-    const trainsDefault = scoredCompanies.filter((c) => c.trainsOnDataByDefault).length
+    if (total === 0)
+      return { total: 0, trainsDefault: 0, hasOptOut: 0, hasHumanReview: 0 }
+
+    const trainsDefault = scoredCompanies.filter(
+      (c) => c.trainsOnDataByDefault
+    ).length
     const hasOptOut = scoredCompanies.filter((c) => c.optOutAvailable).length
-    const hasHumanReview = scoredCompanies.filter((c) => c.humanReviewOfChats).length
+    const hasHumanReview = scoredCompanies.filter(
+      (c) => c.humanReviewOfChats
+    ).length
     return { total, trainsDefault, hasOptOut, hasHumanReview }
   }, [scoredCompanies])
 
@@ -172,9 +200,14 @@ function App() {
     })
 
     return result
-  }, [scoredCompanies, searchQuery, filterNoTraining, filterOptOut, filterNoHumanReview, sortBy])
-
-
+  }, [
+    scoredCompanies,
+    searchQuery,
+    filterNoTraining,
+    filterOptOut,
+    filterNoHumanReview,
+    sortBy,
+  ])
 
   const renderConfidenceBadge = (confidence: string) => {
     switch (confidence) {
@@ -289,30 +322,31 @@ function App() {
 
       {/* Main Dashboard Area */}
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        
         {/* Customizable Weights Slider Controls Panel */}
         <Card className="mb-6 p-5">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <Settings2 className="w-4 h-4 text-primary" /> Customizable Privacy Weights
+              <CardTitle className="flex items-center gap-2 text-base font-bold">
+                <Settings2 className="h-4 w-4 text-primary" /> Customizable
+                Privacy Weights
               </CardTitle>
               <CardDescription>
-                Adjust the sliders below to weight the importance of each privacy factor.Ranks will update instantly.
+                Adjust the sliders below to weight the importance of each
+                privacy factor.Ranks will update instantly.
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="text-xs"
                 onClick={handleResetWeights}
               >
-                <Undo2 className="w-3.5 h-3.5 mr-1" /> Reset
+                <Undo2 className="mr-1 h-3.5 w-3.5" /> Reset
               </Button>
-              <Button 
-                variant="secondary" 
-                size="sm" 
+              <Button
+                variant="secondary"
+                size="sm"
                 className="text-xs"
                 onClick={() => setIsWeightsExpanded(!isWeightsExpanded)}
               >
@@ -322,23 +356,32 @@ function App() {
           </div>
 
           {isWeightsExpanded && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 border-t border-border mt-4 pt-4">
+            <div className="mt-4 grid gap-6 border-t border-border pt-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Weight 1 */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                   <span>Default Training Disabled</span>
-                  <span className="text-muted-foreground font-mono">
-                    {weights.trainingWeight} ({Math.round(weights.trainingWeight / totalWeightSum * 100)}%)
+                  <span className="font-mono text-muted-foreground">
+                    {weights.trainingWeight} (
+                    {Math.round(
+                      (weights.trainingWeight / totalWeightSum) * 100
+                    )}
+                    %)
                   </span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
                   step="5"
-                  value={weights.trainingWeight} 
-                  onChange={(e) => setWeights({ ...weights, trainingWeight: parseInt(e.target.value) })}
-                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                  value={weights.trainingWeight}
+                  onChange={(e) =>
+                    setWeights({
+                      ...weights,
+                      trainingWeight: parseInt(e.target.value),
+                    })
+                  }
+                  className="h-1 w-full cursor-pointer bg-muted accent-primary"
                 />
               </div>
 
@@ -346,18 +389,25 @@ function App() {
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                   <span>Opt-Out Ease</span>
-                  <span className="text-muted-foreground font-mono">
-                    {weights.optOutWeight} ({Math.round(weights.optOutWeight / totalWeightSum * 100)}%)
+                  <span className="font-mono text-muted-foreground">
+                    {weights.optOutWeight} (
+                    {Math.round((weights.optOutWeight / totalWeightSum) * 100)}
+                    %)
                   </span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
                   step="5"
-                  value={weights.optOutWeight} 
-                  onChange={(e) => setWeights({ ...weights, optOutWeight: parseInt(e.target.value) })}
-                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                  value={weights.optOutWeight}
+                  onChange={(e) =>
+                    setWeights({
+                      ...weights,
+                      optOutWeight: parseInt(e.target.value),
+                    })
+                  }
+                  className="h-1 w-full cursor-pointer bg-muted accent-primary"
                 />
               </div>
 
@@ -365,18 +415,27 @@ function App() {
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                   <span>Data Retention Timeline</span>
-                  <span className="text-muted-foreground font-mono">
-                    {weights.retentionWeight} ({Math.round(weights.retentionWeight / totalWeightSum * 100)}%)
+                  <span className="font-mono text-muted-foreground">
+                    {weights.retentionWeight} (
+                    {Math.round(
+                      (weights.retentionWeight / totalWeightSum) * 100
+                    )}
+                    %)
                   </span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
                   step="5"
-                  value={weights.retentionWeight} 
-                  onChange={(e) => setWeights({ ...weights, retentionWeight: parseInt(e.target.value) })}
-                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                  value={weights.retentionWeight}
+                  onChange={(e) =>
+                    setWeights({
+                      ...weights,
+                      retentionWeight: parseInt(e.target.value),
+                    })
+                  }
+                  className="h-1 w-full cursor-pointer bg-muted accent-primary"
                 />
               </div>
 
@@ -384,18 +443,27 @@ function App() {
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                   <span>Deletion Rights</span>
-                  <span className="text-muted-foreground font-mono">
-                    {weights.deletionWeight} ({Math.round(weights.deletionWeight / totalWeightSum * 100)}%)
+                  <span className="font-mono text-muted-foreground">
+                    {weights.deletionWeight} (
+                    {Math.round(
+                      (weights.deletionWeight / totalWeightSum) * 100
+                    )}
+                    %)
                   </span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
                   step="5"
-                  value={weights.deletionWeight} 
-                  onChange={(e) => setWeights({ ...weights, deletionWeight: parseInt(e.target.value) })}
-                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                  value={weights.deletionWeight}
+                  onChange={(e) =>
+                    setWeights({
+                      ...weights,
+                      deletionWeight: parseInt(e.target.value),
+                    })
+                  }
+                  className="h-1 w-full cursor-pointer bg-muted accent-primary"
                 />
               </div>
 
@@ -403,18 +471,25 @@ function App() {
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                   <span>Third-Party Sharing</span>
-                  <span className="text-muted-foreground font-mono">
-                    {weights.sharingWeight} ({Math.round(weights.sharingWeight / totalWeightSum * 100)}%)
+                  <span className="font-mono text-muted-foreground">
+                    {weights.sharingWeight} (
+                    {Math.round((weights.sharingWeight / totalWeightSum) * 100)}
+                    %)
                   </span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
                   step="5"
-                  value={weights.sharingWeight} 
-                  onChange={(e) => setWeights({ ...weights, sharingWeight: parseInt(e.target.value) })}
-                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                  value={weights.sharingWeight}
+                  onChange={(e) =>
+                    setWeights({
+                      ...weights,
+                      sharingWeight: parseInt(e.target.value),
+                    })
+                  }
+                  className="h-1 w-full cursor-pointer bg-muted accent-primary"
                 />
               </div>
 
@@ -422,18 +497,27 @@ function App() {
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                   <span>No Human Review</span>
-                  <span className="text-muted-foreground font-mono">
-                    {weights.humanReviewWeight} ({Math.round(weights.humanReviewWeight / totalWeightSum * 100)}%)
+                  <span className="font-mono text-muted-foreground">
+                    {weights.humanReviewWeight} (
+                    {Math.round(
+                      (weights.humanReviewWeight / totalWeightSum) * 100
+                    )}
+                    %)
                   </span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
                   step="5"
-                  value={weights.humanReviewWeight} 
-                  onChange={(e) => setWeights({ ...weights, humanReviewWeight: parseInt(e.target.value) })}
-                  className="w-full h-1 bg-muted accent-primary cursor-pointer"
+                  value={weights.humanReviewWeight}
+                  onChange={(e) =>
+                    setWeights({
+                      ...weights,
+                      humanReviewWeight: parseInt(e.target.value),
+                    })
+                  }
+                  className="h-1 w-full cursor-pointer bg-muted accent-primary"
                 />
               </div>
             </div>
@@ -468,12 +552,20 @@ function App() {
                   <SelectValue placeholder="Sort order" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="score-desc">Overall Score (High-Low)</SelectItem>
-                  <SelectItem value="score-asc">Overall Score (Low-High)</SelectItem>
+                  <SelectItem value="score-desc">
+                    Overall Score (High-Low)
+                  </SelectItem>
+                  <SelectItem value="score-asc">
+                    Overall Score (Low-High)
+                  </SelectItem>
                   <SelectItem value="name-asc">Company Name (A-Z)</SelectItem>
                   <SelectItem value="name-desc">Company Name (Z-A)</SelectItem>
-                  <SelectItem value="training-first">No Training First</SelectItem>
-                  <SelectItem value="confidence-first">Verified First</SelectItem>
+                  <SelectItem value="training-first">
+                    No Training First
+                  </SelectItem>
+                  <SelectItem value="confidence-first">
+                    Verified First
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -484,9 +576,9 @@ function App() {
             <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               <SlidersHorizontal className="h-3.5 w-3.5" /> Filters:
             </span>
-            
+
             <div className="flex items-center space-x-2">
-              <Switch 
+              <Switch
                 id="no-training"
                 checked={filterNoTraining}
                 onCheckedChange={setFilterNoTraining}
@@ -500,7 +592,7 @@ function App() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch 
+              <Switch
                 id="opt-out"
                 checked={filterOptOut}
                 onCheckedChange={setFilterOptOut}
@@ -514,7 +606,7 @@ function App() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch 
+              <Switch
                 id="no-human"
                 checked={filterNoHumanReview}
                 onCheckedChange={setFilterNoHumanReview}
@@ -531,7 +623,8 @@ function App() {
 
         {/* Results Counter */}
         <div className="mb-4 text-xs font-medium text-muted-foreground">
-          Showing {processedCompanies.length} of {scoredCompanies.length} companies
+          Showing {processedCompanies.length} of {scoredCompanies.length}{" "}
+          companies
         </div>
 
         {/* Grid View of Scored Cards */}
@@ -545,21 +638,21 @@ function App() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold font-mono text-muted-foreground bg-muted px-1.5 py-0.5 border border-border">
+                      <span className="border border-border bg-muted px-1.5 py-0.5 font-mono text-xs font-bold text-muted-foreground">
                         #{companyRanks[company.companyKey]}
                       </span>
                       <CardTitle className="text-lg font-bold text-foreground">
                         {company.companyName}
                       </CardTitle>
                     </div>
-                    <CardDescription className="text-xs font-medium mt-0.5">
+                    <CardDescription className="mt-0.5 text-xs font-medium">
                       {company.productName}
                     </CardDescription>
                   </div>
 
                   {/* Overall Grade Display */}
                   <div className="flex flex-col items-end gap-1.5">
-                    <div className="bg-primary text-primary-foreground font-mono font-bold text-sm px-2 py-0.5 border border-border select-none">
+                    <div className="border border-border bg-primary px-2 py-0.5 font-mono text-sm font-bold text-primary-foreground select-none">
                       {company.grade} ({company.totalScore})
                     </div>
                     {renderConfidenceBadge(company.confidence)}
@@ -569,30 +662,72 @@ function App() {
 
               <CardContent className="space-y-4 py-2">
                 {/* Category mini-grades grid */}
-                <div className="grid grid-cols-3 gap-1.5 text-[10px] border-t border-b border-border/60 py-2.5 my-1">
-                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
-                    <span className="text-[9px] text-muted-foreground truncate" title="Default Training">Training</span>
-                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.trainingScore)}</span>
+                <div className="my-1 grid grid-cols-3 gap-1.5 border-t border-b border-border/60 py-2.5 text-[10px]">
+                  <div className="flex flex-col justify-between border border-border/40 bg-muted/10 p-1 text-center">
+                    <span
+                      className="truncate text-[9px] text-muted-foreground"
+                      title="Default Training"
+                    >
+                      Training
+                    </span>
+                    <span className="mt-0.5 font-mono text-[11px] font-bold">
+                      {getSubScoreGrade(company.subScores.trainingScore)}
+                    </span>
                   </div>
-                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
-                    <span className="text-[9px] text-muted-foreground truncate" title="Opt-Out Ease">Opt-Out</span>
-                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.optOutScore)}</span>
+                  <div className="flex flex-col justify-between border border-border/40 bg-muted/10 p-1 text-center">
+                    <span
+                      className="truncate text-[9px] text-muted-foreground"
+                      title="Opt-Out Ease"
+                    >
+                      Opt-Out
+                    </span>
+                    <span className="mt-0.5 font-mono text-[11px] font-bold">
+                      {getSubScoreGrade(company.subScores.optOutScore)}
+                    </span>
                   </div>
-                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
-                    <span className="text-[9px] text-muted-foreground truncate" title="Retention length">Retention</span>
-                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.retentionScore)}</span>
+                  <div className="flex flex-col justify-between border border-border/40 bg-muted/10 p-1 text-center">
+                    <span
+                      className="truncate text-[9px] text-muted-foreground"
+                      title="Retention length"
+                    >
+                      Retention
+                    </span>
+                    <span className="mt-0.5 font-mono text-[11px] font-bold">
+                      {getSubScoreGrade(company.subScores.retentionScore)}
+                    </span>
                   </div>
-                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
-                    <span className="text-[9px] text-muted-foreground truncate" title="Deletion rights">Deletion</span>
-                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.deletionScore)}</span>
+                  <div className="flex flex-col justify-between border border-border/40 bg-muted/10 p-1 text-center">
+                    <span
+                      className="truncate text-[9px] text-muted-foreground"
+                      title="Deletion rights"
+                    >
+                      Deletion
+                    </span>
+                    <span className="mt-0.5 font-mono text-[11px] font-bold">
+                      {getSubScoreGrade(company.subScores.deletionScore)}
+                    </span>
                   </div>
-                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
-                    <span className="text-[9px] text-muted-foreground truncate" title="Third party sharing">Sharing</span>
-                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.sharingScore)}</span>
+                  <div className="flex flex-col justify-between border border-border/40 bg-muted/10 p-1 text-center">
+                    <span
+                      className="truncate text-[9px] text-muted-foreground"
+                      title="Third party sharing"
+                    >
+                      Sharing
+                    </span>
+                    <span className="mt-0.5 font-mono text-[11px] font-bold">
+                      {getSubScoreGrade(company.subScores.sharingScore)}
+                    </span>
                   </div>
-                  <div className="bg-muted/10 p-1 border border-border/40 text-center flex flex-col justify-between">
-                    <span className="text-[9px] text-muted-foreground truncate" title="Human review">Review</span>
-                    <span className="font-bold font-mono text-[11px] mt-0.5">{getSubScoreGrade(company.subScores.humanReviewScore)}</span>
+                  <div className="flex flex-col justify-between border border-border/40 bg-muted/10 p-1 text-center">
+                    <span
+                      className="truncate text-[9px] text-muted-foreground"
+                      title="Human review"
+                    >
+                      Review
+                    </span>
+                    <span className="mt-0.5 font-mono text-[11px] font-bold">
+                      {getSubScoreGrade(company.subScores.humanReviewScore)}
+                    </span>
                   </div>
                 </div>
 
@@ -660,7 +795,6 @@ function App() {
           )}
         </div>
       </main>
-
     </>
   )
 }

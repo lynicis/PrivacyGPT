@@ -7,7 +7,9 @@ type ThemeProviderState = {
   setTheme: (theme: Theme) => void
 }
 
-const ThemeProviderContext = React.createContext<ThemeProviderState | undefined>(undefined)
+const ThemeProviderContext = React.createContext<
+  ThemeProviderState | undefined
+>(undefined)
 
 export function ThemeProvider({
   children,
@@ -35,18 +37,19 @@ export function ThemeProvider({
     root.classList.remove("light", "dark")
 
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
         ? "dark"
         : "light"
 
       root.classList.add(systemTheme)
-      
+
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
       const handleSystemChange = (e: MediaQueryListEvent) => {
         root.classList.remove("light", "dark")
         root.classList.add(e.matches ? "dark" : "light")
       }
-      
+
       mediaQuery.addEventListener("change", handleSystemChange)
       return () => {
         mediaQuery.removeEventListener("change", handleSystemChange)
@@ -56,13 +59,16 @@ export function ThemeProvider({
     }
   }, [theme])
 
-  const value = React.useMemo(() => ({
-    theme,
-    setTheme: (nextTheme: Theme) => {
-      localStorage.setItem(storageKey, nextTheme)
-      setTheme(nextTheme)
-    },
-  }), [theme, storageKey])
+  const value = React.useMemo(
+    () => ({
+      theme,
+      setTheme: (nextTheme: Theme) => {
+        localStorage.setItem(storageKey, nextTheme)
+        setTheme(nextTheme)
+      },
+    }),
+    [theme, storageKey]
+  )
 
   return (
     <ThemeProviderContext.Provider {...props} value={value}>

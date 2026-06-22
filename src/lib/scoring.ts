@@ -1,19 +1,19 @@
 export interface SubScores {
-  trainingScore: number;
-  optOutScore: number;
-  retentionScore: number;
-  deletionScore: number;
-  sharingScore: number;
-  humanReviewScore: number;
+  trainingScore: number
+  optOutScore: number
+  retentionScore: number
+  deletionScore: number
+  sharingScore: number
+  humanReviewScore: number
 }
 
 export interface Weights {
-  trainingWeight: number;
-  optOutWeight: number;
-  retentionWeight: number;
-  deletionWeight: number;
-  sharingWeight: number;
-  humanReviewWeight: number;
+  trainingWeight: number
+  optOutWeight: number
+  retentionWeight: number
+  deletionWeight: number
+  sharingWeight: number
+  humanReviewWeight: number
 }
 
 export const DEFAULT_WEIGHTS: Weights = {
@@ -23,30 +23,30 @@ export const DEFAULT_WEIGHTS: Weights = {
   deletionWeight: 15,
   sharingWeight: 10,
   humanReviewWeight: 10,
-};
+}
 
 /**
  * Calculates individual points (0-100) for the six sub-categories
  */
 export function calculateSubScores(company: {
-  trainsOnDataByDefault: boolean;
-  trainsOnDataNuance: string;
-  optOutAvailable: boolean;
-  optOutHow: string;
-  retentionPeriod: string;
-  dataDeletedOnRequest: boolean;
-  dataDeletedOnRequestTimeframe: string;
-  thirdPartySharing: string;
-  humanReviewOfChats: boolean;
-  humanReviewConditions: string;
+  trainsOnDataByDefault: boolean
+  trainsOnDataNuance: string
+  optOutAvailable: boolean
+  optOutHow: string
+  retentionPeriod: string
+  dataDeletedOnRequest: boolean
+  dataDeletedOnRequestTimeframe: string
+  thirdPartySharing: string
+  humanReviewOfChats: boolean
+  humanReviewConditions: string
 }): SubScores {
   // 1. Model Training
-  const trainingScore = company.trainsOnDataByDefault ? 0 : 100;
+  const trainingScore = company.trainsOnDataByDefault ? 0 : 100
 
   // 2. Opt-Out Ease
-  let optOutScore = 0;
+  let optOutScore = 0
   if (company.optOutAvailable) {
-    const optOutText = company.optOutHow.toLowerCase();
+    const optOutText = company.optOutHow.toLowerCase()
     if (
       optOutText.includes("form") ||
       optOutText.includes("request") ||
@@ -54,15 +54,15 @@ export function calculateSubScores(company: {
       optOutText.includes("email") ||
       optOutText.includes("support")
     ) {
-      optOutScore = 40; // Harder opt-out (form or email)
+      optOutScore = 40 // Harder opt-out (form or email)
     } else {
-      optOutScore = 100; // Easy toggle or default off
+      optOutScore = 100 // Easy toggle or default off
     }
   }
 
   // 3. Retention length
-  let retentionScore = 0;
-  const retentionText = company.retentionPeriod.toLowerCase();
+  let retentionScore = 0
+  const retentionText = company.retentionPeriod.toLowerCase()
   if (
     retentionText.includes("no retention") ||
     retentionText.includes("never stored") ||
@@ -70,13 +70,13 @@ export function calculateSubScores(company: {
     retentionText.includes("zero retention") ||
     retentionText.startsWith("0 ")
   ) {
-    retentionScore = 100;
+    retentionScore = 100
   } else if (
     retentionText.includes("30 days") ||
     retentionText.includes("30-day") ||
     retentionText.includes("1 month")
   ) {
-    retentionScore = 80;
+    retentionScore = 80
   } else if (
     retentionText.includes("18 months") ||
     retentionText.includes("3 months") ||
@@ -85,13 +85,13 @@ export function calculateSubScores(company: {
     retentionText.includes("adjustable") ||
     retentionText.includes("activity")
   ) {
-    retentionScore = 50;
+    retentionScore = 50
   }
 
   // 4. Deletion rights
-  let deletionScore = 0;
+  let deletionScore = 0
   if (company.dataDeletedOnRequest) {
-    const deletionText = company.dataDeletedOnRequestTimeframe.toLowerCase();
+    const deletionText = company.dataDeletedOnRequestTimeframe.toLowerCase()
     if (
       deletionText.includes("cannot be") ||
       deletionText.includes("cannot easily") ||
@@ -100,15 +100,15 @@ export function calculateSubScores(company: {
       deletionText.includes("except") ||
       deletionText.includes("partial")
     ) {
-      deletionScore = 50; // Partial deletion (cannot remove trained posts)
+      deletionScore = 50 // Partial deletion (cannot remove trained posts)
     } else {
-      deletionScore = 100;
+      deletionScore = 100
     }
   }
 
   // 5. Third Party Sharing
-  let sharingScore = 85; // Standard business vendors
-  const sharingText = company.thirdPartySharing.toLowerCase();
+  let sharingScore = 85 // Standard business vendors
+  const sharingText = company.thirdPartySharing.toLowerCase()
   if (
     sharingText.includes("vpc") ||
     sharingText.includes("never share") ||
@@ -116,22 +116,22 @@ export function calculateSubScores(company: {
     sharingText.includes("zero sharing") ||
     sharingText.includes("not shared")
   ) {
-    sharingScore = 100;
+    sharingScore = 100
   } else if (
     sharingText.includes("advertising") ||
     sharingText.includes("target") ||
     sharingText.includes("ads") ||
     sharingText.includes("sell")
   ) {
-    sharingScore = 20;
+    sharingScore = 20
   }
 
   // 6. Human Review
-  let humanReviewScore = 30; // Standard training reviewers
+  let humanReviewScore = 30 // Standard training reviewers
   if (!company.humanReviewOfChats) {
-    humanReviewScore = 100;
+    humanReviewScore = 100
   } else {
-    const reviewText = company.humanReviewConditions.toLowerCase();
+    const reviewText = company.humanReviewConditions.toLowerCase()
     if (
       reviewText.includes("abuse") ||
       reviewText.includes("security") ||
@@ -140,7 +140,7 @@ export function calculateSubScores(company: {
       reviewText.includes("investigation") ||
       reviewText.includes("flagged")
     ) {
-      humanReviewScore = 80; // Safety reviews only
+      humanReviewScore = 80 // Safety reviews only
     }
   }
 
@@ -151,22 +151,25 @@ export function calculateSubScores(company: {
     deletionScore,
     sharingScore,
     humanReviewScore,
-  };
+  }
 }
 
 /**
  * Calculates total weighted score (0-100)
  */
-export function calculateTotalScore(subScores: SubScores, weights: Weights): number {
+export function calculateTotalScore(
+  subScores: SubScores,
+  weights: Weights
+): number {
   const totalWeight =
     weights.trainingWeight +
     weights.optOutWeight +
     weights.retentionWeight +
     weights.deletionWeight +
     weights.sharingWeight +
-    weights.humanReviewWeight;
+    weights.humanReviewWeight
 
-  if (totalWeight === 0) return 0;
+  if (totalWeight === 0) return 0
 
   const weightedSum =
     subScores.trainingScore * weights.trainingWeight +
@@ -174,22 +177,22 @@ export function calculateTotalScore(subScores: SubScores, weights: Weights): num
     subScores.retentionScore * weights.retentionWeight +
     subScores.deletionScore * weights.deletionWeight +
     subScores.sharingScore * weights.sharingWeight +
-    subScores.humanReviewScore * weights.humanReviewWeight;
+    subScores.humanReviewScore * weights.humanReviewWeight
 
-  return Math.round(weightedSum / totalWeight);
+  return Math.round(weightedSum / totalWeight)
 }
 
 /**
  * Maps numerical score (0-100) to a letter grade
  */
 export function mapScoreToGrade(score: number): string {
-  if (score >= 97) return "A+";
-  if (score >= 93) return "A";
-  if (score >= 90) return "A-";
-  if (score >= 87) return "B+";
-  if (score >= 83) return "B";
-  if (score >= 80) return "B-";
-  if (score >= 70) return "C";
-  if (score >= 60) return "D";
-  return "F";
+  if (score >= 97) return "A+"
+  if (score >= 93) return "A"
+  if (score >= 90) return "A-"
+  if (score >= 87) return "B+"
+  if (score >= 83) return "B"
+  if (score >= 80) return "B-"
+  if (score >= 70) return "C"
+  if (score >= 60) return "D"
+  return "F"
 }

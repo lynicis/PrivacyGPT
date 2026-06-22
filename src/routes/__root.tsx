@@ -1,9 +1,26 @@
-import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router"
+import {
+  HeadContent,
+  Link,
+  Outlet,
+  Scripts,
+  createRootRoute,
+} from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import { ShieldCheck } from "lucide-react"
 import { ThemeProvider } from "../components/ThemeProvider"
 import { ThemeToggle } from "../components/ThemeToggle"
+import { useState } from "react"
+import { getCompaniesFn, subscribeEmailFn } from "../lib/api"
+import { Input } from "../components/ui/input"
+import { Button } from "../components/ui/button"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../components/ui/select"
 
 import appCss from "../styles.css?url"
 
@@ -28,6 +45,15 @@ export const Route = createRootRoute({
       },
     ],
   }),
+  loader: async () => {
+    try {
+      const companiesList = await getCompaniesFn()
+      return { companies: companiesList }
+    } catch (error) {
+      console.error("Failed to load companies in root:", error)
+      return { companies: [] }
+    }
+  },
   notFoundComponent: () => (
     <main className="container mx-auto p-4 pt-16">
       <h1>404</h1>
@@ -41,7 +67,7 @@ export const Route = createRootRoute({
 function RootLayout() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="theme">
-      <div className="min-h-screen bg-background font-sans text-foreground selection:bg-accent selection:text-accent-foreground flex flex-col">
+      <div className="flex min-h-screen flex-col bg-background font-sans text-foreground selection:bg-accent selection:text-accent-foreground">
         {/* Navbar */}
         <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md transition-all duration-300">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -58,10 +84,12 @@ function RootLayout() {
               <Link
                 to="/"
                 activeProps={{
-                  className: "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
+                  className:
+                    "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
                 }}
                 inactiveProps={{
-                  className: "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                  className:
+                    "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
                 }}
                 activeOptions={{ exact: true }}
               >
@@ -70,10 +98,12 @@ function RootLayout() {
               <Link
                 to="/methodology"
                 activeProps={{
-                  className: "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
+                  className:
+                    "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
                 }}
                 inactiveProps={{
-                  className: "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                  className:
+                    "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
                 }}
               >
                 Methodology
@@ -81,10 +111,12 @@ function RootLayout() {
               <Link
                 to="/changelog"
                 activeProps={{
-                  className: "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
+                  className:
+                    "border-b-2 border-primary pb-1 text-sm font-semibold text-primary",
                 }}
                 inactiveProps={{
-                  className: "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                  className:
+                    "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
                 }}
               >
                 Change Log
@@ -100,11 +132,120 @@ function RootLayout() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-20 border-t border-border bg-background py-8 text-center text-xs text-muted-foreground">
-          <p>© 2026 PrivacyGPT. Built as an open, verifiable watchdog.</p>
+        <footer className="mt-20 border-t border-border bg-muted/30 py-12">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-3 text-left">
+                <div className="flex items-center gap-2 font-semibold text-foreground">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                  <span>PrivacyGPT Watchdog</span>
+                </div>
+                <p className="max-w-xs text-xs text-muted-foreground">
+                  Verifying AI privacy commitments through transparency, custom
+                  scoring weights, and automated policy change detection.
+                </p>
+                <p className="pt-4 text-xs text-muted-foreground">
+                  © 2026 PrivacyGPT. Built as an open, verifiable watchdog.
+                </p>
+              </div>
+              <FooterSubscriptionWidget />
+            </div>
+          </div>
         </footer>
       </div>
     </ThemeProvider>
+  )
+}
+
+function FooterSubscriptionWidget() {
+  const { companies } = Route.useLoaderData()
+  const [email, setEmail] = useState("")
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all")
+  const [status, setStatus] = useState<{
+    type: "success" | "error"
+    message: string
+  } | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+
+    setLoading(true)
+    setStatus(null)
+
+    try {
+      const companyId =
+        selectedCompanyId === "all" ? null : Number(selectedCompanyId)
+      const res = await subscribeEmailFn({ data: { email, companyId } })
+      if (res.success) {
+        setStatus({
+          type: "success",
+          message: res.message || "Subscribed successfully!",
+        })
+        setEmail("")
+      } else {
+        setStatus({
+          type: "error",
+          message: res.error || "Failed to subscribe.",
+        })
+      }
+    } catch (err) {
+      setStatus({ type: "error", message: "An unexpected error occurred." })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="w-full max-w-md space-y-3 text-left">
+      <h3 className="text-sm font-semibold text-foreground">
+        Subscribe to Policy Alerts
+      </h3>
+      <p className="text-xs text-muted-foreground">
+        Get notified instantly via email whenever a privacy policy changes.
+      </p>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-2 sm:flex-row sm:items-center"
+      >
+        <Input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="h-9 flex-1 rounded-none border border-input bg-background px-3 text-xs"
+        />
+        <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+          <SelectTrigger className="h-9 w-full rounded-none bg-background text-xs sm:w-40">
+            <SelectValue placeholder="All Companies" />
+          </SelectTrigger>
+          <SelectContent className="rounded-none">
+            <SelectItem value="all">All Companies</SelectItem>
+            {companies.map((c) => (
+              <SelectItem key={c.id} value={c.id.toString()}>
+                {c.companyName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="h-9 cursor-pointer rounded-none text-xs"
+        >
+          {loading ? "Subscribing..." : "Subscribe"}
+        </Button>
+      </form>
+      {status && (
+        <p
+          className={`text-xs font-medium ${status.type === "success" ? "text-chart-5" : "text-destructive"}`}
+        >
+          {status.message}
+        </p>
+      )}
+    </div>
   )
 }
 
