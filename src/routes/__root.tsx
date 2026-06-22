@@ -72,7 +72,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
     ],
   }),
-  loader: async () => { },
+  loader: async () => {},
   notFoundComponent: () => (
     <main className="container mx-auto p-4 pt-16">
       <h1>404</h1>
@@ -240,9 +240,23 @@ function RootLayout() {
               <p className="text-xs text-muted-foreground/60">
                 &copy; {new Date().getFullYear()} PrivacyGPT
               </p>
-              <p className="text-xs text-muted-foreground/60">
-                Built as an open, verifiable watchdog for AI privacy
-              </p>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground/60">
+                <span>
+                  Built as an open, verifiable watchdog for AI privacy
+                </span>
+                <span className="text-border/40">|</span>
+                <span>
+                  Built by{" "}
+                  <a
+                    href="https://lynicis.dev"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground/80 underline decoration-border/40 underline-offset-2 transition-colors duration-150 hover:text-foreground"
+                  >
+                    lynicis
+                  </a>
+                </span>
+              </div>
             </div>
           </div>
         </footer>
