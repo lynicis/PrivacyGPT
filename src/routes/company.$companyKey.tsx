@@ -133,6 +133,15 @@ function CompanyDetailPage() {
             Inferred
           </Badge>
         )
+      case "unverified":
+        return (
+          <Badge
+            variant="outline"
+            className="border-amber-500/30 bg-amber-500/5 text-xs font-semibold text-amber-600 dark:text-amber-400"
+          >
+            Unverified
+          </Badge>
+        )
       default:
         return (
           <Badge
@@ -181,6 +190,12 @@ function CompanyDetailPage() {
                     {company.productName}
                   </Badge>
                 </div>
+                {company.trainsOnDataByDefault && (
+                  <div className="mb-3 inline-flex items-center gap-1.5 border border-red-500/20 bg-red-500/5 px-3 py-1 text-sm font-semibold text-red-600 dark:text-red-400">
+                    <AlertTriangle className="h-4 w-4" />
+                    Trains on your data by default
+                  </div>
+                )}
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" /> Verified:{" "}

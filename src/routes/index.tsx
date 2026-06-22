@@ -243,6 +243,15 @@ function App() {
             Inferred
           </Badge>
         )
+      case "unverified":
+        return (
+          <Badge
+            variant="outline"
+            className="border-amber-500/20 bg-amber-500/5 text-[10px] font-semibold text-amber-600 dark:text-amber-400"
+          >
+            Unverified
+          </Badge>
+        )
       default:
         return (
           <Badge
@@ -539,6 +548,12 @@ function App() {
                     <CardDescription className="mt-1 truncate text-xs">
                       {company.productName}
                     </CardDescription>
+                    {company.trainsOnDataByDefault && (
+                      <div className="mt-2 inline-flex items-center gap-1.5 border border-red-500/20 bg-red-500/5 px-2 py-0.5 text-[10px] font-semibold text-red-600 dark:text-red-400">
+                        <AlertTriangle className="h-3 w-3" />
+                        Trains on your data
+                      </div>
+                    )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
                     <div

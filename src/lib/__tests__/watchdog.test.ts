@@ -1,5 +1,13 @@
-import { describe, it, expect } from "vitest"
-import { stripHtmlToText, hashText, generateDiff } from "../watchdog"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import {
+  stripHtmlToText,
+  hashText,
+  generateDiff,
+  fetchPolicyText,
+} from "../watchdog"
+import FirecrawlApp from "@mendable/firecrawl-js"
+
+vi.mock("@mendable/firecrawl-js")
 
 describe("watchdog utilities", () => {
   describe("stripHtmlToText", () => {
@@ -124,7 +132,7 @@ describe("watchdog utilities", () => {
       const hash1 = hashText("test content")
       const hash2 = hashText("test content")
       expect(hash1).toBe(hash2)
-      expect(hash1).toHaveLength(64) // SHA-256 hex digest
+      expect(hash1).toHaveLength(64)
     })
 
     it("returns different hashes for different content", () => {
@@ -165,6 +173,112 @@ describe("watchdog utilities", () => {
       const { diffHtml } = generateDiff(before, after)
       expect(diffHtml).toContain("diff-removed")
       expect(diffHtml).toContain("diff-added")
+    })
+  })
+
+  describe("fetchPolicyText", () => {
+    const originalEnv = process.env.FIRECRAWL_API_KEY
+    const MockedFirecrawl = vi.mocked(FirecrawlApp)
+
+    beforeEach(() => {
+      vi.stubGlobal("fetch", vi.fn())
+      MockedFirecrawl.mockClear()
+    })
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+      vi.unstubAllGlobals()
+      if (originalEnv !== undefined) {
+        process.env.FIRECRAWL_API_KEY = originalEnv
+      } else {
+        delete process.env.FIRECRAWL_API_KEY
+      }
+    })
+
+    it("returns HTML content on successful fetch (no Firecrawl)", async () => {
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve("<p>Privacy policy text.</p>"),
+      }
+      vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+
+      const result = await fetchPolicyText("https://example.com/privacy")
+      expect(result).not.toBeNull()
+      expect(result!.text).toContain("Privacy policy text.")
+      expect(fetch).toHaveBeenCalledOnce()
+      expect(MockedFirecrawl).not.toHaveBeenCalled()
+    })
+
+    it("falls back to Firecrawl on HTTP 403", async () => {
+      const blockedResponse = { ok: false, status: 403 }
+      vi.mocked(fetch).mockResolvedValue(blockedResponse as any)
+
+      const mockScrape = vi.fn().mockResolvedValue({
+        markdown: "Firecrawl retrieved content.",
+      })
+      MockedFirecrawl.mockImplementation(function () {
+        this.scrape = mockScrape
+      })
+
+      process.env.FIRECRAWL_API_KEY = "test-key"
+
+      const result = await fetchPolicyText(
+        "https://blocked.example.com/privacy"
+      )
+      expect(result).not.toBeNull()
+      expect(result!.text).toContain("Firecrawl retrieved content.")
+      expect(MockedFirecrawl).toHaveBeenCalledWith({
+        apiKey: "test-key",
+        apiUrl: "https://api.firecrawl.dev",
+      })
+      expect(mockScrape).toHaveBeenCalledWith(
+        "https://blocked.example.com/privacy",
+        expect.objectContaining({ formats: ["markdown"] })
+      )
+    })
+
+    it("falls back to Firecrawl on network error", async () => {
+      vi.mocked(fetch).mockRejectedValue(new Error("Network timeout"))
+
+      const mockScrape = vi.fn().mockResolvedValue({
+        markdown: "Firecrawl fallback content.",
+      })
+      MockedFirecrawl.mockImplementation(function () {
+        this.scrape = mockScrape
+      })
+
+      process.env.FIRECRAWL_API_KEY = "test-key"
+
+      const result = await fetchPolicyText(
+        "https://timeout.example.com/privacy"
+      )
+      expect(result).not.toBeNull()
+      expect(result!.text).toContain("Firecrawl fallback content.")
+      expect(mockScrape).toHaveBeenCalledOnce()
+    })
+
+    it("returns null when both fetch and Firecrawl fail", async () => {
+      vi.mocked(fetch).mockRejectedValue(new Error("Network error"))
+
+      const mockScrape = vi
+        .fn()
+        .mockRejectedValue(new Error("Firecrawl API error"))
+      MockedFirecrawl.mockImplementation(function () {
+        this.scrape = mockScrape
+      })
+
+      process.env.FIRECRAWL_API_KEY = "test-key"
+
+      const result = await fetchPolicyText("https://fail.example.com/privacy")
+      expect(result).toBeNull()
+    })
+
+    it("returns null when no API key and fetch fails", async () => {
+      vi.mocked(fetch).mockRejectedValue(new Error("Network error"))
+      delete process.env.FIRECRAWL_API_KEY
+
+      const result = await fetchPolicyText("https://fail.example.com/privacy")
+      expect(result).toBeNull()
     })
   })
 })
