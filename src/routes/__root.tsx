@@ -7,7 +7,6 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
-import { ShieldCheck } from "lucide-react"
 import { ThemeProvider } from "../components/ThemeProvider"
 import { ThemeToggle } from "../components/ThemeToggle"
 
@@ -59,6 +58,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
     links: [
       {
+        rel: "icon",
+        href: "/favicon.ico",
+        sizes: "any",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "/logo.png",
+      },
+      {
         rel: "stylesheet",
         href: appCss,
       },
@@ -83,7 +91,7 @@ function RootLayout() {
         <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md transition-all duration-300">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="h-8 w-8 text-primary" />
+              <img src="/logo.png" alt="PrivacyGPT" className="h-8 w-8" />
               <Link
                 to="/"
                 className="text-xl font-bold tracking-tight text-foreground"
@@ -161,7 +169,7 @@ function RootLayout() {
             <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
               <div className="space-y-3 text-left">
                 <div className="flex items-center gap-2 font-semibold text-foreground">
-                  <ShieldCheck className="h-5 w-5 text-primary" />
+                  <img src="/logo.png" alt="PrivacyGPT" className="h-5 w-5" />
                   <span>PrivacyGPT</span>
                 </div>
                 <p className="max-w-xs text-xs text-muted-foreground">
