@@ -59,6 +59,10 @@ Use this mapping to navigate the repository:
     - 📄 `scoring.ts` — Scoring calculation logic.
     - 📄 `watchdog.ts` — Watchdog monitoring logic.
     - 📄 `utils.ts` — Classnames merge helpers.
+  - 📄 `logo.svg` — Application logo.
+  - 📄 `routeTree.gen.ts` — Automatically generated route tree.
+  - 📄 `router.tsx` — TanStack Router configuration.
+  - 📄 `styles.css` — Custom styling, keyframes, and theme variables.
 - 📁 `drizzle/` — Schema migrations output.
 - 📁 `docs/` — Documentation and assets.
 - 📄 `cron-worker.ts` — Cloudflare Workers cron entry point.
@@ -166,7 +170,7 @@ To maintain code quality and compatibility, adhere to the following guidelines:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **PrivacyGPT** (317 symbols, 705 relationships, 24 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **PrivacyGPT** (334 symbols, 723 relationships, 25 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
