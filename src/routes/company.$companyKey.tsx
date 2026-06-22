@@ -210,6 +210,20 @@ function CompanyDetailPage() {
                 </div>
               </div>
 
+              {company.optOutAvailable && company.optOutUrl && (
+                <div className="mt-3">
+                  <a
+                    href={company.optOutUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button className="gap-2">
+                      Opt Out of Training <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </a>
+                </div>
+              )}
+
               {/* Large Grade Circle/Box */}
               <div className="flex shrink-0 items-center gap-4 sm:self-center">
                 <div className="flex h-20 w-20 flex-col items-center justify-center border border-border bg-primary p-4 text-primary-foreground shadow-sm select-none">
