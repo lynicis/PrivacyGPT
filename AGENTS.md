@@ -6,7 +6,7 @@ Welcome! This file provides the context, structure, commands, and rules required
 
 ## 🛠️ Project Overview & Technology Stack
 
-The **PrivacyGPT** is a web application designed to monitor how major AI companies handle conversational data. It features a comparison dashboard, detailed company profile pages, a methodology page, and an SQLite database loaded with verified primary-source privacy data.
+The **PrivacyGPT** is a web application designed to monitor how major AI companies handle conversational data. It features a comparison dashboard, detailed company profile pages, a methodology page, a changelog feed, and an SQLite database loaded with verified primary-source privacy data.
 
 ### Stack Details:
 
@@ -17,6 +17,7 @@ The **PrivacyGPT** is a web application designed to monitor how major AI compani
 - **Database ORM**: [Drizzle ORM](https://orm.drizzle.team/)
 - **Database Engine**: [libsql](https://github.com/tursodatabase/libsql) (SQLite)
 - **Testing**: [Vitest](https://vitest.dev/)
+- **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com/) (via Wrangler)
 
 ---
 
@@ -28,10 +29,21 @@ Use this mapping to navigate the repository:
   - 📁 `routes/` (TanStack Start file-based routing)
     - 📄 `__root.tsx` — Main application layout, navbar, and footer.
     - 📄 `index.tsx` — Comparison dashboard with search, filters, and sorting.
+    - 📄 `compare.tsx` — Side-by-side company comparison view.
     - 📄 `company.$companyKey.tsx` — Detailed company privacy profile.
     - 📄 `methodology.tsx` — Scoring rubric, verification ratings, and criteria.
+    - 📄 `changelog.tsx` — Changelog feed page.
+    - 📄 `changelog.feed[.]xml.ts` — RSS/Atom XML feed endpoint.
+    - 📄 `admin.tsx` — Admin interface.
+    - 📄 `api.cron.watchdog.ts` — Cron-triggered watchdog API endpoint.
+    - 📄 `sitemap.xml.ts` — Sitemap XML endpoint.
   - 📁 `components/`
-    - 📁 `ui/` — Native shadcn/ui components (`badge`, `button`, `card`, `input`, `select`, `switch`, `table`).
+    - 📁 `ui/` — Native shadcn/ui components (`badge`, `button`, `card`, `input`, `select`, `switch`, `table`, `tabs`).
+    - 📄 `CompanySelect.tsx` — Company selector dropdown.
+    - 📄 `CompareScores.tsx` — Comparison score display.
+    - 📄 `CompareSection.tsx` — Comparison section layout.
+    - 📄 `ThemeProvider.tsx` — Theme context provider.
+    - 📄 `ThemeToggle.tsx` — Light/dark mode toggle.
   - 📁 `lib/`
     - 📁 `db/`
       - 📄 `index.ts` — Drizzle ORM client initialization.
@@ -40,12 +52,22 @@ Use this mapping to navigate the repository:
       - 📄 `seedData.json` — **Source of Truth** for company privacy profile seed records.
     - 📁 `__tests__/`
       - 📄 `schema.test.ts` — Vitest schema validation and seed data validation tests.
+      - 📄 `scoring.test.ts` — Scoring logic tests.
+      - 📄 `auth.test.ts` — Authentication tests.
+      - 📄 `watchdog.test.ts` — Watchdog logic tests.
     - 📄 `api.ts` — Server functions (`getCompaniesFn`, `getCompanyByKeyFn`) for data fetching.
+    - 📄 `scoring.ts` — Scoring calculation logic.
+    - 📄 `watchdog.ts` — Watchdog monitoring logic.
     - 📄 `utils.ts` — Classnames merge helpers.
 - 📁 `drizzle/` — Schema migrations output.
+- 📁 `docs/` — Documentation and assets.
+- 📄 `cron-worker.ts` — Cloudflare Workers cron entry point.
 - 📄 `drizzle.config.ts` — Drizzle CLI configuration.
 - 📄 `package.json` — Dependency management and scripts.
 - 📄 `privacy.db` — Local SQLite development database.
+- 📄 `wrangler.jsonc` — Cloudflare Workers configuration.
+- 📄 `wrangler.cron.jsonc` — Cloudflare cron worker configuration.
+- 📄 `worker-configuration.d.ts` — Cloudflare Worker type definitions.
 
 ---
 
@@ -144,7 +166,7 @@ To maintain code quality and compatibility, adhere to the following guidelines:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **PrivacyGPT** (298 symbols, 653 relationships, 21 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **PrivacyGPT** (308 symbols, 683 relationships, 23 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 

@@ -50,7 +50,7 @@ function MethodologyPage() {
         </div>
 
         {/* Credibility section using shadcn components */}
-        <Card className="relative mb-12 overflow-hidden bg-primary text-primary-foreground">
+        <Card className="relative mb-12 overflow-hidden border-2 border-primary bg-primary text-primary-foreground">
           <CardHeader className="p-6 sm:p-8">
             <CardTitle className="flex items-center gap-2 text-2xl font-bold">
               <Award className="h-6 w-6" /> Grounded in Primary Evidence
@@ -176,12 +176,12 @@ function MethodologyPage() {
             </p>
 
             <div className="grid gap-6 sm:grid-cols-3">
-              <Card className="bg-muted/20 p-5">
+              <Card className="p-5">
                 <CardHeader className="p-0 pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Badge
                       variant="outline"
-                      className="w-fit border-border bg-muted/30 text-[10px] font-semibold"
+                      className="w-fit border-emerald-500/20 bg-emerald-500/5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400"
                     >
                       Verified
                     </Badge>
@@ -199,7 +199,7 @@ function MethodologyPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-muted/20 p-5">
+              <Card className="p-5">
                 <CardHeader className="p-0 pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Badge
@@ -222,12 +222,12 @@ function MethodologyPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-muted/20 p-5">
+              <Card className="p-5">
                 <CardHeader className="p-0 pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Badge
                       variant="outline"
-                      className="w-fit border-destructive/30 bg-destructive/5 text-[10px] font-semibold text-destructive"
+                      className="w-fit border-amber-500/20 bg-amber-500/5 text-[10px] font-semibold text-amber-600 dark:text-amber-400"
                     >
                       Review Needed
                     </Badge>
@@ -262,7 +262,7 @@ function MethodologyPage() {
               {/* Weights Table */}
               <div>
                 <h3 className="mb-2 text-sm font-semibold">Default Weights</h3>
-                <div className="space-y-2 border border-border bg-background p-3">
+                <div className="space-y-2 border-2 border-border bg-background p-3">
                   <div className="flex justify-between border-b border-border pb-1 text-xs font-semibold text-foreground">
                     <span>Category</span>
                     <span>Default Weight</span>

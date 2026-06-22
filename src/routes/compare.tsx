@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 import { getCompaniesFn, getCompanyByKeyFn } from "@/lib/api"
 import {
@@ -12,6 +12,15 @@ import { CompanySelect } from "@/components/CompanySelect"
 import { CompareScores } from "@/components/CompareScores"
 import { CompareSection } from "@/components/CompareSection"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  GitCompareArrows,
+  ExternalLink,
+  ArrowRightLeft,
+  RotateCcw,
+  BookOpen,
+} from "lucide-react"
 
 type Company = typeof companies.$inferSelect
 
@@ -29,6 +38,18 @@ export const Route = createFileRoute("/compare")({
     const companies = await getCompaniesFn()
     return { companies }
   },
+  head: () => ({
+    meta: [
+      {
+        title: "Compare AI Privacy Policies — PrivacyGPT",
+      },
+      {
+        name: "description",
+        content:
+          "Compare how two AI companies handle your conversational data side-by-side. Analyze training defaults, opt-out mechanisms, retention policies, and more.",
+      },
+    ],
+  }),
   component: ComparePage,
 })
 
@@ -43,7 +64,6 @@ function ComparePage() {
   const [companyA, setCompanyA] = useState<Company | null>(null)
   const [companyB, setCompanyB] = useState<Company | null>(null)
 
-  // Fetch company data when selections change
   useEffect(() => {
     if (selectedA) {
       getCompanyByKeyFn({ data: selectedA }).then(setCompanyA)
@@ -73,9 +93,20 @@ function ComparePage() {
     window.history.replaceState(null, "", `?${newSearch.toString()}`)
   }
 
+  const handleSwap = () => {
+    const tempA = selectedA
+    const tempB = selectedB
+    updateSearch("companyA", tempB)
+    updateSearch("companyB", tempA)
+  }
+
+  const handleReset = () => {
+    updateSearch("companyA", "")
+    updateSearch("companyB", "")
+  }
+
   const hasSelection = selectedA && selectedB
 
-  // Calculate scores
   const scoresA = companyA ? calculateSubScores(companyA) : null
   const scoresB = companyB ? calculateSubScores(companyB) : null
 
@@ -88,7 +119,6 @@ function ComparePage() {
   const totalA = { letter: mapScoreToGrade(totalScoreA), points: totalScoreA }
   const totalB = { letter: mapScoreToGrade(totalScoreB), points: totalScoreB }
 
-  // Convert sub scores to comparison format
   const subScoresA = scoresA
     ? {
         training: {
@@ -148,121 +178,244 @@ function ComparePage() {
     : ({} as Record<string, { letter: string; points: number }>)
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">Compare Privacy Policies</h1>
-
-      {/* Company Selection */}
-      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <CompanySelect
-          companies={companies}
-          value={selectedA}
-          onChange={(v) => updateSearch("companyA", v)}
-          disabledCompany={selectedB}
-          label="First Company"
-        />
-        <CompanySelect
-          companies={companies}
-          value={selectedB}
-          onChange={(v) => updateSearch("companyB", v)}
-          disabledCompany={selectedA}
-          label="Second Company"
-        />
-      </div>
-
-      {/* Empty State */}
-      {!hasSelection && (
-        <div className="py-12 text-center text-muted-foreground">
-          Select two companies to compare their privacy policies
+    <>
+      {/* Hero Section */}
+      <section className="border-b-2 border-border">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-5 inline-flex items-center gap-2 border border-border bg-muted px-4 py-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              <GitCompareArrows className="h-3.5 w-3.5" />
+              Side-by-side comparison
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground uppercase sm:text-4xl lg:text-5xl">
+              Compare{" "}
+              <span className="text-emerald-600 dark:text-emerald-400">
+                Privacy Policies
+              </span>
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+              Select two AI platforms to compare their data handling practices
+              side-by-side, powered by verified policy data.
+            </p>
+            <div className="mt-5 flex justify-center gap-3">
+              <Link to="/methodology">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <BookOpen className="h-3.5 w-3.5" /> Our Methodology
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
-      )}
+      </section>
 
-      {/* Comparison Content */}
-      {hasSelection && companyA && companyB && (
-        <>
-          {/* Mobile Tabs */}
-          <div className="mb-4 md:hidden">
-            <Tabs
-              value={activeTab}
-              onValueChange={(v) => setActiveTab(v as "a" | "b")}
-            >
-              <TabsList className="w-full">
-                <TabsTrigger value="a" className="flex-1">
-                  {companyA.companyName}
-                </TabsTrigger>
-                <TabsTrigger value="b" className="flex-1">
-                  {companyB.companyName}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+      {/* Main Content */}
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        {/* Company Selection */}
+        <Card className="mb-6 overflow-hidden">
+          <CardContent className="p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+              <div className="flex-1">
+                <CompanySelect
+                  companies={companies}
+                  value={selectedA}
+                  onChange={(v) => updateSearch("companyA", v)}
+                  disabledCompany={selectedB}
+                  label="First Company"
+                />
+              </div>
 
-          {/* Scores */}
-          <div className="mb-8">
-            <h2 className="mb-4 text-xl font-semibold">Scores</h2>
-            <CompareScores
-              scoresA={subScoresA}
-              scoresB={subScoresB}
-              totalA={totalA}
-              totalB={totalB}
-            />
-          </div>
+              <div className="flex items-center justify-center self-center lg:px-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={handleSwap}
+                  disabled={!selectedA && !selectedB}
+                  title="Swap companies"
+                >
+                  <ArrowRightLeft className="h-4 w-4 rotate-90" />
+                </Button>
+              </div>
 
-          {/* Policy Details */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Policy Details</h2>
-            <CompareSection
-              label="Model Training"
-              valueA={companyA.trainsOnDataNuance}
-              valueB={companyB.trainsOnDataNuance}
-              booleanA={companyA.trainsOnDataByDefault}
-              booleanB={companyB.trainsOnDataByDefault}
-            />
-            <CompareSection
-              label="Opt-Out Mechanism"
-              valueA={companyA.optOutHow}
-              valueB={companyB.optOutHow}
-              booleanA={companyA.optOutAvailable}
-              booleanB={companyB.optOutAvailable}
-            />
-            <CompareSection
-              label="Data Retention & Deletion"
-              valueA={`${companyA.retentionPeriod}. Deletion: ${companyA.dataDeletedOnRequestTimeframe}`}
-              valueB={`${companyB.retentionPeriod}. Deletion: ${companyB.dataDeletedOnRequestTimeframe}`}
-              booleanA={companyA.dataDeletedOnRequest}
-              booleanB={companyB.dataDeletedOnRequest}
-            />
-            <CompareSection
-              label="Third-Party Sharing"
-              valueA={companyA.thirdPartySharing}
-              valueB={companyB.thirdPartySharing}
-            />
-            <CompareSection
-              label="Human Review"
-              valueA={companyA.humanReviewConditions}
-              valueB={companyB.humanReviewConditions}
-              booleanA={companyA.humanReviewOfChats}
-              booleanB={companyB.humanReviewOfChats}
-            />
-            <CompareSection
-              label="Regional Variations"
-              valueA={companyA.regionalVariation}
-              valueB={companyB.regionalVariation}
-            />
-            <CompareSection
-              label="Children's Data Policy"
-              valueA={companyA.childrenDataPolicy}
-              valueB={companyB.childrenDataPolicy}
-            />
-            <CompareSection
-              label="Enterprise vs Consumer"
-              valueA={companyA.enterpriseVsConsumerSummary}
-              valueB={companyB.enterpriseVsConsumerSummary}
-              booleanA={companyA.enterpriseVsConsumerDifference}
-              booleanB={companyB.enterpriseVsConsumerDifference}
-            />
-          </div>
-        </>
-      )}
-    </div>
+              <div className="flex-1">
+                <CompanySelect
+                  companies={companies}
+                  value={selectedB}
+                  onChange={(v) => updateSearch("companyB", v)}
+                  disabledCompany={selectedA}
+                  label="Second Company"
+                />
+              </div>
+
+              {(selectedA || selectedB) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 self-start text-muted-foreground"
+                  onClick={handleReset}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Reset
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Empty State */}
+        {!hasSelection && (
+          <Card className="p-12 text-center">
+            <CardContent>
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <GitCompareArrows className="h-7 w-7 text-muted-foreground" />
+              </div>
+              <h2 className="text-lg font-bold text-foreground">
+                Select Two Companies
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                Choose two AI platforms from the dropdowns above to compare
+                their privacy policies, training defaults, and data handling
+                practices.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Comparison Content */}
+        {hasSelection && companyA && companyB && (
+          <>
+            {/* Mobile Tabs */}
+            <div className="mb-5 md:hidden">
+              <Tabs
+                value={activeTab}
+                onValueChange={(v) => setActiveTab(v as "a" | "b")}
+              >
+                <TabsList className="w-full">
+                  <TabsTrigger value="a" className="flex-1 text-xs">
+                    {companyA.companyName}
+                  </TabsTrigger>
+                  <TabsTrigger value="b" className="flex-1 text-xs">
+                    {companyB.companyName}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {/* Scores Section */}
+            <div className="mb-8">
+              <h2 className="mb-4 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                Score Breakdown
+              </h2>
+              <CompareScores
+                scoresA={subScoresA}
+                scoresB={subScoresB}
+                totalA={totalA}
+                totalB={totalB}
+                nameA={companyA.companyName}
+                nameB={companyB.companyName}
+              />
+            </div>
+
+            {/* Source Links */}
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <a
+                href={companyA.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/50"
+              >
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {companyA.companyName} Source Policy
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground/70">
+                    Last verified: {companyA.lastVerifiedDate}
+                  </p>
+                </div>
+                <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+              </a>
+              <a
+                href={companyB.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/50"
+              >
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {companyB.companyName} Source Policy
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground/70">
+                    Last verified: {companyB.lastVerifiedDate}
+                  </p>
+                </div>
+                <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+              </a>
+            </div>
+
+            {/* Policy Details */}
+            <div className="space-y-4">
+              <h2 className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                Policy Details
+              </h2>
+              <CompareSection
+                label="Model Training"
+                valueA={companyA.trainsOnDataNuance}
+                valueB={companyB.trainsOnDataNuance}
+                booleanA={companyA.trainsOnDataByDefault}
+                booleanB={companyB.trainsOnDataByDefault}
+                booleanGood={false}
+              />
+              <CompareSection
+                label="Opt-Out Mechanism"
+                valueA={companyA.optOutHow}
+                valueB={companyB.optOutHow}
+                booleanA={companyA.optOutAvailable}
+                booleanB={companyB.optOutAvailable}
+                booleanGood={true}
+              />
+              <CompareSection
+                label="Data Retention & Deletion"
+                valueA={`${companyA.retentionPeriod}. Deletion: ${companyA.dataDeletedOnRequestTimeframe}`}
+                valueB={`${companyB.retentionPeriod}. Deletion: ${companyB.dataDeletedOnRequestTimeframe}`}
+                booleanA={companyA.dataDeletedOnRequest}
+                booleanB={companyB.dataDeletedOnRequest}
+                booleanGood={true}
+              />
+              <CompareSection
+                label="Third-Party Sharing"
+                valueA={companyA.thirdPartySharing}
+                valueB={companyB.thirdPartySharing}
+              />
+              <CompareSection
+                label="Human Review"
+                valueA={companyA.humanReviewConditions}
+                valueB={companyB.humanReviewConditions}
+                booleanA={companyA.humanReviewOfChats}
+                booleanB={companyB.humanReviewOfChats}
+                booleanGood={false}
+              />
+              <CompareSection
+                label="Regional Variations"
+                valueA={companyA.regionalVariation}
+                valueB={companyB.regionalVariation}
+              />
+              <CompareSection
+                label="Children's Data Policy"
+                valueA={companyA.childrenDataPolicy}
+                valueB={companyB.childrenDataPolicy}
+              />
+              <CompareSection
+                label="Enterprise vs Consumer"
+                valueA={companyA.enterpriseVsConsumerSummary}
+                valueB={companyB.enterpriseVsConsumerSummary}
+                booleanA={companyA.enterpriseVsConsumerDifference}
+                booleanB={companyB.enterpriseVsConsumerDifference}
+                booleanGood={false}
+              />
+            </div>
+          </>
+        )}
+      </main>
+    </>
   )
 }

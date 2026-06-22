@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { ShieldCheck, ShieldX } from "lucide-react"
 import type { companies } from "@/lib/db/schema"
 
 type Company = typeof companies.$inferSelect
@@ -26,11 +27,17 @@ export function CompanySelect({
   label,
   placeholder = "Select a company",
 }: CompanySelectProps) {
+  const selectedCompany = companies.find((c) => c.companyKey === value)
+
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+        {label}
+      </label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className={!value ? "border-destructive" : ""}>
+        <SelectTrigger
+          className={`h-11 ${!value ? "border-dashed border-destructive/50" : ""}`}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
@@ -40,11 +47,34 @@ export function CompanySelect({
               value={company.companyKey}
               disabled={company.companyKey === disabledCompany}
             >
-              {company.companyName} — {company.productName}
+              <div className="flex items-center gap-2">
+                {!company.trainsOnDataByDefault ? (
+                  <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                ) : (
+                  <ShieldX className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                )}
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">
+                    {company.companyName}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {company.productName}
+                  </span>
+                </div>
+              </div>
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
+      {selectedCompany && (
+        <p className="text-[11px] text-muted-foreground">
+          {selectedCompany.trainsOnDataByDefault
+            ? "Trains on data by default"
+            : "Does not train on data by default"}
+          {" \u00b7 "}
+          {selectedCompany.optOutAvailable ? "Opt-out available" : "No opt-out"}
+        </p>
+      )}
     </div>
   )
 }

@@ -72,7 +72,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
     ],
   }),
-  loader: async () => {},
+  loader: async () => { },
   notFoundComponent: () => (
     <main className="container mx-auto p-4 pt-16">
       <h1>404</h1>
@@ -91,7 +91,7 @@ function RootLayout() {
         <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md transition-all duration-300">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="PrivacyGPT" className="h-8 w-8" />
+              <img src="/logo.png" alt="PrivacyGPT" className="h-10 w-10" />
               <Link
                 to="/"
                 className="text-xl font-bold tracking-tight text-foreground"
@@ -164,22 +164,85 @@ function RootLayout() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-20 border-t border-border bg-muted/30 py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
-              <div className="space-y-3 text-left">
-                <div className="flex items-center gap-2 font-semibold text-foreground">
-                  <img src="/logo.png" alt="PrivacyGPT" className="h-5 w-5" />
-                  <span>PrivacyGPT</span>
+        <footer className="border-t border-border bg-muted/40">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-12 md:gap-8">
+              {/* Brand */}
+              <div className="sm:col-span-2 md:col-span-5">
+                <Link to="/" className="group inline-flex items-center gap-2.5">
+                  <img
+                    src="/logo.png"
+                    alt="PrivacyGPT"
+                    className="h-7 w-7 transition-transform duration-200 group-hover:scale-105"
+                  />
+                  <span className="text-base font-bold tracking-tight text-foreground">
+                    PrivacyGPT
+                  </span>
+                </Link>
+                <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                  Monitoring how major AI companies handle your conversational
+                  data. Open, verifiable, community-driven.
+                </p>
+                <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground/70">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span>
+                    Privacy-first &middot; No tracking &middot; No cookies
+                  </span>
                 </div>
-                <p className="max-w-xs text-xs text-muted-foreground">
-                  Verifying AI privacy commitments through transparency, custom
-                  scoring weights, and automated policy change detection.
-                </p>
-                <p className="pt-4 text-xs text-muted-foreground">
-                  © 2026 PrivacyGPT. Built as an open, verifiable watchdog.
-                </p>
               </div>
+
+              {/* Product Links */}
+              <div className="md:col-span-3 md:col-start-7">
+                <h3 className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
+                  Product
+                </h3>
+                <ul className="mt-3.5 space-y-2.5">
+                  {[
+                    { to: "/", label: "Dashboard" },
+                    { to: "/compare", label: "Compare" },
+                    { to: "/methodology", label: "Methodology" },
+                    { to: "/changelog", label: "Change Log" },
+                  ].map((link) => (
+                    <li key={link.to}>
+                      <Link
+                        to={link.to}
+                        className="text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* About */}
+              <div className="md:col-span-3">
+                <h3 className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
+                  About
+                </h3>
+                <ul className="mt-3.5 space-y-2.5">
+                  <li>
+                    <span className="text-sm text-muted-foreground">
+                      Data sourced from public privacy policies
+                    </span>
+                  </li>
+                  <li>
+                    <span className="text-sm text-muted-foreground">
+                      Not affiliated with any AI company
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 sm:flex-row">
+              <p className="text-xs text-muted-foreground/60">
+                &copy; {new Date().getFullYear()} PrivacyGPT
+              </p>
+              <p className="text-xs text-muted-foreground/60">
+                Built as an open, verifiable watchdog for AI privacy
+              </p>
             </div>
           </div>
         </footer>
