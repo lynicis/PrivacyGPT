@@ -12,11 +12,16 @@ export function stripHtmlToText(html: string): string {
   // Remove script and style blocks entirely
   text = text.replace(/<script[\s\S]*?<\/script>/gi, "")
   text = text.replace(/<style[\s\S]*?<\/style>/gi, "")
+  text = text.replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
+  // Remove non-content structural elements
   text = text.replace(/<nav[\s\S]*?<\/nav>/gi, "")
   text = text.replace(/<footer[\s\S]*?<\/footer>/gi, "")
   text = text.replace(/<header[\s\S]*?<\/header>/gi, "")
-  // Remove all HTML tags
-  text = text.replace(/<[^>]+>/g, " ")
+  text = text.replace(/<aside[\s\S]*?<\/aside>/gi, "")
+  text = text.replace(/<form[\s\S]*?<\/form>/gi, "")
+  text = text.replace(/<svg[\s\S]*?<\/svg>/gi, "")
+  // Remove all HTML tags (replace with newline to preserve line structure)
+  text = text.replace(/<[^>]+>/g, "\n")
   // Decode common HTML entities
   text = text
     .replace(/&amp;/g, "&")
@@ -25,7 +30,34 @@ export function stripHtmlToText(html: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, " ")
-  // Collapse whitespace
+  // Filter out metadata and navigation junk lines before collapsing whitespace
+  text = text
+    .split(/\n/)
+    .filter((line) => {
+      const trimmed = line.trim()
+      // Skip empty lines
+      if (!trimmed) return false
+      // Skip lines that are only numbers (IDs, timestamps)
+      if (/^\d+$/.test(trimmed)) return false
+      // Skip lines that are only booleans
+      if (/^(true|false)$/i.test(trimmed)) return false
+      // Skip lines that are only "number boolean" patterns (like "2661833742547574305 true")
+      if (/^\d+\s+(true|false)$/i.test(trimmed)) return false
+      // Skip lines that are only "boolean number" patterns
+      if (/^(true|false)\s+\d+$/i.test(trimmed)) return false
+      // Skip common navigation/UI junk patterns
+      if (/help center/i.test(trimmed)) return false
+      if (/community/i.test(trimmed)) return false
+      if (/search.*clear.*search/i.test(trimmed)) return false
+      if (/close search/i.test(trimmed)) return false
+      if (/main menu/i.test(trimmed)) return false
+      if (/this help content/i.test(trimmed)) return false
+      if (/general help/i.test(trimmed)) return false
+      if (/privacy hub/i.test(trimmed)) return false
+      return true
+    })
+    .join("\n")
+  // Collapse whitespace (including newlines) into single spaces
   text = text.replace(/\s+/g, " ").trim()
   return text
 }

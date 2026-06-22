@@ -133,7 +133,7 @@ function ChangelogReview({ id }: { id: number }) {
         disabled={submitting}
         className="h-auto rounded-none bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95"
       >
-        {submitting ? "Approving..." : "Approve & Alert Subscribers"}
+        {submitting ? "Approving..." : "Approve"}
       </Button>
     </form>
   )

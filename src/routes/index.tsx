@@ -577,7 +577,7 @@ function App() {
                 </div>
 
                 {/* Nuance */}
-                <p className="line-clamp-2 bg-muted/50 p-2.5 text-xs leading-relaxed text-muted-foreground">
+                <p className="bg-muted/50 p-2.5 text-xs leading-relaxed text-muted-foreground">
                   {company.trainsOnDataNuance}
                 </p>
               </CardContent>
