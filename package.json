@@ -12,6 +12,8 @@
     "check": "prettier --check \"**/*.{ts,tsx,js,jsx}\"",
     "typecheck": "tsc --noEmit",
     "deploy": "bun run build && wrangler deploy",
+    "deploy:cron": "wrangler deploy --config wrangler.cron.jsonc",
+    "dev:cron": "wrangler dev --config wrangler.cron.jsonc",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {

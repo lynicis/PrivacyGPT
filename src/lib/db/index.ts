@@ -23,9 +23,9 @@ export async function getDb(): Promise<LibSQLDatabase<typeof schema>> {
   }
 
   const client = createClient({
-    url: process.env.TURSO_CONNECTION_URL || "file:privacy.db",
+    url: "file:privacy.db",
   })
-  _db = drizzle(client, { schema }) as LibSQLDatabase<typeof schema>
+  _db = drizzle(client, { schema })
   return _db
 }
 

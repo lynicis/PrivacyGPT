@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://privacygpt.app/sitemap.xml
+Sitemap: https://privacygpt.lynicis.dev/sitemap.xml

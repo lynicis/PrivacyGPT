@@ -179,7 +179,7 @@ export const getRssFeedFn = createServerFn({ method: "GET" }).handler(
         .limit(50)
 
       const now = new Date().toUTCString()
-      const siteUrl = "https://privacygpt.app"
+      const siteUrl = "https://privacygpt.lynicis.dev"
 
       const items = rows
         .map((entry) => {
