@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as CompanyCompanyKeyRouteImport } from './routes/company.$companyKey'
 import { Route as ChangelogFeedDotxmlRouteImport } from './routes/changelog.feed[.]xml'
+import { Route as BlogFeedDotxmlRouteImport } from './routes/blog.feed[.]xml'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiCronWatchdogRouteImport } from './routes/api.cron.watchdog'
 
@@ -66,6 +67,11 @@ const ChangelogFeedDotxmlRoute = ChangelogFeedDotxmlRouteImport.update({
   path: '/feed.xml',
   getParentRoute: () => ChangelogRoute,
 } as any)
+const BlogFeedDotxmlRoute = BlogFeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
+  getParentRoute: () => BlogRoute,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/methodology'
     | '/blog/$slug'
+    | '/blog/feed.xml'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/methodology'
     | '/blog/$slug'
+    | '/blog/feed.xml'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/methodology'
     | '/blog/$slug'
+    | '/blog/feed.xml'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
@@ -236,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChangelogFeedDotxmlRouteImport
       parentRoute: typeof ChangelogRoute
     }
+    '/blog/feed.xml': {
+      id: '/blog/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/blog/feed.xml'
+      preLoaderRoute: typeof BlogFeedDotxmlRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/blog/$slug': {
       id: '/blog/$slug'
       path: '/$slug'
@@ -255,10 +274,12 @@ declare module '@tanstack/react-router' {
 
 interface BlogRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
+  BlogFeedDotxmlRoute: typeof BlogFeedDotxmlRoute
 }
 
 const BlogRouteChildren: BlogRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
+  BlogFeedDotxmlRoute: BlogFeedDotxmlRoute,
 }
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
