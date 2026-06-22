@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
-import { getBlogPosts } from "@/content/blog/_data"
+import { getBlogPosts } from "../content/blog/_data"
 
-export const Route = createFileRoute("/blog")({
+export const Route = createFileRoute("/blog/")({
   loader: async () => {
     const posts = await getBlogPosts()
     return { posts }

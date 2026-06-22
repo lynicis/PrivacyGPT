@@ -1,6 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeft, Calendar, Clock, User, Tag } from "lucide-react"
-import { getBlogPostBySlug } from "@/content/blog/_data"
+import { getBlogPostBySlug } from "../content/blog/_data"
+import { lazy, Suspense, useMemo } from "react"
+
+const postModules = import.meta.glob<{ default: React.ComponentType<any> }>(
+  "../content/blog/*.mdx"
+)
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params }) => {
@@ -9,10 +14,7 @@ export const Route = createFileRoute("/blog/$slug")({
       throw new Error("Post not found")
     }
 
-    // For now, we'll use a simple approach - in production, you'd compile MDX here
-    const content = `# ${post.title}\n\n*Content would be compiled from MDX here*`
-
-    return { post, content }
+    return { post }
   },
   component: BlogPost,
   errorComponent: () => (
@@ -31,6 +33,13 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function BlogPost() {
   const { post } = Route.useLoaderData()
+
+  const PostComponent = useMemo(() => {
+    const matchKey = `../content/blog/${post.slug}.mdx`
+    const loadPost = postModules[matchKey]
+    if (!loadPost) return null
+    return lazy(loadPost)
+  }, [post.slug])
 
   return (
     <article className="mx-auto max-w-[680px] px-4 py-12">
@@ -82,11 +91,14 @@ function BlogPost() {
       </header>
 
       {/* Content */}
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
-        {/* MDX content would be rendered here */}
-        <p className="text-lg text-muted-foreground italic">
-          Content would be compiled from MDX and rendered here.
-        </p>
+      <div className="prose prose-neutral dark:prose-invert mt-8 max-w-none">
+        {PostComponent ? (
+          <Suspense fallback={<div>Loading post...</div>}>
+            <PostComponent />
+          </Suspense>
+        ) : (
+          <p className="text-destructive">Error loading post content.</p>
+        )}
       </div>
     </article>
   )

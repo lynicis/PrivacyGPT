@@ -12,9 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ChangelogRouteImport } from './routes/changelog'
-import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as CompanyCompanyKeyRouteImport } from './routes/company.$companyKey'
 import { Route as ChangelogFeedDotxmlRouteImport } from './routes/changelog.feed[.]xml'
@@ -37,11 +37,6 @@ const ChangelogRoute = ChangelogRouteImport.update({
   path: '/changelog',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -50,6 +45,11 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapXmlRoute = SitemapXmlRouteImport.update({
@@ -68,14 +68,14 @@ const ChangelogFeedDotxmlRoute = ChangelogFeedDotxmlRouteImport.update({
   getParentRoute: () => ChangelogRoute,
 } as any)
 const BlogFeedDotxmlRoute = BlogFeedDotxmlRouteImport.update({
-  id: '/feed.xml',
-  path: '/feed.xml',
-  getParentRoute: () => BlogRoute,
+  id: '/blog/feed.xml',
+  path: '/blog/feed.xml',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => BlogRoute,
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronWatchdogRoute = ApiCronWatchdogRouteImport.update({
   id: '/api/cron/watchdog',
@@ -86,7 +86,6 @@ const ApiCronWatchdogRoute = ApiCronWatchdogRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/blog': typeof BlogRouteWithChildren
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
@@ -95,12 +94,12 @@ export interface FileRoutesByFullPath {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
+  '/blog/': typeof BlogIndexRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/blog': typeof BlogRouteWithChildren
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
@@ -109,13 +108,13 @@ export interface FileRoutesByTo {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
+  '/blog': typeof BlogIndexRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/blog': typeof BlogRouteWithChildren
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
@@ -124,6 +123,7 @@ export interface FileRoutesById {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
+  '/blog/': typeof BlogIndexRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRouteTypes {
@@ -131,7 +131,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
-    | '/blog'
     | '/changelog'
     | '/compare'
     | '/methodology'
@@ -140,12 +139,12 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
+    | '/blog/'
     | '/api/cron/watchdog'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
-    | '/blog'
     | '/changelog'
     | '/compare'
     | '/methodology'
@@ -154,12 +153,12 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
+    | '/blog'
     | '/api/cron/watchdog'
   id:
     | '__root__'
     | '/'
     | '/admin'
-    | '/blog'
     | '/changelog'
     | '/compare'
     | '/methodology'
@@ -168,18 +167,21 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
+    | '/blog/'
     | '/api/cron/watchdog'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
-  BlogRoute: typeof BlogRouteWithChildren
   ChangelogRoute: typeof ChangelogRouteWithChildren
   CompareRoute: typeof CompareRoute
   MethodologyRoute: typeof MethodologyRoute
+  BlogSlugRoute: typeof BlogSlugRoute
+  BlogFeedDotxmlRoute: typeof BlogFeedDotxmlRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
   SitemapXmlRoute: typeof SitemapXmlRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   ApiCronWatchdogRoute: typeof ApiCronWatchdogRoute
 }
 
@@ -206,13 +208,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -225,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap/xml': {
@@ -250,17 +252,17 @@ declare module '@tanstack/react-router' {
     }
     '/blog/feed.xml': {
       id: '/blog/feed.xml'
-      path: '/feed.xml'
+      path: '/blog/feed.xml'
       fullPath: '/blog/feed.xml'
       preLoaderRoute: typeof BlogFeedDotxmlRouteImport
-      parentRoute: typeof BlogRoute
+      parentRoute: typeof rootRouteImport
     }
     '/blog/$slug': {
       id: '/blog/$slug'
-      path: '/$slug'
+      path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof BlogRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/cron/watchdog': {
       id: '/api/cron/watchdog'
@@ -271,18 +273,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface BlogRouteChildren {
-  BlogSlugRoute: typeof BlogSlugRoute
-  BlogFeedDotxmlRoute: typeof BlogFeedDotxmlRoute
-}
-
-const BlogRouteChildren: BlogRouteChildren = {
-  BlogSlugRoute: BlogSlugRoute,
-  BlogFeedDotxmlRoute: BlogFeedDotxmlRoute,
-}
-
-const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 interface ChangelogRouteChildren {
   ChangelogFeedDotxmlRoute: typeof ChangelogFeedDotxmlRoute
@@ -299,12 +289,14 @@ const ChangelogRouteWithChildren = ChangelogRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
-  BlogRoute: BlogRouteWithChildren,
   ChangelogRoute: ChangelogRouteWithChildren,
   CompareRoute: CompareRoute,
   MethodologyRoute: MethodologyRoute,
+  BlogSlugRoute: BlogSlugRoute,
+  BlogFeedDotxmlRoute: BlogFeedDotxmlRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
   SitemapXmlRoute: SitemapXmlRoute,
+  BlogIndexRoute: BlogIndexRoute,
   ApiCronWatchdogRoute: ApiCronWatchdogRoute,
 }
 export const routeTree = rootRouteImport
