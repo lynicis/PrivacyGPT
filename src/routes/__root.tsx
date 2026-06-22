@@ -121,6 +121,7 @@ function RootLayout() {
     { to: "/methodology", label: "Methodology" },
     { to: "/compare", label: "Compare" },
     { to: "/changelog", label: "Change Log" },
+    { to: "/blog", label: "Blog" },
   ]
 
   return (
@@ -275,6 +276,7 @@ function RootLayout() {
                     { to: "/compare", label: "Compare" },
                     { to: "/methodology", label: "Methodology" },
                     { to: "/changelog", label: "Change Log" },
+                    { to: "/blog", label: "Blog" },
                   ].map((link) => (
                     <li key={link.to}>
                       <Link
