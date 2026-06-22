@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { getChangelogsFn, getSnapshotCountsFn } from "../lib/api"
 import { useState } from "react"
+import { formatDateTime } from "../lib/utils"
 import {
   ArrowLeft,
   History,
@@ -216,7 +217,6 @@ function ChangelogPage() {
           <div className="space-y-4">
             {filteredChangelogs.map((entry) => {
               const isExpanded = expandedIds.has(entry.id)
-              const detectedDate = new Date(entry.detectedAt)
               const isPending = entry.status === "pending_review"
 
               return (
@@ -251,16 +251,7 @@ function ChangelogPage() {
                           </CardTitle>
                           <CardDescription className="mt-0.5 flex items-center gap-1.5 text-xs">
                             <Clock className="h-3 w-3" />
-                            {detectedDate.toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}{" "}
-                            at{" "}
-                            {detectedDate.toLocaleTimeString("en-US", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {formatDateTime(entry.detectedAt)}
                           </CardDescription>
                         </div>
                       </div>
@@ -309,10 +300,7 @@ function ChangelogPage() {
                             <p className="text-sm">{entry.reviewNotes}</p>
                             {entry.reviewedAt && (
                               <p className="mt-1 text-xs text-muted-foreground">
-                                Reviewed on{" "}
-                                {new Date(
-                                  entry.reviewedAt
-                                ).toLocaleDateString()}
+                                Reviewed on {formatDateTime(entry.reviewedAt)}
                               </p>
                             )}
                           </div>
@@ -354,14 +342,7 @@ function ChangelogPage() {
                         </Badge>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Last fetched:{" "}
-                        {new Date(snap.fetchedAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        Last fetched: {formatDateTime(snap.fetchedAt)}
                       </p>
                     </Card>
                   )

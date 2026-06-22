@@ -9,6 +9,7 @@ dist-ssr
 .output
 .vinxi
 .playwright-mcp
+.opencode
 !.env.example
 __unconfig*
 todos.json
