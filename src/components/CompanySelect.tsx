@@ -30,7 +30,7 @@ export function CompanySelect({
   const selectedCompany = companies.find((c) => c.companyKey === value)
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <label className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
         {label}
       </label>
@@ -67,7 +67,7 @@ export function CompanySelect({
         </SelectContent>
       </Select>
       {selectedCompany && (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="pt-0.5 text-[11px] text-muted-foreground">
           {selectedCompany.trainsOnDataByDefault
             ? "Trains on data by default"
             : "Does not train on data by default"}

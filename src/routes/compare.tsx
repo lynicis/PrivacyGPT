@@ -212,8 +212,8 @@ function ComparePage() {
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         {/* Company Selection */}
         <Card className="mb-6 overflow-hidden">
-          <CardContent className="p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+          <CardContent className="p-5 sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
               <div className="flex-1">
                 <CompanySelect
                   companies={companies}
@@ -224,7 +224,7 @@ function ComparePage() {
                 />
               </div>
 
-              <div className="flex items-center justify-center self-center lg:px-2">
+              <div className="flex items-center justify-center self-center lg:px-5">
                 <Button
                   variant="ghost"
                   size="icon"
