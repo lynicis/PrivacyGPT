@@ -1,9 +1,10 @@
-import { db } from "./index"
+import { getDb } from "./index"
 import { companies } from "./schema"
 import { eq } from "drizzle-orm"
 import seedData from "./seedData.json"
 
 async function main() {
+  const db = await getDb()
   console.log("Seeding database with AI companies privacy data...")
 
   for (const data of seedData) {

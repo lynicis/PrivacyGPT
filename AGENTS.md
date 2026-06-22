@@ -9,6 +9,7 @@ Welcome! This file provides the context, structure, commands, and rules required
 The **PrivacyGPT** is a web application designed to monitor how major AI companies handle conversational data. It features a comparison dashboard, detailed company profile pages, a methodology page, and an SQLite database loaded with verified primary-source privacy data.
 
 ### Stack Details:
+
 - **Runtime**: [Bun](https://bun.sh/)
 - **Frontend & Routing**: [TanStack Start](https://tanstack.com/router/latest/docs/start/overview) (React 19 + TypeScript 6)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (using `@tailwindcss/vite` plugin, no `tailwind.config.js`)
@@ -34,7 +35,7 @@ Use this mapping to navigate the repository:
   - 📁 `lib/`
     - 📁 `db/`
       - 📄 `index.ts` — Drizzle ORM client initialization.
-      - 📄 `schema.ts` — SQLite tables: `companies`, `snapshots`, `changelogs`, `subscriptions`.
+      - 📄 `schema.ts` — SQLite tables: `companies`, `snapshots`, `changelogs`.
       - 📄 `seed.ts` — Seeding pipeline database loader.
       - 📄 `seedData.json` — **Source of Truth** for company privacy profile seed records.
     - 📁 `__tests__/`
@@ -53,26 +54,35 @@ Use this mapping to navigate the repository:
 Please use the following commands to run, build, and test the project:
 
 ### 1. Running the Development Server
+
 Starts the dev server with live route generation.
+
 ```bash
 bun run dev
 ```
-*Note: The dev server will run on port `3000` by default and auto-generate `src/routeTree.gen.ts` as routes are added or changed.*
+
+_Note: The dev server will run on port `3000` by default and auto-generate `src/routeTree.gen.ts` as routes are added or changed._
 
 ### 2. Seeding the Database
+
 Seeds the local database (`privacy.db`) using the static JSON file.
+
 ```bash
 bun run src/lib/db/seed.ts
 ```
 
 ### 3. Running Tests
+
 Executes the Vitest test suite.
+
 ```bash
 bun run test
 ```
 
 ### 4. Code Formatting & Linting
+
 Runs Prettier checks and ESLint.
+
 ```bash
 bun run format  # Formats files
 bun run lint    # Lints files
@@ -80,13 +90,17 @@ bun run check   # Checks format without modifying
 ```
 
 ### 5. Type Checking
+
 Verifies TypeScript compilation without emitting output.
+
 ```bash
 bun run typecheck
 ```
 
 ### 6. Database Migrations (Drizzle Kit)
+
 When modifying the Drizzle schema in `src/lib/db/schema.ts`, run:
+
 ```bash
 # Generate SQL migrations inside drizzle/
 npx drizzle-kit generate
@@ -102,6 +116,7 @@ npx drizzle-kit push
 To maintain code quality and compatibility, adhere to the following guidelines:
 
 ### 1. Seed Data updates
+
 - Do **NOT** write data modifications directly to the `privacy.db` file.
 - The `src/lib/db/seedData.json` is the sole source of truth for comparison data.
 - To update company data:
@@ -110,23 +125,26 @@ To maintain code quality and compatibility, adhere to the following guidelines:
   3. Run tests `bun run test` to verify structure matches constraints.
 
 ### 2. Styling Rules
+
 - We use Tailwind CSS v4. Do **not** create a `tailwind.config.js`.
 - Custom configurations, keyframes, variables, and fonts are set directly in `src/styles.css` using standard CSS rules or `@theme` overrides.
 - Use shadcn/ui components where applicable and keep layouts consistent.
 
 ### 3. TanStack Start Routing
+
 - All routes are defined in `src/routes/` using file-based routing.
 - Do not manually edit `src/routeTree.gen.ts` as it is automatically updated by the TanStack Start compiler.
 - Use `createServerFn` inside `src/lib/api.ts` to query DB data securely.
 
 ### 4. Integrity Checks
+
 - Keep all existing comments and docstrings intact unless they are directly related to code being refactored.
 - Ensure that the Vitest suite in `src/lib/__tests__/schema.test.ts` passes successfully after any database schema or seed data updates.
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **PrivacyGPT** (306 symbols, 653 relationships, 23 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **PrivacyGPT** (265 symbols, 569 relationships, 20 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 

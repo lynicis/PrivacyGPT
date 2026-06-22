@@ -1,9 +1,14 @@
 {
-    "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "privacygpt",
-    "compatibility_date": "2025-09-02",
-    "compatibility_flags": [
-        "nodejs_compat"
-    ],
-    "main": "@tanstack/react-start/server-entry"
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "privacygpt",
+  "compatibility_date": "2026-06-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "privacygpt-db",
+      "database_id": "0564b525-7dab-4146-acb0-b47616c39bae",
+    },
+  ],
 }

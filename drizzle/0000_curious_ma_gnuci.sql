@@ -45,13 +45,4 @@ CREATE TABLE `snapshots` (
 	`raw_content` text NOT NULL,
 	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action
 );
---> statement-breakpoint
-CREATE TABLE `subscriptions` (
-	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`email` text NOT NULL,
-	`company_id` integer,
-	`status` text NOT NULL,
-	`token` text NOT NULL,
-	`created_at` text NOT NULL,
-	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action
-);
+

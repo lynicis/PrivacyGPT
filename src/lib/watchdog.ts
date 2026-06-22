@@ -1,4 +1,4 @@
-import { db } from "./db"
+import { getDb } from "./db"
 import { companies, snapshots, changelogs } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
 import { createHash } from "node:crypto"
@@ -137,6 +137,7 @@ export async function runWatchdog(): Promise<{
   changes: number
   errors: number
 }> {
+  const db = await getDb()
   const allCompanies = await db.select().from(companies)
   let checked = 0
   let baselines = 0

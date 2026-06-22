@@ -2,18 +2,23 @@
 
 import { createServerFn } from "@tanstack/react-start"
 import { getRequestHeaders } from "@tanstack/react-start/server"
-import { db, companies } from "./db"
-import { changelogs, snapshots, subscriptions } from "./db/schema"
-import { eq, desc, and, isNull, or } from "drizzle-orm"
+import { getDb, companies } from "./db"
+import { changelogs, snapshots } from "./db/schema"
+import { eq, desc } from "drizzle-orm"
 
 export const getCompaniesFn = createServerFn({ method: "GET" }).handler(
   async () => {
     try {
+      const db = await getDb()
       const data = await db.select().from(companies)
       return data
     } catch (error) {
       console.error("Failed to fetch companies:", error)
-      throw new Error("Failed to fetch companies")
+      throw new Error(
+        error instanceof Error
+          ? `Failed to fetch companies: ${error.message}`
+          : "Failed to fetch companies"
+      )
     }
   }
 )
@@ -22,6 +27,7 @@ export const getCompanyByKeyFn = createServerFn({ method: "GET" })
   .validator((key: string) => key)
   .handler(async ({ data: key }) => {
     try {
+      const db = await getDb()
       const rows = await db
         .select()
         .from(companies)
@@ -37,6 +43,7 @@ export const getCompanyByKeyFn = createServerFn({ method: "GET" })
 export const getChangelogsFn = createServerFn({ method: "GET" }).handler(
   async () => {
     try {
+      const db = await getDb()
       const rows = await db
         .select({
           id: changelogs.id,
@@ -65,6 +72,7 @@ export const getChangelogsFn = createServerFn({ method: "GET" }).handler(
 export const getSnapshotCountsFn = createServerFn({ method: "GET" }).handler(
   async () => {
     try {
+      const db = await getDb()
       const rows = await db
         .select({
           companyId: snapshots.companyId,
@@ -126,6 +134,8 @@ export const reviewChangelogFn = createServerFn({ method: "POST" })
       // Check auth
       await checkAdminAuthFn()
 
+      const db = await getDb()
+
       // 1. Update the changelog status
       await db
         .update(changelogs)
@@ -135,62 +145,6 @@ export const reviewChangelogFn = createServerFn({ method: "POST" })
           reviewedAt: new Date().toISOString(),
         })
         .where(eq(changelogs.id, data.id))
-
-      // 2. Fetch the changelog and company details
-      const changelogEntry = await db
-        .select({
-          companyId: changelogs.companyId,
-          companyName: companies.companyName,
-          companyKey: companies.companyKey,
-        })
-        .from(changelogs)
-        .leftJoin(companies, eq(changelogs.companyId, companies.id))
-        .where(eq(changelogs.id, data.id))
-        .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
-
-      if (changelogEntry && changelogEntry.companyId) {
-        const { companyId, companyName } = changelogEntry
-
-        // 3. Query all confirmed subscribers for this company or all companies
-        const subs = await db
-          .select()
-          .from(subscriptions)
-          .where(
-            and(
-              eq(subscriptions.status, "confirmed"),
-              or(
-                eq(subscriptions.companyId, companyId),
-                isNull(subscriptions.companyId)
-              )
-            )
-          )
-
-        // 4. Send mock alert notification emails
-        for (const sub of subs) {
-          console.log(`
-========================================================================
-[MOCK EMAIL ALERT SENT]
-To: ${sub.email}
-Subject: Privacy Policy Update Alert: ${companyName}
-Body:
-------------------------------------------------------------------------
-Dear PrivacyGPT Subscriber,
-
-We detected a privacy policy change for ${companyName} (${changelogEntry.companyKey}).
-
-Review Details:
-${data.reviewNotes}
-
-View the line-by-line diff visualizer at:
-http://localhost:3000/changelog
-
-To stop receiving these alerts, you can unsubscribe at any time:
-http://localhost:3000/subscribe/unsubscribe?token=${sub.token}
-------------------------------------------------------------------------
-========================================================================
-`)
-        }
-      }
 
       return { success: true }
     } catch (error) {
@@ -211,6 +165,7 @@ function escapeXml(str: string): string {
 export const getRssFeedFn = createServerFn({ method: "GET" }).handler(
   async () => {
     try {
+      const db = await getDb()
       const rows = await db
         .select({
           id: changelogs.id,
@@ -261,177 +216,3 @@ ${items}
   }
 )
 
-export async function subscribeEmailHandler(data: {
-  email: string
-  companyId: number | null
-}) {
-  const email = data.email.trim().toLowerCase()
-  // Basic email validation regex
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { success: false, error: "Invalid email format" }
-  }
-
-  // Check if already subscribed
-  const existing = await db
-    .select()
-    .from(subscriptions)
-    .where(
-      and(
-        eq(subscriptions.email, email),
-        data.companyId
-          ? eq(subscriptions.companyId, data.companyId)
-          : isNull(subscriptions.companyId)
-      )
-    )
-    .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
-
-  if (existing) {
-    if (existing.status === "confirmed") {
-      return {
-        success: true,
-        message: "You are already subscribed to this option.",
-      }
-    }
-    // If pending, resend invitation
-    console.log(`
-========================================================================
-[MOCK EMAIL SENT - RESEND CONFIRMATION]
-To: ${email}
-Subject: Confirm your PrivacyGPT Alert Subscription
-Body:
-------------------------------------------------------------------------
-Hello,
-
-Please confirm your subscription to PrivacyGPT policy updates by clicking the link below:
-
-http://localhost:3000/subscribe/confirm?token=${existing.token}
-
-If you did not request this subscription, you can ignore this email.
-------------------------------------------------------------------------
-========================================================================
-    `)
-    return {
-      success: true,
-      message: "Confirmation link resent! Please check your inbox.",
-    }
-  }
-
-  // Create new subscription
-  const token = crypto.randomUUID()
-  await db.insert(subscriptions).values({
-    email,
-    companyId: data.companyId,
-    status: "pending_confirmation",
-    token,
-    createdAt: new Date().toISOString(),
-  })
-
-  console.log(`
-========================================================================
-[MOCK EMAIL SENT - NEW SUBSCRIPTION]
-To: ${email}
-Subject: Confirm your PrivacyGPT Alert Subscription
-Body:
-------------------------------------------------------------------------
-Hello,
-
-Please confirm your subscription to PrivacyGPT policy updates by clicking the link below:
-
-http://localhost:3000/subscribe/confirm?token=${token}
-
-If you did not request this subscription, you can ignore this email.
-------------------------------------------------------------------------
-========================================================================
-  `)
-
-  return {
-    success: true,
-    message: "Please check your email to confirm your subscription.",
-  }
-}
-
-export async function confirmSubscriptionHandler(data: { token: string }) {
-  const sub = await db
-    .select()
-    .from(subscriptions)
-    .where(eq(subscriptions.token, data.token))
-    .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
-
-  if (!sub) {
-    return { success: false, error: "Invalid confirmation token" }
-  }
-
-  // Update status
-  await db
-    .update(subscriptions)
-    .set({ status: "confirmed" })
-    .where(eq(subscriptions.id, sub.id))
-
-  // Get target company name
-  let companyName = "All Companies"
-  if (sub.companyId) {
-    const comp = await db
-      .select({ companyName: companies.companyName })
-      .from(companies)
-      .where(eq(companies.id, sub.companyId))
-      .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
-    if (comp) {
-      companyName = comp.companyName
-    }
-  }
-
-  return { success: true, companyName }
-}
-
-export async function unsubscribeHandler(data: { token: string }) {
-  const sub = await db
-    .select()
-    .from(subscriptions)
-    .where(eq(subscriptions.token, data.token))
-    .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
-
-  if (!sub) {
-    return { success: false, error: "Invalid unsubscribe token" }
-  }
-
-  // Delete subscription record
-  await db.delete(subscriptions).where(eq(subscriptions.id, sub.id))
-
-  return { success: true }
-}
-
-export const subscribeEmailFn = createServerFn({ method: "POST" })
-  .validator((input: { email: string; companyId: number | null }) => input)
-  .handler(async ({ data }) => {
-    try {
-      return await subscribeEmailHandler(data)
-    } catch (error) {
-      console.error("Subscription failed:", error)
-      return {
-        success: false,
-        error: "Subscription failed. Please try again later.",
-      }
-    }
-  })
-
-export const confirmSubscriptionFn = createServerFn({ method: "POST" })
-  .validator((input: { token: string }) => input)
-  .handler(async ({ data }) => {
-    try {
-      return await confirmSubscriptionHandler(data)
-    } catch (error) {
-      console.error("Confirmation failed:", error)
-      return { success: false, error: "Confirmation failed" }
-    }
-  })
-
-export const unsubscribeFn = createServerFn({ method: "POST" })
-  .validator((input: { token: string }) => input)
-  .handler(async ({ data }) => {
-    try {
-      return await unsubscribeHandler(data)
-    } catch (error) {
-      console.error("Unsubscribe failed:", error)
-      return { success: false, error: "Unsubscribe failed" }
-    }
-  })

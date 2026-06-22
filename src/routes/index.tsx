@@ -40,7 +40,14 @@ import {
 import type { Weights } from "../lib/scoring"
 
 export const Route = createFileRoute("/")({
-  loader: () => getCompaniesFn(),
+  loader: async () => {
+    try {
+      return await getCompaniesFn()
+    } catch (error) {
+      console.error("Failed to load companies on dashboard:", error)
+      return []
+    }
+  },
   head: () => ({
     meta: [
       {

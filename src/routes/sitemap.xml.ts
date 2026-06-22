@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { db, companies } from "../lib/db"
+import { getDb, companies } from "../lib/db"
 
 export const Route = createFileRoute("/sitemap/xml")({
   server: {
     handlers: {
       GET: async () => {
         try {
+          const db = await getDb()
           const rows = await db
             .select({
               companyKey: companies.companyKey,

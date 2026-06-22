@@ -1,16 +1,32 @@
 import { createClient } from "@libsql/client"
 import { drizzle } from "drizzle-orm/libsql"
+import { drizzle as drizzleD1 } from "drizzle-orm/d1"
+import type { LibSQLDatabase } from "drizzle-orm/libsql"
 import * as schema from "./schema"
 
-// Use process.env.TURSO_CONNECTION_URL for production (Turso) and local file for development.
-// During build time on Vercel, if the env variable isn't present, it will fallback to local file database.
-const isServer = typeof window === "undefined"
+let _db: LibSQLDatabase<typeof schema> | null = null
 
-const client = createClient({
-  url: isServer
-    ? process.env.TURSO_CONNECTION_URL || "file:privacy.db"
-    : "libsql://dummy",
-})
+export async function getDb(): Promise<LibSQLDatabase<typeof schema>> {
+  if (_db) return _db
 
-export const db = drizzle(client, { schema })
+  try {
+    const mod = await import("cloudflare:workers")
+    const env = mod.env as { DB?: D1Database }
+    if (env.DB) {
+      _db = drizzleD1(env.DB, { schema }) as unknown as LibSQLDatabase<
+        typeof schema
+      >
+      return _db
+    }
+  } catch {
+    // Not running in Cloudflare Workers — fall through to local SQLite
+  }
+
+  const client = createClient({
+    url: process.env.TURSO_CONNECTION_URL || "file:privacy.db",
+  })
+  _db = drizzle(client, { schema }) as LibSQLDatabase<typeof schema>
+  return _db
+}
+
 export * from "./schema"

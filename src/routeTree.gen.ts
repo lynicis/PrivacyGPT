@@ -13,8 +13,6 @@ import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SubscribeUnsubscribeRouteImport } from './routes/subscribe.unsubscribe'
-import { Route as SubscribeConfirmRouteImport } from './routes/subscribe.confirm'
 import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as CompanyCompanyKeyRouteImport } from './routes/company.$companyKey'
 import { Route as ChangelogFeedDotxmlRouteImport } from './routes/changelog.feed[.]xml'
@@ -38,16 +36,6 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SubscribeUnsubscribeRoute = SubscribeUnsubscribeRouteImport.update({
-  id: '/subscribe/unsubscribe',
-  path: '/subscribe/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SubscribeConfirmRoute = SubscribeConfirmRouteImport.update({
-  id: '/subscribe/confirm',
-  path: '/subscribe/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapXmlRoute = SitemapXmlRouteImport.update({
@@ -79,8 +67,6 @@ export interface FileRoutesByFullPath {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
-  '/subscribe/confirm': typeof SubscribeConfirmRoute
-  '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRoutesByTo {
@@ -91,8 +77,6 @@ export interface FileRoutesByTo {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
-  '/subscribe/confirm': typeof SubscribeConfirmRoute
-  '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRoutesById {
@@ -104,8 +88,6 @@ export interface FileRoutesById {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/sitemap/xml': typeof SitemapXmlRoute
-  '/subscribe/confirm': typeof SubscribeConfirmRoute
-  '/subscribe/unsubscribe': typeof SubscribeUnsubscribeRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRouteTypes {
@@ -118,8 +100,6 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
-    | '/subscribe/confirm'
-    | '/subscribe/unsubscribe'
     | '/api/cron/watchdog'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -130,8 +110,6 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
-    | '/subscribe/confirm'
-    | '/subscribe/unsubscribe'
     | '/api/cron/watchdog'
   id:
     | '__root__'
@@ -142,8 +120,6 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/sitemap/xml'
-    | '/subscribe/confirm'
-    | '/subscribe/unsubscribe'
     | '/api/cron/watchdog'
   fileRoutesById: FileRoutesById
 }
@@ -154,8 +130,6 @@ export interface RootRouteChildren {
   MethodologyRoute: typeof MethodologyRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
   SitemapXmlRoute: typeof SitemapXmlRoute
-  SubscribeConfirmRoute: typeof SubscribeConfirmRoute
-  SubscribeUnsubscribeRoute: typeof SubscribeUnsubscribeRoute
   ApiCronWatchdogRoute: typeof ApiCronWatchdogRoute
 }
 
@@ -187,20 +161,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/subscribe/unsubscribe': {
-      id: '/subscribe/unsubscribe'
-      path: '/subscribe/unsubscribe'
-      fullPath: '/subscribe/unsubscribe'
-      preLoaderRoute: typeof SubscribeUnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/subscribe/confirm': {
-      id: '/subscribe/confirm'
-      path: '/subscribe/confirm'
-      fullPath: '/subscribe/confirm'
-      preLoaderRoute: typeof SubscribeConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap/xml': {
@@ -253,8 +213,6 @@ const rootRouteChildren: RootRouteChildren = {
   MethodologyRoute: MethodologyRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
   SitemapXmlRoute: SitemapXmlRoute,
-  SubscribeConfirmRoute: SubscribeConfirmRoute,
-  SubscribeUnsubscribeRoute: SubscribeUnsubscribeRoute,
   ApiCronWatchdogRoute: ApiCronWatchdogRoute,
 }
 export const routeTree = rootRouteImport

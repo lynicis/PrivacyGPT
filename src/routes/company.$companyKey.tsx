@@ -31,7 +31,14 @@ import {
 import { Badge } from "@/components/ui/badge"
 
 export const Route = createFileRoute("/company/$companyKey")({
-  loader: ({ params }) => getCompanyByKeyFn({ data: params.companyKey }),
+  loader: async ({ params }) => {
+    try {
+      return await getCompanyByKeyFn({ data: params.companyKey })
+    } catch (error) {
+      console.error(`Failed to load company ${params.companyKey}:`, error)
+      return null
+    }
+  },
   head: ({ loaderData }) => {
     const company = loaderData
     if (!company) {

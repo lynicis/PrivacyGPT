@@ -76,12 +76,3 @@ export const changelogs = sqliteTable("changelogs", {
   reviewNotes: text("review_notes"),
   reviewedAt: text("reviewed_at"), // ISO Timestamp
 })
-
-export const subscriptions = sqliteTable("subscriptions", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  email: text("email").notNull(),
-  companyId: integer("company_id").references(() => companies.id), // Null = "All Companies"
-  status: text("status").notNull(), // 'pending_confirmation' | 'confirmed'
-  token: text("token").notNull(), // Double opt-in/unsubscribe verification token
-  createdAt: text("created_at").notNull(), // ISO Timestamp
-})
