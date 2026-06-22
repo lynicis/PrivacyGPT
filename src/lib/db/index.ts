@@ -7,7 +7,9 @@ import * as schema from "./schema"
 const isServer = typeof window === "undefined"
 
 const client = createClient({
-  url: isServer ? (process.env.TURSO_CONNECTION_URL || "file:privacy.db") : "libsql://dummy",
+  url: isServer
+    ? process.env.TURSO_CONNECTION_URL || "file:privacy.db"
+    : "libsql://dummy",
 })
 
 export const db = drizzle(client, { schema })

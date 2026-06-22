@@ -1,6 +1,7 @@
 "use server"
 
 import { createServerFn } from "@tanstack/react-start"
+import { getRequestHeaders } from "@tanstack/react-start/server"
 import { db, companies } from "./db"
 import { changelogs, snapshots, subscriptions } from "./db/schema"
 import { eq, desc, and, isNull, or } from "drizzle-orm"
@@ -83,10 +84,48 @@ export const getSnapshotCountsFn = createServerFn({ method: "GET" }).handler(
   }
 )
 
+export function checkAdminAuth(headers: Headers) {
+  const authHeader = headers.get("authorization")
+
+  const username = process.env.ADMIN_USERNAME || "admin"
+  const password = process.env.ADMIN_PASSWORD || "adminpassword"
+
+  const expectedAuth =
+    "Basic " + Buffer.from(`${username}:${password}`).toString("base64")
+
+  if (!authHeader || authHeader !== expectedAuth) {
+    throw new Response("Unauthorized", {
+      status: 401,
+      headers: {
+        "WWW-Authenticate": 'Basic realm="Admin Portal"',
+      },
+    })
+  }
+  return { success: true }
+}
+
+export const checkAdminAuthFn = createServerFn({ method: "GET" }).handler(
+  async () => {
+    try {
+      const headers = getRequestHeaders()
+      return checkAdminAuth(headers)
+    } catch (error) {
+      if (error instanceof Response) {
+        throw error
+      }
+      console.error("Auth check failed:", error)
+      throw new Error("Internal Server Error during auth check")
+    }
+  }
+)
+
 export const reviewChangelogFn = createServerFn({ method: "POST" })
   .validator((input: { id: number; reviewNotes: string }) => input)
   .handler(async ({ data }) => {
     try {
+      // Check auth
+      await checkAdminAuthFn()
+
       // 1. Update the changelog status
       await db
         .update(changelogs)

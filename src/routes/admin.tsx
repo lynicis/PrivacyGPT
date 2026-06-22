@@ -1,17 +1,23 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { getChangelogsFn, getSnapshotCountsFn } from "../lib/api"
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
+import {
+  getChangelogsFn,
+  getSnapshotCountsFn,
+  reviewChangelogFn,
+  checkAdminAuthFn,
+} from "../lib/api"
 import { useState } from "react"
 import {
   ArrowLeft,
-  History,
+  ShieldCheck,
+  Lock,
   Clock,
   CheckCircle2,
   AlertCircle,
-  Rss,
   FileText,
   Filter,
   Plus,
   Minus,
+  Settings,
 } from "lucide-react"
 import {
   Card,
@@ -30,8 +36,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-export const Route = createFileRoute("/changelog")({
-  component: ChangelogPage,
+export const Route = createFileRoute("/admin")({
+  beforeLoad: async () => {
+    await checkAdminAuthFn()
+  },
   loader: async () => {
     const [changelogs, snapshots] = await Promise.all([
       getChangelogsFn(),
@@ -42,21 +50,72 @@ export const Route = createFileRoute("/changelog")({
   head: () => ({
     meta: [
       {
-        title: "Change Log — PrivacyGPT",
+        title: "Admin Portal — PrivacyGPT",
       },
       {
         name: "description",
         content:
-          "Track real-time changes to AI companies' privacy policies. See exactly what changed, when it changed, and how it affects your data.",
+          "Admin portal to review and approve policy change log entries.",
       },
     ],
   }),
 })
 
-function ChangelogPage() {
+function ChangelogReview({ id }: { id: number }) {
+  const router = useRouter()
+  const [notes, setNotes] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setError(null)
+    try {
+      await reviewChangelogFn({ data: { id, reviewNotes: notes } })
+      router.invalidate()
+    } catch (err: any) {
+      setError(err?.message || "An unexpected error occurred.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="space-y-1.5">
+        <label
+          htmlFor={`notes-${id}`}
+          className="text-xs font-medium text-muted-foreground"
+        >
+          Review Notes / Summary of Changes
+        </label>
+        <textarea
+          id={`notes-${id}`}
+          rows={3}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="e.g. Google updated their data collection wording regarding workspace integration..."
+          className="w-full rounded-none border border-border bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+          required
+        />
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <Button
+        type="submit"
+        disabled={submitting}
+        className="h-auto rounded-none bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95"
+      >
+        {submitting ? "Approving..." : "Approve & Alert Subscribers"}
+      </Button>
+    </form>
+  )
+}
+
+export default function AdminPage() {
   const { changelogs, snapshots } = Route.useLoaderData()
   const [companyFilter, setCompanyFilter] = useState<string>("all")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [statusFilter, setStatusFilter] = useState<string>("pending_review") // Default to pending review
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
 
   // Get unique companies from snapshots for filter dropdown
@@ -90,7 +149,7 @@ function ChangelogPage() {
   const pendingReviews = changelogs.filter(
     (c) => c.status === "pending_review"
   ).length
-  const companiesTracked = trackedCompanies.length
+  const reviewedChanges = totalChanges - pendingReviews
 
   return (
     <>
@@ -106,54 +165,50 @@ function ChangelogPage() {
               Dashboard
             </Link>
             <span>/</span>
-            <span className="text-foreground">Change Log</span>
+            <span className="text-foreground">Admin Portal</span>
           </div>
           <div className="mt-4 flex items-start justify-between">
             <div>
               <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight">
-                <History className="h-8 w-8 text-primary" />
-                Policy Change Log
+                <Lock className="h-8 w-8 text-primary" />
+                Admin Review Portal
               </h1>
               <p className="mt-2 max-w-2xl text-muted-foreground">
-                Automated tracking of privacy policy changes across major AI
-                platforms. Each change is detected by our watchdog crawler,
-                logged here, and reviewed for accuracy.
+                Authorize, review, and approve privacy policy modifications
+                detected by the watchdog system. Approved changes will be
+                visible to public users and notify active email subscribers.
               </p>
             </div>
-            <a
-              href="/changelog/feed.xml"
-              className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              title="Subscribe to RSS Feed"
-            >
-              <Rss className="h-4 w-4" />
-              RSS Feed
-            </a>
+            <div className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+              <Settings className="animate-spin-slow h-3.5 w-3.5 text-primary" />
+              Authorized Session
+            </div>
           </div>
 
           {/* Stats row */}
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Card className="p-4">
-              <div className="text-2xl font-bold">{companiesTracked}</div>
+            <Card className="border-l-4 border-l-primary p-4">
+              <div className="text-2xl font-bold">{pendingReviews}</div>
               <div className="text-xs text-muted-foreground">
-                Companies Tracked
+                Pending Review
               </div>
             </Card>
             <Card className="p-4">
-              <div className="text-2xl font-bold">{totalSnapshots}</div>
+              <div className="text-2xl font-bold">{reviewedChanges}</div>
               <div className="text-xs text-muted-foreground">
-                Snapshots Stored
+                Reviewed / Approved
               </div>
             </Card>
             <Card className="p-4">
               <div className="text-2xl font-bold">{totalChanges}</div>
               <div className="text-xs text-muted-foreground">
-                Changes Detected
+                Total Detected Changes
               </div>
             </Card>
             <Card className="p-4">
-              <div className="text-2xl font-bold">{pendingReviews}</div>
+              <div className="text-2xl font-bold">{totalSnapshots}</div>
               <div className="text-xs text-muted-foreground">
-                Pending Review
+                Policy Snapshots
               </div>
             </Card>
           </div>
@@ -163,34 +218,41 @@ function ChangelogPage() {
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Filters:</span>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Filters:</span>
+            </div>
+            <Select value={companyFilter} onValueChange={setCompanyFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Companies" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Companies</SelectItem>
+                {trackedCompanies.map(([key, name]) => (
+                  <SelectItem key={key} value={key || ""}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Pending Review" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending_review">Pending Review</SelectItem>
+                <SelectItem value="reviewed">Reviewed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={companyFilter} onValueChange={setCompanyFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All Companies" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Companies</SelectItem>
-              {trackedCompanies.map(([key, name]) => (
-                <SelectItem key={key} value={key || ""}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending_review">Pending Review</SelectItem>
-              <SelectItem value="reviewed">Reviewed</SelectItem>
-            </SelectContent>
-          </Select>
+          <Link to="/changelog">
+            <Button variant="outline" size="sm" className="text-xs">
+              View Public Changelog
+            </Button>
+          </Link>
         </div>
 
         {/* Timeline */}
@@ -202,7 +264,7 @@ function ChangelogPage() {
               </div>
               <CardTitle className="text-lg font-bold">
                 {changelogs.length === 0
-                  ? "No Changes Detected Yet"
+                  ? "No Changes Logged"
                   : "No Matching Changes"}
               </CardTitle>
               <CardDescription>
@@ -215,19 +277,23 @@ function ChangelogPage() {
         ) : (
           <div className="space-y-4">
             {filteredChangelogs.map((entry) => {
-              const isExpanded = expandedIds.has(entry.id)
+              const isExpanded =
+                expandedIds.has(entry.id) || entry.status === "pending_review" // auto-expand pending items for convenience
               const detectedDate = new Date(entry.detectedAt)
               const isPending = entry.status === "pending_review"
 
               return (
-                <Card key={entry.id} className="overflow-hidden">
+                <Card
+                  key={entry.id}
+                  className={`overflow-hidden transition-all duration-200 ${isPending ? "border-chart-1/30 bg-chart-1/5 shadow-sm" : ""}`}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <div
                           className={`rounded-full p-1.5 ${
                             isPending
-                              ? "bg-chart-1/10 text-chart-1"
+                              ? "bg-chart-1/20 text-chart-1"
                               : "bg-chart-5/10 text-chart-5"
                           }`}
                         >
@@ -290,7 +356,7 @@ function ChangelogPage() {
                             <div className="border-b border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
                               Policy Text Changes
                             </div>
-                            <div className="max-h-96 overflow-y-auto p-3 font-mono text-xs leading-relaxed">
+                            <div className="max-h-96 overflow-y-auto bg-background p-3 font-mono text-xs leading-relaxed">
                               {parseDiffHtml(entry.diffHtml)}
                             </div>
                           </div>
@@ -300,8 +366,8 @@ function ChangelogPage() {
                           </p>
                         )}
 
-                        {/* Review notes */}
-                        {entry.reviewNotes && (
+                        {/* Review notes / Admin review form */}
+                        {entry.reviewNotes ? (
                           <div className="border border-border bg-muted/30 p-3">
                             <div className="mb-1 text-xs font-medium text-muted-foreground">
                               Review Notes
@@ -316,6 +382,16 @@ function ChangelogPage() {
                               </p>
                             )}
                           </div>
+                        ) : (
+                          isPending && (
+                            <div className="rounded-none border border-border bg-muted/20 p-4">
+                              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                                Admin Review Action
+                              </div>
+                              <ChangelogReview id={entry.id} />
+                            </div>
+                          )
                         )}
                       </div>
                     )}
@@ -324,51 +400,6 @@ function ChangelogPage() {
               )
             })}
           </div>
-        )}
-
-        {/* Snapshot Status Section */}
-        {snapshots.length > 0 && (
-          <section className="mt-12">
-            <h2 className="mb-4 text-lg font-bold tracking-tight">
-              Latest Snapshots
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Group snapshots by company and show latest */}
-              {(() => {
-                const latestByCompany = new Map<string, (typeof snapshots)[0]>()
-                for (const snap of snapshots) {
-                  const key = snap.companyKey || ""
-                  if (!latestByCompany.has(key)) {
-                    latestByCompany.set(key, snap)
-                  }
-                }
-                return Array.from(latestByCompany.entries()).map(
-                  ([key, snap]) => (
-                    <Card key={key} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          {snap.companyName}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {snap.contentHash.slice(0, 8)}…
-                        </Badge>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Last fetched:{" "}
-                        {new Date(snap.fetchedAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </Card>
-                  )
-                )
-              })()}
-            </div>
-          </section>
         )}
       </main>
     </>
