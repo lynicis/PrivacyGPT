@@ -9,19 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as CompanyCompanyKeyRouteImport } from './routes/company.$companyKey'
 import { Route as ChangelogFeedDotxmlRouteImport } from './routes/changelog.feed[.]xml'
 import { Route as BlogFeedDotxmlRouteImport } from './routes/blog.feed[.]xml'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiCronWatchdogRouteImport } from './routes/api.cron.watchdog'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MethodologyRoute = MethodologyRouteImport.update({
   id: '/methodology',
   path: '/methodology',
@@ -50,11 +55,6 @@ const IndexRoute = IndexRouteImport.update({
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapXmlRoute = SitemapXmlRouteImport.update({
-  id: '/sitemap/xml',
-  path: '/sitemap/xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompanyCompanyKeyRoute = CompanyCompanyKeyRouteImport.update({
@@ -89,11 +89,11 @@ export interface FileRoutesByFullPath {
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
-  '/sitemap/xml': typeof SitemapXmlRoute
   '/blog/': typeof BlogIndexRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
@@ -103,11 +103,11 @@ export interface FileRoutesByTo {
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
-  '/sitemap/xml': typeof SitemapXmlRoute
   '/blog': typeof BlogIndexRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
@@ -118,11 +118,11 @@ export interface FileRoutesById {
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
-  '/sitemap/xml': typeof SitemapXmlRoute
   '/blog/': typeof BlogIndexRoute
   '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
@@ -134,11 +134,11 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/compare'
     | '/methodology'
+    | '/sitemap.xml'
     | '/blog/$slug'
     | '/blog/feed.xml'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
-    | '/sitemap/xml'
     | '/blog/'
     | '/api/cron/watchdog'
   fileRoutesByTo: FileRoutesByTo
@@ -148,11 +148,11 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/compare'
     | '/methodology'
+    | '/sitemap.xml'
     | '/blog/$slug'
     | '/blog/feed.xml'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
-    | '/sitemap/xml'
     | '/blog'
     | '/api/cron/watchdog'
   id:
@@ -162,11 +162,11 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/compare'
     | '/methodology'
+    | '/sitemap.xml'
     | '/blog/$slug'
     | '/blog/feed.xml'
     | '/changelog/feed.xml'
     | '/company/$companyKey'
-    | '/sitemap/xml'
     | '/blog/'
     | '/api/cron/watchdog'
   fileRoutesById: FileRoutesById
@@ -177,16 +177,23 @@ export interface RootRouteChildren {
   ChangelogRoute: typeof ChangelogRouteWithChildren
   CompareRoute: typeof CompareRoute
   MethodologyRoute: typeof MethodologyRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogFeedDotxmlRoute: typeof BlogFeedDotxmlRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
-  SitemapXmlRoute: typeof SitemapXmlRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ApiCronWatchdogRoute: typeof ApiCronWatchdogRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/methodology': {
       id: '/methodology'
       path: '/methodology'
@@ -227,13 +234,6 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog/'
       preLoaderRoute: typeof BlogIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap/xml': {
-      id: '/sitemap/xml'
-      path: '/sitemap/xml'
-      fullPath: '/sitemap/xml'
-      preLoaderRoute: typeof SitemapXmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/company/$companyKey': {
@@ -292,10 +292,10 @@ const rootRouteChildren: RootRouteChildren = {
   ChangelogRoute: ChangelogRouteWithChildren,
   CompareRoute: CompareRoute,
   MethodologyRoute: MethodologyRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogFeedDotxmlRoute: BlogFeedDotxmlRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
-  SitemapXmlRoute: SitemapXmlRoute,
   BlogIndexRoute: BlogIndexRoute,
   ApiCronWatchdogRoute: ApiCronWatchdogRoute,
 }

@@ -739,7 +739,7 @@ function App() {
                 return false
               })
               .reduce<(number | "ellipsis")[]>((acc, page, idx, arr) => {
-                if (idx > 0 && page - (arr[idx - 1] as number) > 1) {
+                if (idx > 0 && page - arr[idx - 1] > 1) {
                   acc.push("ellipsis")
                 }
                 acc.push(page)

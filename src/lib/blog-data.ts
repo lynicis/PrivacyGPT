@@ -22,7 +22,8 @@ const BLOG_POSTS: BlogPostMeta[] = [
     author: "PrivacyGPT",
     tags: ["opt-out", "ai-training", "social-media", "privacy"],
     publishDate: "2026-06-22",
-    canonicalUrl: "https://privacygpt.app/blog/how-to-opt-out-ai-training",
+    canonicalUrl:
+      "https://privacygpt.lynicis.dev/blog/how-to-opt-out-ai-training",
     type: "BlogPosting",
     readingTime: 4,
   },
@@ -34,7 +35,8 @@ const BLOG_POSTS: BlogPostMeta[] = [
     author: "PrivacyGPT",
     tags: ["deletion", "ai-privacy", "data-retention", "privacy"],
     publishDate: "2026-06-21",
-    canonicalUrl: "https://privacygpt.app/blog/does-delete-actually-work",
+    canonicalUrl:
+      "https://privacygpt.lynicis.dev/blog/does-delete-actually-work",
     type: "BlogPosting",
     readingTime: 4,
   },

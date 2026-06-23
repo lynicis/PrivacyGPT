@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeft, Calendar, Clock, User, Tag } from "lucide-react"
 import { getBlogPostBySlugFn } from "../lib/api"
-import { lazy, Suspense, useMemo } from "react"
+import { lazy, Suspense, useEffect, useMemo } from "react"
+
+const APP_URL = process.env.APP_URL || "https://privacygpt.lynicis.dev"
 
 const postModules = import.meta.glob<{ default: React.ComponentType<any> }>(
   "../content/blog/*.mdx"
@@ -34,6 +36,10 @@ export const Route = createFileRoute("/blog/$slug")({
 function BlogPost() {
   const { post } = Route.useLoaderData()
 
+  useEffect(() => {
+    document.title = `${post.title} - PrivacyGPT`
+  }, [post.title])
+
   const PostComponent = useMemo(() => {
     const matchKey = `../content/blog/${post.slug}.mdx`
     const loadPost = postModules[matchKey] as
@@ -45,6 +51,25 @@ function BlogPost() {
 
   return (
     <article className="mx-auto max-w-[680px] px-4 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            headline: post.title,
+            description: post.description,
+            author: { "@type": "Organization", name: post.author },
+            datePublished: post.publishDate,
+            url: post.canonicalUrl || `${APP_URL}/blog/${post.slug}`,
+          }),
+        }}
+      />
+      <link
+        rel="canonical"
+        href={post.canonicalUrl || `${APP_URL}/blog/${post.slug}`}
+      />
+
       {/* Back link */}
       <Link
         to="/blog"
@@ -79,7 +104,7 @@ function BlogPost() {
         </div>
         {post.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
+            {post.tags.map((tag: string) => (
               <span
                 key={tag}
                 className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground"

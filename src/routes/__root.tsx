@@ -6,12 +6,12 @@ import {
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router"
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
-import { TanStackDevtools } from "@tanstack/react-devtools"
 import { ThemeProvider } from "../components/ThemeProvider"
 import { ThemeToggle } from "../components/ThemeToggle"
 
 import appCss from "../styles.css?url"
+
+const APP_URL = process.env.APP_URL || "https://privacygpt.lynicis.dev"
 
 interface RouterContext {
   router?: any
@@ -58,7 +58,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       {
         property: "og:image",
-        content: "/og-image.png",
+        content: `${APP_URL}/og-image.png`,
       },
       {
         property: "og:image:width",
@@ -70,7 +70,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       {
         property: "og:url",
-        content: "https://privacygpt.dev",
+        content: APP_URL,
       },
       {
         name: "twitter:title",
@@ -83,7 +83,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       {
         name: "twitter:image",
-        content: "/og-image.png",
+        content: `${APP_URL}/og-image.png`,
       },
     ],
     links: [
@@ -99,6 +99,38 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "canonical",
+        href: APP_URL,
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        innerHTML: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "PrivacyGPT",
+          url: APP_URL,
+          description:
+            "Compare how major AI companies handle your data. See who trains on your chats, who deletes on request, and who shares with third parties.",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: `${APP_URL}/?q={search_term_string}`,
+            "query-input": "required name=search_term_string",
+          },
+        }),
+      },
+      {
+        type: "application/ld+json",
+        innerHTML: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "PrivacyGPT",
+          url: APP_URL,
+          logo: `${APP_URL}/og-image.png`,
+        }),
       },
     ],
   }),
@@ -363,17 +395,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
         <Scripts />
       </body>
     </html>

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { getDb, companies } from "../lib/db"
 import { getBlogPostsFn } from "../lib/api"
 
-export const Route = createFileRoute("/sitemap/xml")({
+export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
@@ -18,7 +18,8 @@ export const Route = createFileRoute("/sitemap/xml")({
             getBlogPostsFn(),
           ])
 
-          const siteUrl = "https://privacygpt.lynicis.dev"
+          const siteUrl =
+            process.env.APP_URL || "https://privacygpt.lynicis.dev"
           const now = new Date().toISOString()
 
           const urls = [
@@ -30,6 +31,12 @@ export const Route = createFileRoute("/sitemap/xml")({
             },
             {
               loc: `${siteUrl}/methodology`,
+              lastmod: now,
+              changefreq: "monthly",
+              priority: "0.8",
+            },
+            {
+              loc: `${siteUrl}/compare`,
               lastmod: now,
               changefreq: "monthly",
               priority: "0.8",

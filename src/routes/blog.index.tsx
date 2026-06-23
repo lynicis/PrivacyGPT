@@ -2,7 +2,46 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
 import { getBlogPostsFn } from "../lib/api"
 
+const APP_URL = process.env.APP_URL || "https://privacygpt.lynicis.dev"
+
 export const Route = createFileRoute("/blog/")({
+  head: () => ({
+    title: "Blog - PrivacyGPT",
+    meta: [
+      {
+        name: "description",
+        content:
+          "Privacy insights, guides, and analysis on how major AI companies handle your conversational data.",
+      },
+      { property: "og:title", content: "Blog - PrivacyGPT" },
+      {
+        property: "og:description",
+        content:
+          "Privacy insights, guides, and analysis on how major AI companies handle your conversational data.",
+      },
+      { property: "og:url", content: `${APP_URL}/blog` },
+      { name: "twitter:title", content: "Blog - PrivacyGPT" },
+      {
+        name: "twitter:description",
+        content:
+          "Privacy insights, guides, and analysis on how major AI companies handle your conversational data.",
+      },
+    ],
+    links: [{ rel: "canonical", href: `${APP_URL}/blog` }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        innerHTML: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Blog - PrivacyGPT",
+          url: `${APP_URL}/blog`,
+          description:
+            "Privacy insights, guides, and analysis on how major AI companies handle your conversational data.",
+        }),
+      },
+    ],
+  }),
   loader: async () => {
     const posts = await getBlogPostsFn()
     return { posts }
