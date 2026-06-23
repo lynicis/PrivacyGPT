@@ -18,7 +18,6 @@ import {
   Filter,
   Plus,
   Minus,
-  Settings,
 } from "lucide-react"
 import {
   Card,
@@ -249,10 +248,6 @@ function AdminPage() {
                 detected by the watchdog system. Approved changes will be
                 visible to public users and notify active email subscribers.
               </p>
-            </div>
-            <div className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-              <Settings className="animate-spin-slow h-3.5 w-3.5 text-primary" />
-              Authorized Session
             </div>
           </div>
 
