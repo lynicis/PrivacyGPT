@@ -64,7 +64,6 @@ export const Route = createFileRoute("/company/$companyKey")({
 function CompanyDetailPage() {
   const company = Route.useLoaderData()
 
-   
   if (!company) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
