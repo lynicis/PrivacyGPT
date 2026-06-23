@@ -857,5 +857,29 @@
     "lastVerifiedDate": "2026-06-23",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
+  },
+  {
+    "companyKey": "bytedance",
+    "companyName": "ByteDance",
+    "productName": "Trae",
+    "trainsOnDataByDefault": true,
+    "trainsOnDataNuance": "Stores and uses your chat history and code snippets for AI training unless you turn on Privacy Mode.",
+    "optOutAvailable": true,
+    "optOutHow": "Turn on Privacy Mode in the IDE settings. This requires you to stay logged in.",
+    "optOutUrl": "https://www.trae.ai/privacy-policy",
+    "retentionPeriod": "Privacy Mode stops training on your data. Otherwise, the app stores chat history and telemetry for optimization.",
+    "dataDeletedOnRequest": true,
+    "dataDeletedOnRequestTimeframe": "Account deletion removes personal files and info. Telemetry data may persist.",
+    "thirdPartySharing": "Shares telemetry and logs with ByteDance and affiliates. The app deletes plaintext codebase files after computing embeddings.",
+    "humanReviewOfChats": true,
+    "humanReviewConditions": "Staff review conversations and telemetry to check for policy violations and security issues.",
+    "regionalVariation": "Operated by TikTok USDS Joint Venture LLC in the US, with specific regional telemetry policies.",
+    "childrenDataPolicy": "The IDE is not for children under 13.",
+    "enterpriseVsConsumerDifference": false,
+    "enterpriseVsConsumerSummary": "All accounts use the same privacy policy. You can exclude specific files using a .aiignore file.",
+    "sourceUrl": "https://www.trae.ai/privacy-policy",
+    "lastVerifiedDate": "2026-06-23",
+    "lastChangedDate": null,
+    "confidence": "verified_from_policy_text"
   }
 ]
