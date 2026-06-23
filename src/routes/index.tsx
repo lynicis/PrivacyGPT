@@ -52,12 +52,12 @@ interface DashboardSearch {
   optOut?: boolean
   noHumanReview?: boolean
   sortBy?:
-  | "score-desc"
-  | "score-asc"
-  | "name-asc"
-  | "name-desc"
-  | "training-first"
-  | "confidence-first"
+    | "score-desc"
+    | "score-asc"
+    | "name-asc"
+    | "name-desc"
+    | "training-first"
+    | "confidence-first"
   weights?: string
 }
 export const Route = createFileRoute("/")({
@@ -90,25 +90,32 @@ export const Route = createFileRoute("/")({
       const limit = 9
       const offset = (page - 1) * limit
 
-      const { companies, totalCount, stats } = await getCompaniesFn({
-        data: {
-          limit,
-          offset,
-          searchQuery: deps.search,
-          filterNoTraining: deps.noTraining,
-          filterOptOut: deps.optOut,
-          filterNoHumanReview: deps.noHumanReview,
-          sortBy: deps.sortBy,
-          weights: parsedWeights,
-        },
-      })
-      return { companies, totalCount, stats }
+      const { companies, totalCount, stats, overallStats } =
+        await getCompaniesFn({
+          data: {
+            limit,
+            offset,
+            searchQuery: deps.search,
+            filterNoTraining: deps.noTraining,
+            filterOptOut: deps.optOut,
+            filterNoHumanReview: deps.noHumanReview,
+            sortBy: deps.sortBy,
+            weights: parsedWeights,
+          },
+        })
+      return { companies, totalCount, stats, overallStats }
     } catch (error) {
       console.error("Failed to load companies on dashboard:", error)
       return {
         companies: [],
         totalCount: 0,
         stats: { total: 0, trainsDefault: 0, hasOptOut: 0, hasHumanReview: 0 },
+        overallStats: {
+          total: 0,
+          trainsDefault: 0,
+          hasOptOut: 0,
+          hasHumanReview: 0,
+        },
       }
     }
   },
@@ -160,7 +167,11 @@ export const Route = createFileRoute("/")({
 })
 
 function App() {
-  const { companies: allCompanies, totalCount, stats } = Route.useLoaderData()
+  const {
+    companies: allCompanies,
+    totalCount,
+    overallStats,
+  } = Route.useLoaderData()
   const navigate = useNavigate({ from: "/" })
 
   const search = Route.useSearch()
@@ -196,6 +207,7 @@ function App() {
         ...prev,
         weights: JSON.stringify(newWeights),
       }),
+      resetScroll: false,
     })
   }
 
@@ -205,6 +217,7 @@ function App() {
         ...prev,
         weights: JSON.stringify(newWeights),
       }),
+      resetScroll: false,
     })
   }
 
@@ -215,6 +228,7 @@ function App() {
         search: value || undefined,
         page: 1,
       }),
+      resetScroll: false,
     })
   }
 
@@ -225,6 +239,7 @@ function App() {
         noTraining: value || undefined,
         page: 1,
       }),
+      resetScroll: false,
     })
   }
 
@@ -235,6 +250,7 @@ function App() {
         optOut: value || undefined,
         page: 1,
       }),
+      resetScroll: false,
     })
   }
 
@@ -245,6 +261,7 @@ function App() {
         noHumanReview: value || undefined,
         page: 1,
       }),
+      resetScroll: false,
     })
   }
 
@@ -263,6 +280,7 @@ function App() {
         sortBy: value,
         page: 1,
       }),
+      resetScroll: false,
     })
   }
 
@@ -272,6 +290,7 @@ function App() {
         ...prev,
         page,
       }),
+      resetScroll: false,
     })
   }
 
@@ -380,7 +399,8 @@ function App() {
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
               We monitor how major AI companies handle your conversational data.
-              <br />This living database tracks model training defaults, opt-out
+              <br />
+              This living database tracks model training defaults, opt-out
               mechanisms, and retention timelines directly from source policies.
             </p>
             <div className="mt-8 flex justify-center gap-3">
@@ -399,7 +419,7 @@ function App() {
                 <ShieldAlert className="h-5 w-5 text-primary" />
               </div>
               <div className="text-2xl font-extrabold text-foreground tabular-nums">
-                {stats.total}
+                {overallStats.total}
               </div>
               <div className="mt-0.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                 Platforms Tracked
@@ -410,9 +430,9 @@ function App() {
                 <ShieldX className="h-5 w-5 text-red-500" />
               </div>
               <div className="text-2xl font-extrabold text-red-600 tabular-nums dark:text-red-400">
-                {stats.trainsDefault}
+                {overallStats.trainsDefault}
                 <span className="ml-1 text-sm font-normal text-muted-foreground">
-                  / {stats.total}
+                  / {overallStats.total}
                 </span>
               </div>
               <div className="mt-0.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
@@ -424,9 +444,9 @@ function App() {
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
               </div>
               <div className="text-2xl font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400">
-                {stats.hasOptOut}
+                {overallStats.hasOptOut}
                 <span className="ml-1 text-sm font-normal text-muted-foreground">
-                  / {stats.total}
+                  / {overallStats.total}
                 </span>
               </div>
               <div className="mt-0.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
@@ -438,9 +458,9 @@ function App() {
                 <Eye className="h-5 w-5 text-amber-500" />
               </div>
               <div className="text-2xl font-extrabold text-amber-600 tabular-nums dark:text-amber-400">
-                {stats.hasHumanReview}
+                {overallStats.hasHumanReview}
                 <span className="ml-1 text-sm font-normal text-muted-foreground">
-                  / {stats.total}
+                  / {overallStats.total}
                 </span>
               </div>
               <div className="mt-0.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">

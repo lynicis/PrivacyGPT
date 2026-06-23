@@ -24,7 +24,22 @@ export async function getCompanies(
     sortBy?: string
     weights?: Weights
   } = {}
-) {
+): Promise<{
+  companies: any[]
+  totalCount: number
+  stats: {
+    total: number
+    trainsDefault: number
+    hasOptOut: number
+    hasHumanReview: number
+  }
+  overallStats: {
+    total: number
+    trainsDefault: number
+    hasOptOut: number
+    hasHumanReview: number
+  }
+}> {
   try {
     const db = await getDb()
     const allRows = await db.select().from(companies)
@@ -36,6 +51,14 @@ export async function getCompanies(
       deletionWeight: 15,
       sharingWeight: 15,
       humanReviewWeight: 10,
+    }
+
+    // Overall stats from unfiltered data (for hero section)
+    const overallStats = {
+      total: allRows.length,
+      trainsDefault: allRows.filter((c) => c.trainsOnDataByDefault).length,
+      hasOptOut: allRows.filter((c) => c.optOutAvailable).length,
+      hasHumanReview: allRows.filter((c) => c.humanReviewOfChats).length,
     }
 
     // Calculate scores
@@ -102,7 +125,7 @@ export async function getCompanies(
       hasHumanReview: scored.filter((c) => c.humanReviewOfChats).length,
     }
 
-    return { companies: sliced, totalCount, stats }
+    return { companies: sliced, totalCount, stats, overallStats }
   } catch (error) {
     console.error("Failed to fetch companies:", error)
     throw new Error("Failed to fetch companies")
