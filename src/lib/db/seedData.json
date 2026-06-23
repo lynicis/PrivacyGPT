@@ -809,5 +809,29 @@
     "lastVerifiedDate": "2026-06-22",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
+  },
+  {
+    "companyKey": "opencode-zen",
+    "companyName": "OpenCode",
+    "productName": "OpenCode Zen",
+    "trainsOnDataByDefault": false,
+    "trainsOnDataNuance": "Paid models use zero data retention; free tier models may log and retain data to improve the models.",
+    "optOutAvailable": true,
+    "optOutHow": "Workspace admins can disable specific models that collect data.",
+    "optOutUrl": null,
+    "retentionPeriod": "Zero data retention for paid models; up to 30 days for upstream providers (OpenAI/Anthropic).",
+    "dataDeletedOnRequest": true,
+    "dataDeletedOnRequestTimeframe": "Account data and logs can be deleted upon request or by configuring retention rules.",
+    "thirdPartySharing": "Data is forwarded to the configured upstream AI providers (OpenAI, Anthropic).",
+    "humanReviewOfChats": false,
+    "humanReviewConditions": "No human review of chats on paid models.",
+    "regionalVariation": "Standard regional compliance as an API gateway service.",
+    "childrenDataPolicy": "Enterprise platform restricted to users 18 years or older.",
+    "enterpriseVsConsumerDifference": true,
+    "enterpriseVsConsumerSummary": "Paid models use zero data retention; free tier models may retain data to improve models.",
+    "sourceUrl": "https://opencode.example.com/privacy",
+    "lastVerifiedDate": "2026-06-23",
+    "lastChangedDate": null,
+    "confidence": "verified_from_policy_text"
   }
 ]
