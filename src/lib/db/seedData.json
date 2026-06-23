@@ -905,5 +905,29 @@
     "lastVerifiedDate": "2026-06-23",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
+  },
+  {
+    "companyKey": "cognition",
+    "companyName": "Cognition",
+    "productName": "Devin",
+    "trainsOnDataByDefault": false,
+    "trainsOnDataNuance": "Does not use customer data to train models unless you explicitly opt in.",
+    "optOutAvailable": false,
+    "optOutHow": "Not applicable because training is off by default. You can email security@cognition.ai for specific data requests.",
+    "optOutUrl": "https://www.cognition.ai/privacy-policy",
+    "retentionPeriod": "Retains customer data for the duration of the business relationship. The app keeps feedback and interaction logs as long as needed.",
+    "dataDeletedOnRequest": true,
+    "dataDeletedOnRequestTimeframe": "You can request account and data deletion by contacting support or emailing the privacy team.",
+    "thirdPartySharing": "Shares data with service providers under data processing agreements. Telemetry sent to external integrations depends on their policies.",
+    "humanReviewOfChats": true,
+    "humanReviewConditions": "Staff review telemetry, interaction logs, and flagged agent runs to fix bugs and monitor security.",
+    "regionalVariation": "Complies with GDPR; EU users can contact privacy@cognition.ai for data requests.",
+    "childrenDataPolicy": "Designed for users 18 years or older.",
+    "enterpriseVsConsumerDifference": true,
+    "enterpriseVsConsumerSummary": "Enterprise accounts use custom agreements that can specify private cloud deployments and custom data retention times.",
+    "sourceUrl": "https://www.cognition.ai/privacy-policy",
+    "lastVerifiedDate": "2026-06-23",
+    "lastChangedDate": null,
+    "confidence": "verified_from_policy_text"
   }
 ]
