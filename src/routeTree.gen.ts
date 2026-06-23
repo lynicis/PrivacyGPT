@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MethodologyRouteImport } from './routes/methodology'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -42,6 +43,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const MethodologyRoute = MethodologyRouteImport.update({
   id: '/methodology',
   path: '/methodology',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
+  '/faq': typeof FaqRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
+  '/faq': typeof FaqRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
+  '/faq': typeof FaqRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/changelog'
     | '/compare'
+    | '/faq'
     | '/methodology'
     | '/privacy'
     | '/sitemap.xml'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/changelog'
     | '/compare'
+    | '/faq'
     | '/methodology'
     | '/privacy'
     | '/sitemap.xml'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/changelog'
     | '/compare'
+    | '/faq'
     | '/methodology'
     | '/privacy'
     | '/sitemap.xml'
@@ -200,6 +212,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ChangelogRoute: typeof ChangelogRouteWithChildren
   CompareRoute: typeof CompareRoute
+  FaqRoute: typeof FaqRoute
   MethodologyRoute: typeof MethodologyRoute
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/methodology'
       fullPath: '/methodology'
       preLoaderRoute: typeof MethodologyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -331,6 +351,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ChangelogRoute: ChangelogRouteWithChildren,
   CompareRoute: CompareRoute,
+  FaqRoute: FaqRoute,
   MethodologyRoute: MethodologyRoute,
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

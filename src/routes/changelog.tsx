@@ -55,6 +55,32 @@ export const Route = createFileRoute("/changelog")({
         content:
           "Track real-time changes to AI companies' privacy policies. See exactly what changed, when it changed, and how it affects your data.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "Change Log — PrivacyGPT" },
+      {
+        property: "og:description",
+        content:
+          "Track real-time changes to AI companies' privacy policies. See exactly what changed, when it changed, and how it affects your data.",
+      },
+      {
+        property: "og:url",
+        content: "https://privacygpt.lynicis.dev/changelog",
+      },
+      {
+        property: "og:image",
+        content: "https://privacygpt.lynicis.dev/og-image.png",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Change Log — PrivacyGPT" },
+      {
+        name: "twitter:description",
+        content:
+          "Track real-time changes to AI companies' privacy policies. See exactly what changed, when it changed, and how it affects your data.",
+      },
+      {
+        name: "twitter:image",
+        content: "https://privacygpt.lynicis.dev/og-image.png",
+      },
     ],
   }),
 })

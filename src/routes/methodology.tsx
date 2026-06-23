@@ -21,6 +21,38 @@ export const Route = createFileRoute("/methodology")({
         content:
           "Understand how PrivacyGPT scores AI companies on data privacy. Our rubric covers model training, opt-out ease, retention, deletion rights, third-party sharing, and human review — all cited to primary sources.",
       },
+      { property: "og:type", content: "website" },
+      {
+        property: "og:title",
+        content: "AI Privacy Scoring Methodology & Rubric | PrivacyGPT",
+      },
+      {
+        property: "og:description",
+        content:
+          "Understand how PrivacyGPT scores AI companies on data privacy. Our rubric covers model training, opt-out ease, retention, deletion rights, third-party sharing, and human review.",
+      },
+      {
+        property: "og:url",
+        content: "https://privacygpt.lynicis.dev/methodology",
+      },
+      {
+        property: "og:image",
+        content: "https://privacygpt.lynicis.dev/og-image.png",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:title",
+        content: "AI Privacy Scoring Methodology & Rubric | PrivacyGPT",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Understand how PrivacyGPT scores AI companies on data privacy. Our rubric covers model training, opt-out ease, retention, deletion rights, third-party sharing, and human review.",
+      },
+      {
+        name: "twitter:image",
+        content: "https://privacygpt.lynicis.dev/og-image.png",
+      },
     ],
   }),
   component: MethodologyPage,

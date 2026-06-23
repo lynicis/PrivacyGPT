@@ -48,6 +48,35 @@ export const Route = createFileRoute("/compare")({
         content:
           "Compare how two AI companies handle your conversational data side-by-side. Analyze training defaults, opt-out mechanisms, retention policies, and more.",
       },
+      { property: "og:type", content: "website" },
+      {
+        property: "og:title",
+        content: "Compare AI Privacy Policies — PrivacyGPT",
+      },
+      {
+        property: "og:description",
+        content:
+          "Compare how two AI companies handle your conversational data side-by-side. Analyze training defaults, opt-out mechanisms, retention policies, and more.",
+      },
+      { property: "og:url", content: "https://privacygpt.lynicis.dev/compare" },
+      {
+        property: "og:image",
+        content: "https://privacygpt.lynicis.dev/og-image.png",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:title",
+        content: "Compare AI Privacy Policies — PrivacyGPT",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Compare how two AI companies handle your conversational data side-by-side. Analyze training defaults, opt-out mechanisms, retention policies, and more.",
+      },
+      {
+        name: "twitter:image",
+        content: "https://privacygpt.lynicis.dev/og-image.png",
+      },
     ],
   }),
   component: ComparePage,

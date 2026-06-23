@@ -123,6 +123,37 @@ export const Route = createFileRoute("/")({
         content:
           "Compare how major AI companies handle your conversational data. PrivacyGPT tracks model training defaults, opt-out mechanisms, and retention policies from verified source documents.",
       },
+      { property: "og:type", content: "website" },
+      {
+        property: "og:title",
+        content:
+          "AI Privacy Watchdog — Compare AI Company Data Policies | PrivacyGPT",
+      },
+      {
+        property: "og:description",
+        content:
+          "Compare how major AI companies handle your conversational data. See who trains on your chats, who deletes on request, and who shares with third parties.",
+      },
+      { property: "og:url", content: "https://privacygpt.lynicis.dev" },
+      {
+        property: "og:image",
+        content: "https://privacygpt.lynicis.dev/og-image.png",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:title",
+        content:
+          "AI Privacy Watchdog — Compare AI Company Data Policies | PrivacyGPT",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Compare how major AI companies handle your conversational data. See who trains on your chats, who deletes on request, and who shares with third parties.",
+      },
+      {
+        name: "twitter:image",
+        content: "https://privacygpt.lynicis.dev/og-image.png",
+      },
     ],
   }),
   component: App,

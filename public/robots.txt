@@ -1,5 +1,36 @@
 # https://www.robotstxt.org/robotstxt.html
+# PrivacyGPT - Allow all crawlers including AI search engines
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Explicitly allow AI search engine bots for GEO (Generative Engine Optimization)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Block training-only crawlers (not search)
+User-agent: Bytespider
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
 
 Sitemap: https://privacygpt.lynicis.dev/sitemap.xml

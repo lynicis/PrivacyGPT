@@ -48,6 +48,12 @@ export const Route = createFileRoute("/sitemap.xml")({
               priority: "0.7",
             },
             {
+              loc: `${siteUrl}/faq`,
+              lastmod: now,
+              changefreq: "monthly",
+              priority: "0.8",
+            },
+            {
               loc: `${siteUrl}/blog`,
               lastmod: now,
               changefreq: "weekly",

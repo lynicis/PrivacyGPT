@@ -46,14 +46,40 @@ export const Route = createFileRoute("/company/$companyKey")({
         meta: [{ title: "Company Not Found | PrivacyGPT" }],
       }
     }
+    const companyName = `${company.companyName} ${company.productName}`
+    const description = `Detailed privacy analysis for ${companyName}. See how they handle data training, opt-out, data retention, deletion rights, third-party sharing, and human review — verified from official policy documents.`
     return {
       meta: [
         {
-          title: `${company.companyName} ${company.productName} Privacy Policy Analysis | PrivacyGPT`,
+          title: `${companyName} Privacy Policy Analysis | PrivacyGPT`,
         },
         {
           name: "description",
-          content: `Detailed privacy analysis for ${company.companyName} ${company.productName}. See how they handle data training, opt-out, data retention, deletion rights, third-party sharing, and human review — verified from official policy documents.`,
+          content: description,
+        },
+        { property: "og:type", content: "website" },
+        {
+          property: "og:title",
+          content: `${companyName} Privacy Policy Analysis | PrivacyGPT`,
+        },
+        { property: "og:description", content: description },
+        {
+          property: "og:url",
+          content: `https://privacygpt.lynicis.dev/company/${company.companyKey}`,
+        },
+        {
+          property: "og:image",
+          content: "https://privacygpt.lynicis.dev/og-image.png",
+        },
+        { name: "twitter:card", content: "summary_large_image" },
+        {
+          name: "twitter:title",
+          content: `${companyName} Privacy Policy Analysis | PrivacyGPT`,
+        },
+        { name: "twitter:description", content: description },
+        {
+          name: "twitter:image",
+          content: "https://privacygpt.lynicis.dev/og-image.png",
         },
       ],
     }
