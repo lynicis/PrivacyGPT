@@ -5,7 +5,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server"
 import { getDb, companies } from "./db"
 import { changelogs, snapshots } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
-import { getBlogPosts, getBlogPostBySlug } from "../content/blog/_data"
+import { getBlogPosts, getBlogPostBySlug } from "./blog-data"
 
 export const getCompaniesFn = createServerFn({ method: "GET" }).handler(
   async () => {
