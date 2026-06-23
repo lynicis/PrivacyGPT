@@ -13,7 +13,7 @@ const mockDb = {
   select: vi.fn().mockReturnValue(mockChain),
 }
 
-vi.mock("../db", async (importOriginal) => {
+vi.mock(import("../db"), async (importOriginal) => {
   const original = (await importOriginal()) as any
   return {
     ...original,
