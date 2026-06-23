@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { getCompaniesFn } from "../lib/api"
 import { useState, useMemo } from "react"
 import {
@@ -9,6 +9,9 @@ import {
   BookOpen,
   ArrowUpDown,
   ChevronRight,
+  ChevronLeft,
+  ChevronsLeft,
+  ChevronsRight,
   Settings2,
   Undo2,
   ShieldCheck,
@@ -39,21 +42,74 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import {
-  calculateSubScores,
-  calculateTotalScore,
-  mapScoreToGrade,
-  DEFAULT_WEIGHTS,
-} from "../lib/scoring"
+import { mapScoreToGrade, DEFAULT_WEIGHTS } from "../lib/scoring"
 import type { Weights } from "../lib/scoring"
 
+interface DashboardSearch {
+  page?: number
+  search?: string
+  noTraining?: boolean
+  optOut?: boolean
+  noHumanReview?: boolean
+  sortBy?:
+    | "score-desc"
+    | "score-asc"
+    | "name-asc"
+    | "name-desc"
+    | "training-first"
+    | "confidence-first"
+  weights?: string
+}
 export const Route = createFileRoute("/")({
-  loader: async () => {
+  validateSearch: (search: Record<string, unknown>): DashboardSearch => ({
+    page: Number(search.page || 1),
+    search: (search.search as string) || undefined,
+    noTraining:
+      search.noTraining === true || search.noTraining === "true" || undefined,
+    optOut: search.optOut === true || search.optOut === "true" || undefined,
+    noHumanReview:
+      search.noHumanReview === true ||
+      search.noHumanReview === "true" ||
+      undefined,
+    sortBy: (search.sortBy as DashboardSearch["sortBy"]) || "score-desc",
+    weights: (search.weights as string) || undefined,
+  }),
+  loaderDeps: ({ search }) => ({
+    page: search.page,
+    search: search.search,
+    noTraining: search.noTraining,
+    optOut: search.optOut,
+    noHumanReview: search.noHumanReview,
+    sortBy: search.sortBy,
+    weights: search.weights,
+  }),
+  loader: async ({ deps }) => {
     try {
-      return await getCompaniesFn()
+      const parsedWeights = deps.weights ? JSON.parse(deps.weights) : undefined
+      const page = deps.page || 1
+      const limit = 9
+      const offset = (page - 1) * limit
+
+      const { companies, totalCount, stats } = await getCompaniesFn({
+        data: {
+          limit,
+          offset,
+          searchQuery: deps.search,
+          filterNoTraining: deps.noTraining,
+          filterOptOut: deps.optOut,
+          filterNoHumanReview: deps.noHumanReview,
+          sortBy: deps.sortBy,
+          weights: parsedWeights,
+        },
+      })
+      return { companies, totalCount, stats }
     } catch (error) {
       console.error("Failed to load companies on dashboard:", error)
-      return []
+      return {
+        companies: [],
+        totalCount: 0,
+        stats: { total: 0, trainsDefault: 0, hasOptOut: 0, hasHumanReview: 0 },
+      }
     }
   },
   head: () => ({
@@ -73,30 +129,23 @@ export const Route = createFileRoute("/")({
 })
 
 function App() {
-  const allCompanies = Route.useLoaderData()
+  const { companies: allCompanies, totalCount, stats } = Route.useLoaderData()
+  const navigate = useNavigate({ from: "/" })
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [filterNoTraining, setFilterNoTraining] = useState(false)
-  const [filterOptOut, setFilterOptOut] = useState(false)
-  const [filterNoHumanReview, setFilterNoHumanReview] = useState(false)
-  const [sortBy, setSortBy] = useState<
-    | "score-desc"
-    | "score-asc"
-    | "name-asc"
-    | "name-desc"
-    | "training-first"
-    | "confidence-first"
-  >("score-desc")
+  const search = Route.useSearch()
 
   const [isWeightsExpanded, setIsWeightsExpanded] = useState(false)
-  const [weights, setWeights] = useState<Weights>({
-    trainingWeight: DEFAULT_WEIGHTS.trainingWeight,
-    optOutWeight: DEFAULT_WEIGHTS.optOutWeight,
-    retentionWeight: DEFAULT_WEIGHTS.retentionWeight,
-    deletionWeight: DEFAULT_WEIGHTS.deletionWeight,
-    sharingWeight: DEFAULT_WEIGHTS.sharingWeight,
-    humanReviewWeight: DEFAULT_WEIGHTS.humanReviewWeight,
-  })
+
+  const weights: Weights = useMemo(() => {
+    if (search.weights) {
+      try {
+        return JSON.parse(search.weights)
+      } catch {
+        return DEFAULT_WEIGHTS
+      }
+    }
+    return DEFAULT_WEIGHTS
+  }, [search.weights])
 
   const totalWeightSum = useMemo(() => {
     const sum =
@@ -110,29 +159,96 @@ function App() {
   }, [weights])
 
   const handleResetWeights = () => {
-    setWeights({
-      trainingWeight: DEFAULT_WEIGHTS.trainingWeight,
-      optOutWeight: DEFAULT_WEIGHTS.optOutWeight,
-      retentionWeight: DEFAULT_WEIGHTS.retentionWeight,
-      deletionWeight: DEFAULT_WEIGHTS.deletionWeight,
-      sharingWeight: DEFAULT_WEIGHTS.sharingWeight,
-      humanReviewWeight: DEFAULT_WEIGHTS.humanReviewWeight,
+    const newWeights = { ...DEFAULT_WEIGHTS }
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        weights: JSON.stringify(newWeights),
+      }),
     })
   }
 
-  const scoredCompanies = useMemo(() => {
-    return allCompanies.map((company) => {
-      const subScores = calculateSubScores(company)
-      const totalScore = calculateTotalScore(subScores, weights)
-      const grade = mapScoreToGrade(totalScore)
-      return { ...company, subScores, totalScore, grade }
+  const setWeights = (newWeights: Weights) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        weights: JSON.stringify(newWeights),
+      }),
     })
-  }, [allCompanies, weights])
+  }
+
+  const setSearchQuery = (value: string) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        search: value || undefined,
+        page: 1,
+      }),
+    })
+  }
+
+  const setFilterNoTraining = (value: boolean) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        noTraining: value || undefined,
+        page: 1,
+      }),
+    })
+  }
+
+  const setFilterOptOut = (value: boolean) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        optOut: value || undefined,
+        page: 1,
+      }),
+    })
+  }
+
+  const setFilterNoHumanReview = (value: boolean) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        noHumanReview: value || undefined,
+        page: 1,
+      }),
+    })
+  }
+
+  const setSortBy = (
+    value:
+      | "score-desc"
+      | "score-asc"
+      | "name-asc"
+      | "name-desc"
+      | "training-first"
+      | "confidence-first"
+  ) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        sortBy: value,
+        page: 1,
+      }),
+    })
+  }
+
+  const setPage = (page: number) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        page,
+      }),
+    })
+  }
+
+  const currentPage = search.page || 1
+  const totalPages = Math.ceil(totalCount / 9)
 
   const companyRanks = useMemo(() => {
-    const sorted = [...scoredCompanies].sort(
-      (a, b) => b.totalScore - a.totalScore
-    )
+    const sorted = [...allCompanies].sort((a, b) => b.totalScore - a.totalScore)
     const ranks: Record<string, number> = {}
     let currentRank = 1
     sorted.forEach((c, idx) => {
@@ -142,66 +258,7 @@ function App() {
       ranks[c.companyKey] = currentRank
     })
     return ranks
-  }, [scoredCompanies])
-
-  const stats = useMemo(() => {
-    const total = scoredCompanies.length
-    if (total === 0)
-      return { total: 0, trainsDefault: 0, hasOptOut: 0, hasHumanReview: 0 }
-    const trainsDefault = scoredCompanies.filter(
-      (c) => c.trainsOnDataByDefault
-    ).length
-    const hasOptOut = scoredCompanies.filter((c) => c.optOutAvailable).length
-    const hasHumanReview = scoredCompanies.filter(
-      (c) => c.humanReviewOfChats
-    ).length
-    return { total, trainsDefault, hasOptOut, hasHumanReview }
-  }, [scoredCompanies])
-
-  const processedCompanies = useMemo(() => {
-    let result = [...scoredCompanies]
-    if (searchQuery.trim() !== "") {
-      const q = searchQuery.toLowerCase()
-      result = result.filter(
-        (c) =>
-          c.companyName.toLowerCase().includes(q) ||
-          c.productName.toLowerCase().includes(q) ||
-          c.trainsOnDataNuance.toLowerCase().includes(q)
-      )
-    }
-    if (filterNoTraining)
-      result = result.filter((c) => !c.trainsOnDataByDefault)
-    if (filterOptOut) result = result.filter((c) => c.optOutAvailable)
-    if (filterNoHumanReview)
-      result = result.filter((c) => !c.humanReviewOfChats)
-
-    result.sort((a, b) => {
-      if (sortBy === "score-desc") return b.totalScore - a.totalScore
-      if (sortBy === "score-asc") return a.totalScore - b.totalScore
-      if (sortBy === "name-asc")
-        return a.companyName.localeCompare(b.companyName)
-      if (sortBy === "name-desc")
-        return b.companyName.localeCompare(a.companyName)
-      if (sortBy === "training-first")
-        return (
-          (a.trainsOnDataByDefault ? 1 : 0) - (b.trainsOnDataByDefault ? 1 : 0)
-        )
-      const priority: Record<string, number> = {
-        verified_from_policy_text: 0,
-        inferred: 1,
-        needs_review: 2,
-      }
-      return (priority[a.confidence] ?? 9) - (priority[b.confidence] ?? 9)
-    })
-    return result
-  }, [
-    scoredCompanies,
-    searchQuery,
-    filterNoTraining,
-    filterOptOut,
-    filterNoHumanReview,
-    sortBy,
-  ])
+  }, [allCompanies])
 
   const getGradeBadgeStyle = (grade: string) => {
     if (grade.startsWith("A"))
@@ -449,7 +506,7 @@ function App() {
               <Input
                 type="text"
                 placeholder="Search by company, product..."
-                value={searchQuery}
+                value={search.search || ""}
                 onChange={(e: any) => setSearchQuery(e.target.value)}
                 className="h-9 pl-9 text-sm"
               />
@@ -458,7 +515,7 @@ function App() {
             <div className="flex items-center gap-2">
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               <Select
-                value={sortBy}
+                value={search.sortBy || "score-desc"}
                 onValueChange={(val: any) => setSortBy(val)}
               >
                 <SelectTrigger className="h-9 w-[180px] text-xs">
@@ -485,7 +542,7 @@ function App() {
             <div className="flex items-center gap-2">
               <Switch
                 id="no-training"
-                checked={filterNoTraining}
+                checked={search.noTraining || false}
                 onCheckedChange={setFilterNoTraining}
               />
               <label
@@ -498,7 +555,7 @@ function App() {
             <div className="flex items-center gap-2">
               <Switch
                 id="opt-out"
-                checked={filterOptOut}
+                checked={search.optOut || false}
                 onCheckedChange={setFilterOptOut}
               />
               <label
@@ -511,7 +568,7 @@ function App() {
             <div className="flex items-center gap-2">
               <Switch
                 id="no-human"
-                checked={filterNoHumanReview}
+                checked={search.noHumanReview || false}
                 onCheckedChange={setFilterNoHumanReview}
               />
               <label
@@ -522,14 +579,14 @@ function App() {
               </label>
             </div>
             <span className="ml-auto text-[11px] text-muted-foreground">
-              {processedCompanies.length} of {scoredCompanies.length}
+              {allCompanies.length} of {totalCount}
             </span>
           </div>
         </Card>
 
         {/* Company Cards Grid */}
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {processedCompanies.map((company) => (
+          {allCompanies.map((company) => (
             <Card
               key={company.id}
               className={`group flex flex-col border-l-2 ${getGradeBorderColor(company.grade)}`}
@@ -622,7 +679,7 @@ function App() {
             </Card>
           ))}
 
-          {processedCompanies.length === 0 && (
+          {allCompanies.length === 0 && (
             <Card className="col-span-full p-12 text-center">
               <CardHeader>
                 <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center bg-muted">
@@ -652,6 +709,82 @@ function App() {
             </Card>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              onClick={() => setPage(1)}
+              className="h-8 gap-1 px-2"
+            >
+              <ChevronsLeft className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              onClick={() => setPage(currentPage - 1)}
+              className="h-8 gap-1 px-2"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                if (totalPages <= 7) return true
+                if (page === 1 || page === totalPages) return true
+                if (Math.abs(page - currentPage) <= 1) return true
+                return false
+              })
+              .reduce<(number | "ellipsis")[]>((acc, page, idx, arr) => {
+                if (idx > 0 && page - (arr[idx - 1] as number) > 1) {
+                  acc.push("ellipsis")
+                }
+                acc.push(page)
+                return acc
+              }, [])
+              .map((item, idx) =>
+                item === "ellipsis" ? (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="px-1 text-muted-foreground"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <Button
+                    key={item}
+                    variant={item === currentPage ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPage(item)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {item}
+                  </Button>
+                )
+              )}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage(currentPage + 1)}
+              className="h-8 gap-1 px-2"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage(totalPages)}
+              className="h-8 gap-1 px-2"
+            >
+              <ChevronsRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
       </main>
     </>
   )

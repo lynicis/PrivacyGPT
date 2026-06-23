@@ -10,10 +10,12 @@ export async function getDb(): Promise<LibSQLDatabase<typeof schema>> {
   if (_db) return _db
 
   try {
-    const mod = await import("cloudflare:workers")
-    const env = mod.env as { DB?: D1Database }
-    if (env.DB) {
-      _db = drizzleD1(env.DB, { schema }) as unknown as LibSQLDatabase<
+    // Use variable to prevent Vite from statically analyzing this import
+    const cfModule = "cloudflare:workers"
+    const { env } = await import(/* @vite-ignore */ cfModule)
+    const d1Db = (env as { DB?: D1Database }).DB
+    if (d1Db) {
+      _db = drizzleD1(d1Db, { schema }) as unknown as LibSQLDatabase<
         typeof schema
       >
       return _db

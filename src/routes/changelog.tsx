@@ -38,12 +38,12 @@ import {
 export const Route = createFileRoute("/changelog")({
   component: ChangelogPage,
   loader: async () => {
-    const [changelogs, snapshots, companies] = await Promise.all([
+    const [changelogs, snapshots, res] = await Promise.all([
       getChangelogsFn(),
       getSnapshotCountsFn(),
-      getCompaniesFn(),
+      getCompaniesFn({ data: { limit: 1000 } }),
     ])
-    return { changelogs, snapshots, companies }
+    return { changelogs, snapshots, companies: res.companies }
   },
   head: () => ({
     meta: [

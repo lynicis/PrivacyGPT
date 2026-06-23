@@ -35,7 +35,7 @@ export const Route = createFileRoute("/compare")({
     companyB: search.companyB as string | undefined,
   }),
   loader: async () => {
-    const companies = await getCompaniesFn()
+    const { companies } = await getCompaniesFn({ data: { limit: 1000 } })
     return { companies }
   },
   head: () => ({

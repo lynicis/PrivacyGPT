@@ -6,23 +6,129 @@ import { getDb, companies } from "./db"
 import { changelogs, snapshots } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
 import { getBlogPosts, getBlogPostBySlug } from "./blog-data"
+import {
+  calculateSubScores,
+  calculateTotalScore,
+  mapScoreToGrade,
+} from "./scoring"
+import type { Weights } from "./scoring"
 
-export const getCompaniesFn = createServerFn({ method: "GET" }).handler(
-  async () => {
-    try {
-      const db = await getDb()
-      const data = await db.select().from(companies)
-      return data
-    } catch (error) {
-      console.error("Failed to fetch companies:", error)
-      throw new Error(
-        error instanceof Error
-          ? `Failed to fetch companies: ${error.message}`
-          : "Failed to fetch companies"
+export async function getCompanies(
+  data: {
+    limit?: number
+    offset?: number
+    searchQuery?: string
+    filterNoTraining?: boolean
+    filterOptOut?: boolean
+    filterNoHumanReview?: boolean
+    sortBy?: string
+    weights?: Weights
+  } = {}
+) {
+  try {
+    const db = await getDb()
+    const allRows = await db.select().from(companies)
+
+    const weights = data.weights || {
+      trainingWeight: 25,
+      optOutWeight: 20,
+      retentionWeight: 15,
+      deletionWeight: 15,
+      sharingWeight: 15,
+      humanReviewWeight: 10,
+    }
+
+    // Calculate scores
+    let scored = allRows.map((c) => {
+      const subScores = calculateSubScores(c)
+      const totalScore = calculateTotalScore(subScores, weights)
+      const grade = mapScoreToGrade(totalScore)
+      return { ...c, subScores, totalScore, grade }
+    })
+
+    // Apply search query
+    if (data.searchQuery?.trim()) {
+      const q = data.searchQuery.toLowerCase()
+      scored = scored.filter(
+        (c) =>
+          c.companyName.toLowerCase().includes(q) ||
+          c.productName.toLowerCase().includes(q) ||
+          c.trainsOnDataNuance.toLowerCase().includes(q)
       )
     }
+
+    // Apply switches
+    if (data.filterNoTraining) {
+      scored = scored.filter((c) => !c.trainsOnDataByDefault)
+    }
+    if (data.filterOptOut) {
+      scored = scored.filter((c) => c.optOutAvailable)
+    }
+    if (data.filterNoHumanReview) {
+      scored = scored.filter((c) => !c.humanReviewOfChats)
+    }
+
+    // Sort
+    const sortBy = data.sortBy || "score-desc"
+    scored.sort((a, b) => {
+      if (sortBy === "score-desc") return b.totalScore - a.totalScore
+      if (sortBy === "score-asc") return a.totalScore - b.totalScore
+      if (sortBy === "name-asc")
+        return a.companyName.localeCompare(b.companyName)
+      if (sortBy === "name-desc")
+        return b.companyName.localeCompare(a.companyName)
+      if (sortBy === "training-first") {
+        return (
+          (a.trainsOnDataByDefault ? 1 : 0) - (b.trainsOnDataByDefault ? 1 : 0)
+        )
+      }
+      const priority: Record<string, number> = {
+        verified_from_policy_text: 0,
+        inferred: 1,
+        needs_review: 2,
+      }
+      return (priority[a.confidence] ?? 9) - (priority[b.confidence] ?? 9)
+    })
+
+    const totalCount = scored.length
+    const limit = data.limit ?? 9
+    const offset = data.offset ?? 0
+    const sliced = scored.slice(offset, offset + limit)
+
+    const stats = {
+      total: totalCount,
+      trainsDefault: scored.filter((c) => c.trainsOnDataByDefault).length,
+      hasOptOut: scored.filter((c) => c.optOutAvailable).length,
+      hasHumanReview: scored.filter((c) => c.humanReviewOfChats).length,
+    }
+
+    return { companies: sliced, totalCount, stats }
+  } catch (error) {
+    console.error("Failed to fetch companies:", error)
+    throw new Error("Failed to fetch companies")
   }
-)
+}
+
+export const getCompaniesFn = createServerFn({ method: "GET" })
+  .validator(
+    (
+      input:
+        | {
+            limit?: number
+            offset?: number
+            searchQuery?: string
+            filterNoTraining?: boolean
+            filterOptOut?: boolean
+            filterNoHumanReview?: boolean
+            sortBy?: string
+            weights?: Weights
+          }
+        | undefined
+    ) => input || {}
+  )
+  .handler(async ({ data }) => {
+    return getCompanies(data)
+  })
 
 export const getCompanyByKeyFn = createServerFn({ method: "GET" })
   .validator((key: string) => key)
