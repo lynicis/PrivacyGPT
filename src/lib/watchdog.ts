@@ -191,14 +191,16 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;")
 }
 
-export async function checkCompany(companyId: number): Promise<void> {
+export async function checkCompany(
+  companyId: number
+): Promise<"baseline" | "change" | "none"> {
   const db = await getDb()
   const company = await db
     .select()
     .from(companies)
     .where(eq(companies.id, companyId))
     .limit(1)
-    .then((rows) => rows[0] || null)
+    .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
 
   if (!company) {
     throw new Error(`Company with ID ${companyId} not found`)
@@ -219,7 +221,7 @@ export async function checkCompany(companyId: number): Promise<void> {
     .where(eq(snapshots.companyId, company.id))
     .orderBy(desc(snapshots.fetchedAt))
     .limit(1)
-    .then((rows) => rows[0] || null)
+    .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
 
   if (!latestSnapshot) {
     console.log(`[watchdog] Storing baseline for ${company.companyName}`)
@@ -229,6 +231,7 @@ export async function checkCompany(companyId: number): Promise<void> {
       contentHash,
       rawContent: result.text,
     })
+    return "baseline"
   } else if (latestSnapshot.contentHash !== contentHash) {
     console.log(`[watchdog] ⚠ CHANGE DETECTED for ${company.companyName}!`)
     const { diffHtml } = generateDiff(latestSnapshot.rawContent, result.text)
@@ -253,16 +256,18 @@ export async function checkCompany(companyId: number): Promise<void> {
       .update(companies)
       .set({ lastChangedDate: now.split("T")[0] })
       .where(eq(companies.id, company.id))
+    return "change"
   } else {
     console.log(`[watchdog] No changes for ${company.companyName}`)
+    return "none"
   }
 }
 
 export async function handleWatchdogQueueMessage(
-  body: { companyId: number },
+  body: { companyId: number } | null | undefined,
   _env?: any
 ): Promise<void> {
-  if (!body || typeof body.companyId !== "number") {
+  if (typeof body?.companyId !== "number") {
     throw new Error("Invalid watchdog queue message body")
   }
   await checkCompany(body.companyId)
@@ -286,7 +291,7 @@ export async function runWatchdog(): Promise<{
   const allCompanies = await db.select().from(companies)
 
   // Attempt to check if queue binding exists (Cloudflare context)
-  let queue: { send(msg: any): Promise<void> } | undefined
+  let queue: { send: (msg: any) => Promise<void> } | undefined
   try {
     const mod = await import("cloudflare:workers")
     queue = (mod.env as any).WATCHDOG_QUEUE
@@ -311,8 +316,13 @@ export async function runWatchdog(): Promise<{
 
   for (const company of allCompanies) {
     try {
-      await checkCompany(company.id)
+      const status = await checkCompany(company.id)
       checked++
+      if (status === "baseline") {
+        baselines++
+      } else if (status === "change") {
+        changes++
+      }
     } catch (e) {
       console.error(`[watchdog] Error checking company ${company.id}:`, e)
       errors++

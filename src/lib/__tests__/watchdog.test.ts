@@ -4,8 +4,53 @@ import {
   hashText,
   generateDiff,
   fetchPolicyText,
+  checkCompany,
+  handleWatchdogQueueMessage,
+  runWatchdog,
 } from "../watchdog"
 import FirecrawlApp from "@mendable/firecrawl-js"
+
+const mockChain = {
+  from: vi.fn().mockImplementation(() => mockChain),
+  where: vi.fn().mockImplementation(() => mockChain),
+  orderBy: vi.fn().mockImplementation(() => mockChain),
+  limit: vi.fn().mockImplementation(() => mockChain),
+  then: vi.fn().mockImplementation((onfulfilled) => {
+    return Promise.resolve(mockChain.resolveValue).then(onfulfilled)
+  }),
+  resolveValue: [] as any[],
+}
+
+const mockDb = {
+  select: vi.fn().mockReturnValue(mockChain),
+  insert: vi.fn().mockReturnValue({
+    values: vi.fn().mockResolvedValue({}),
+  }),
+  update: vi.fn().mockReturnValue({
+    set: vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue({}),
+    }),
+  }),
+}
+
+vi.mock("../db", async (importOriginal) => {
+  const original = (await importOriginal()) as any
+  return {
+    ...original,
+    getDb: () => Promise.resolve(mockDb),
+  }
+})
+
+const mockQueueSend = vi.fn()
+vi.mock("cloudflare:workers", () => {
+  return {
+    env: {
+      WATCHDOG_QUEUE: {
+        send: (...args: any[]) => mockQueueSend(...args),
+      },
+    },
+  }
+})
 
 vi.mock("@mendable/firecrawl-js")
 
@@ -279,6 +324,186 @@ describe("watchdog utilities", () => {
 
       const result = await fetchPolicyText("https://fail.example.com/privacy")
       expect(result).toBeNull()
+    })
+  })
+
+  describe("watchdog pipeline & queue", () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+      vi.stubGlobal("fetch", vi.fn())
+      mockChain.then.mockImplementation((onfulfilled) => {
+        return Promise.resolve(mockChain.resolveValue).then(onfulfilled)
+      })
+      mockChain.resolveValue = []
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    describe("checkCompany", () => {
+      it("throws if company is not found", async () => {
+        mockChain.resolveValue = [] // No company
+        await expect(checkCompany(999)).rejects.toThrow(
+          "Company with ID 999 not found"
+        )
+      })
+
+      it("throws if fetchPolicyText returns null", async () => {
+        mockChain.resolveValue = [
+          {
+            id: 1,
+            companyName: "Test Company",
+            sourceUrl: "https://example.com",
+          },
+        ]
+        vi.mocked(fetch).mockResolvedValue({ ok: false } as any) // fails fetch
+        await expect(checkCompany(1)).rejects.toThrow(
+          "Failed to fetch policy text for Test Company"
+        )
+      })
+
+      it("stores baseline snapshot if no previous snapshot exists", async () => {
+        let selectCount = 0
+        mockChain.then.mockImplementation((onfulfilled) => {
+          selectCount++
+          if (selectCount === 1) {
+            return Promise.resolve([
+              {
+                id: 1,
+                companyName: "Test Company",
+                sourceUrl: "https://example.com",
+              },
+            ]).then(onfulfilled)
+          }
+          return Promise.resolve([]).then(onfulfilled)
+        })
+
+        vi.mocked(fetch).mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve("Baseline policy text"),
+        } as any)
+
+        await checkCompany(1)
+
+        expect(mockDb.insert).toHaveBeenCalledWith(expect.anything()) // snapshots
+      })
+
+      it("does nothing if snapshot hash matches", async () => {
+        let selectCount = 0
+        mockChain.then.mockImplementation((onfulfilled) => {
+          selectCount++
+          if (selectCount === 1) {
+            return Promise.resolve([
+              {
+                id: 1,
+                companyName: "Test Company",
+                sourceUrl: "https://example.com",
+              },
+            ]).then(onfulfilled)
+          }
+          const text = "Same policy text"
+          const hash = hashText(text)
+          return Promise.resolve([
+            { id: 1, companyId: 1, contentHash: hash, rawContent: text },
+          ]).then(onfulfilled)
+        })
+
+        vi.mocked(fetch).mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve("Same policy text"),
+        } as any)
+
+        const insertSpy = vi.spyOn(mockDb, "insert")
+        await checkCompany(1)
+        expect(insertSpy).not.toHaveBeenCalled()
+      })
+
+      it("inserts snapshot, changelog, and updates company lastChangedDate if change detected", async () => {
+        let selectCount = 0
+        mockChain.then.mockImplementation((onfulfilled) => {
+          selectCount++
+          if (selectCount === 1) {
+            return Promise.resolve([
+              {
+                id: 1,
+                companyName: "Test Company",
+                sourceUrl: "https://example.com",
+              },
+            ]).then(onfulfilled)
+          }
+          return Promise.resolve([
+            {
+              id: 1,
+              companyId: 1,
+              contentHash: "oldhash",
+              rawContent: "Old text",
+            },
+          ]).then(onfulfilled)
+        })
+
+        vi.mocked(fetch).mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve("New policy text"),
+        } as any)
+
+        await checkCompany(1)
+        expect(mockDb.insert).toHaveBeenCalledTimes(2) // changelog & snapshot
+        expect(mockDb.update).toHaveBeenCalled() // update company
+      })
+    })
+
+    describe("handleWatchdogQueueMessage", () => {
+      it("throws on invalid message body", async () => {
+        await expect(handleWatchdogQueueMessage(null as any)).rejects.toThrow(
+          "Invalid watchdog queue message body"
+        )
+        await expect(handleWatchdogQueueMessage({} as any)).rejects.toThrow(
+          "Invalid watchdog queue message body"
+        )
+      })
+
+      it("calls checkCompany with companyId", async () => {
+        let selectCount = 0
+        mockChain.then.mockImplementation((onfulfilled) => {
+          selectCount++
+          if (selectCount === 1) {
+            return Promise.resolve([
+              {
+                id: 1,
+                companyName: "Test Company",
+                sourceUrl: "https://example.com",
+              },
+            ]).then(onfulfilled)
+          }
+          return Promise.resolve([]).then(onfulfilled)
+        })
+
+        vi.mocked(fetch).mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve("Policy text"),
+        } as any)
+
+        await handleWatchdogQueueMessage({ companyId: 1 })
+        expect(mockDb.select).toHaveBeenCalled()
+      })
+    })
+
+    describe("runWatchdog queue behavior", () => {
+      it("enqueues check if queue binding exists", async () => {
+        mockChain.resolveValue = [
+          { id: 1, companyName: "A", sourceUrl: "url1" },
+          { id: 2, companyName: "B", sourceUrl: "url2" },
+        ]
+
+        mockQueueSend.mockResolvedValue(undefined)
+
+        const result = await runWatchdog()
+        expect(result).toEqual({ enqueued: 2 })
+        expect(mockQueueSend).toHaveBeenCalledTimes(2)
+        expect(mockQueueSend).toHaveBeenNthCalledWith(1, { companyId: 1 })
+        expect(mockQueueSend).toHaveBeenNthCalledWith(2, { companyId: 2 })
+      })
     })
   })
 })
