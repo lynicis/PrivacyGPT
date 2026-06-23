@@ -15,6 +15,39 @@ export interface BlogPostMeta {
 
 const BLOG_POSTS: BlogPostMeta[] = [
   {
+    title: "AI Privacy Rankings 2026: Which Chatbot Can You Actually Trust?",
+    slug: slugify("ai-privacy-rankings-2026", { lower: true, strict: true }),
+    description:
+      "We scored ChatGPT, Claude, Gemini, and Grok on data collection, training opt-out, deletion rights, and transparency. See which AI chatbot respects your privacy.",
+    author: "PrivacyGPT",
+    tags: [
+      "ai-privacy",
+      "rankings",
+      "comparison",
+      "chatgpt",
+      "claude",
+      "gemini",
+    ],
+    publishDate: "2026-06-23",
+    canonicalUrl:
+      "https://privacygpt.lynicis.dev/blog/ai-privacy-rankings-2026",
+    type: "BlogPosting",
+    readingTime: 8,
+  },
+  {
+    title:
+      "The Privacy Paradox: Why 81% of Americans Worry About AI Data But Can't Stop Using It",
+    slug: slugify("ai-privacy-paradox", { lower: true, strict: true }),
+    description:
+      "81% of Americans are concerned about AI data privacy, yet daily AI use keeps growing. We explore why this paradox exists and how to protect yourself.",
+    author: "PrivacyGPT",
+    tags: ["ai-privacy", "privacy-paradox", "statistics", "consumer-behavior"],
+    publishDate: "2026-06-23",
+    canonicalUrl: "https://privacygpt.lynicis.dev/blog/ai-privacy-paradox",
+    type: "BlogPosting",
+    readingTime: 7,
+  },
+  {
     title: "How to Opt-Out of AI Training on Social Media",
     slug: slugify("how-to-opt-out-ai-training", { lower: true, strict: true }),
     description:

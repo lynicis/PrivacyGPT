@@ -1,0 +1,132 @@
+---
+title: "AI Privacy Rankings 2026: Which Chatbot Can You Actually Trust?"
+slug: "ai-privacy-rankings-2026"
+description: "We scored ChatGPT, Claude, Gemini, and Grok on data collection, training opt-out, deletion rights, and transparency. See which AI chatbot respects your privacy."
+author: "PrivacyGPT"
+tags: ["ai-privacy", "rankings", "comparison", "chatgpt", "claude", "gemini"]
+publishDate: "2026-06-23"
+canonicalUrl: "https://privacygpt.lynicis.dev/blog/ai-privacy-rankings-2026"
+type: "BlogPosting"
+---
+
+import { CompanyLink } from "@/components/CompanyLink"
+
+# AI Privacy Rankings 2026: Which Chatbot Can You Actually Trust?
+
+Every major AI chatbot collects your data. The question is not whether they collect it, but what they do with it, how easy it is to opt out, and whether you can actually delete it.
+
+We scored nine major AI platforms on six privacy criteria. Here are the results.
+
+## Why AI Privacy Matters More Than Ever
+
+Privacy concerns around AI have reached a tipping point.
+
+According to a 2026 survey by Shift Browser, **81% of Americans are concerned about what AI does with their data**. Despite this, 32% report using AI tools daily. The gap between concern and behavior is widening, not shrinking.
+
+The risks are real. Stanford's 2025 AI Index Report documented a **56% increase in AI-related privacy incidents** in a single year, reaching 233 documented cases. GDPR fines totaled **€2.3 billion in 2025**, a 38% year-over-year increase.
+
+Meanwhile, AI Overviews in Google Search now appear in up to 25% of queries, and ChatGPT processes over a billion searches per week. Every one of those interactions generates data that companies can use.
+
+## How We Score AI Privacy
+
+We evaluate each company on six criteria, weighted by impact on user privacy:
+
+| Criterion           | Weight | What It Measures                                          |
+| ------------------- | ------ | --------------------------------------------------------- |
+| Model Training      | 30%    | Does the company train on your data by default?           |
+| Opt-Out Ease        | 20%    | Can you easily stop training? Is it a toggle or a form?   |
+| Data Retention      | 15%    | How long is your data stored?                             |
+| Deletion Rights     | 15%    | Can you fully delete your data, including trained models? |
+| Third-Party Sharing | 10%    | Who sees your data besides the company?                   |
+| Human Review        | 10%    | Do humans read your conversations?                        |
+
+Each criterion scores 0-100. The weighted total produces a final score out of 100. For the full methodology, visit our [scoring page](/methodology).
+
+## The 2026 AI Privacy Rankings
+
+Here is how the major AI chatbots compare:
+
+| Company                                                 | Product       | Score | Grade | Trains by Default | Opt-Out        | Deletion |
+| ------------------------------------------------------- | ------------- | ----- | ----- | ----------------- | -------------- | -------- |
+| <CompanyLink name="anthropic">Anthropic</CompanyLink>   | Claude        | 63    | D     | Yes               | Toggle         | Full     |
+| <CompanyLink name="openai">OpenAI</CompanyLink>         | ChatGPT       | 55    | D     | Yes               | Toggle         | Full     |
+| <CompanyLink name="microsoft">Microsoft</CompanyLink>   | Copilot       | 55    | D     | Yes               | Toggle         | Full     |
+| <CompanyLink name="mistral">Mistral AI</CompanyLink>    | Le Chat       | 52    | F     | Yes               | Toggle         | Full     |
+| <CompanyLink name="xai">xAI</CompanyLink>               | Grok          | 50    | F     | Yes               | Toggle         | Partial  |
+| <CompanyLink name="perplexity">Perplexity</CompanyLink> | Perplexity    | 50    | F     | Yes               | Toggle         | Full     |
+| <CompanyLink name="google">Google</CompanyLink>         | Gemini        | 44    | F     | Yes               | Toggle         | Full     |
+| <CompanyLink name="deepseek">DeepSeek</CompanyLink>     | DeepSeek Chat | 43    | F     | Yes               | Toggle         | Full     |
+| <CompanyLink name="meta">Meta</CompanyLink>             | Meta AI       | 27    | F     | Yes               | Form (EU only) | Partial  |
+
+## Key Findings
+
+### Every consumer chatbot trains on your data by default
+
+All nine platforms we evaluated use your conversations to train their models unless you change your settings. This is the industry norm, not the exception.
+
+The only way to stop training is to actively opt out through each platform's settings. Most users never do this.
+
+### Anthropic leads on transparency
+
+<CompanyLink name="anthropic">Anthropic</CompanyLink> scored highest at 63/100.
+Claude's privacy controls are straightforward: a single toggle in settings to
+disable training. Data retention is limited to 30 days when training is off.
+Human review is restricted to flagged abuse cases.
+
+The score is still a D because Anthropic trains on consumer data by default. But the opt-out process is clear and immediate.
+
+### Meta is the worst offender
+
+<CompanyLink name="meta">Meta</CompanyLink> scored lowest at 27/100. The company
+trains on your public Facebook and Instagram posts, comments, and photos by
+default. Opting out requires submitting a Right to Object form under GDPR --
+available only to EU users. US users have no general opt-out setting.
+
+Worst of all, **Meta cannot remove public posts already used in training**. Once your data is in their models, it stays there.
+
+### Enterprise tiers are consistently better
+
+Every company we evaluated offers better privacy for enterprise customers. <CompanyLink name="openai">OpenAI</CompanyLink>, <CompanyLink name="anthropic">Anthropic</CompanyLink>, <CompanyLink name="google">Google</CompanyLink>, and <CompanyLink name="microsoft">Microsoft</CompanyLink> all exclude enterprise accounts from training by default.
+
+If privacy matters to you, the enterprise tier is the only reliable option.
+
+### Deletion is not always what it seems
+
+Most companies claim to support data deletion. But the details matter.
+
+<CompanyLink name="xai">xAI</CompanyLink> and
+<CompanyLink name="meta">Meta</CompanyLink> both score "partial" on deletion.
+Public posts on X that Grok has already trained on cannot be easily purged.
+Meta's public posts are similarly permanent.
+
+<CompanyLink name="openai">OpenAI</CompanyLink> and
+<CompanyLink name="anthropic">Anthropic</CompanyLink> offer full deletion, but
+backup copies may persist briefly for abuse monitoring.
+
+### European companies have an edge
+
+<CompanyLink name="mistral">Mistral AI</CompanyLink>, based in France, defaults
+to GDPR protections for all users globally. Human review is limited to abuse
+reports and security incidents, not routine training.
+
+This GDPR-first approach produces better baseline privacy, even though Mistral still trains on consumer data by default.
+
+## How to Check Any Company's Privacy Score
+
+Our [comparison tool](/compare) tracks privacy policies across 30+ AI companies. You can:
+
+- Compare two companies side by side
+- View detailed scoring breakdowns
+- Find direct links to opt-out settings
+- See when each policy was last verified
+
+## Methodology Notes
+
+- **Data sources**: All scores are derived from official privacy policies and terms of service
+- **Last verified**: June 22, 2026
+- **Scoring logic**: Automated scoring based on policy text analysis. See [methodology](/methodology) for full details
+- **Limitations**: Scores reflect stated policies, not actual practices. We cannot verify how companies implement their policies internally
+
+---
+
+_Last verified: June 2026. Data sourced from official privacy policies._
