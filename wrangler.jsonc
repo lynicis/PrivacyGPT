@@ -3,7 +3,7 @@
   "name": "privacygpt",
   "compatibility_date": "2026-06-22",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "src/entry.ts",
   "d1_databases": [
     {
       "binding": "DB",
@@ -11,4 +11,19 @@
       "database_id": "0564b525-7dab-4146-acb0-b47616c39bae",
     },
   ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "WATCHDOG_QUEUE",
+        "queue": "privacygpt-watchdog-queue",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "privacygpt-watchdog-queue",
+        "max_batch_size": 1,
+        "max_batch_timeout": 5,
+      },
+    ],
+  },
 }
