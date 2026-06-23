@@ -135,7 +135,7 @@ function PrivacyPage() {
               </div>
               <div className="space-y-1.5">
                 <CardTitle className="text-lg font-semibold text-foreground">
-                  Verified daily, but not实时
+                  Verified daily, but not in real-time
                 </CardTitle>
                 <CardDescription className="text-sm">
                   Company profiles are re-verified and re-scraped daily via an
