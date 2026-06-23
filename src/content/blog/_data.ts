@@ -1,5 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs"
-import { join } from "node:path"
 import slugify from "slugify"
 
 export interface BlogPostMeta {
@@ -15,41 +13,11 @@ export interface BlogPostMeta {
   readingTime: number
 }
 
-const CONTENT_DIR = join(process.cwd(), "src/content/blog")
+const mdxSources = import.meta.glob<{
+  default: string
+}>("./*.mdx?raw", { eager: true })
 
-export async function getBlogPosts(): Promise<BlogPostMeta[]> {
-  const files = readdirSync(CONTENT_DIR).filter(
-    (f) => f.endsWith(".mdx") && !f.startsWith("_")
-  )
-
-  const posts: BlogPostMeta[] = []
-
-  for (const file of files) {
-    const content = readFileSync(join(CONTENT_DIR, file), "utf-8")
-    const frontmatter = await extractFrontmatter(content)
-    const wordCount = content.split(/\s+/).length
-    const readingTime = Math.ceil(wordCount / 200)
-
-    posts.push({
-      ...frontmatter,
-      readingTime,
-    })
-  }
-
-  return posts.sort(
-    (a, b) =>
-      new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
-  )
-}
-
-export async function getBlogPostBySlug(
-  slug: string
-): Promise<BlogPostMeta | null> {
-  const posts = await getBlogPosts()
-  return posts.find((p) => p.slug === slug) || null
-}
-
-async function extractFrontmatter(content: string): Promise<BlogPostMeta> {
+function extractFrontmatter(content: string): BlogPostMeta {
   const match = content.match(/^---\n([\s\S]*?)\n---/)
   if (!match) throw new Error("No frontmatter found")
 
@@ -70,11 +38,9 @@ async function extractFrontmatter(content: string): Promise<BlogPostMeta> {
     }
   }
 
-  // Helper to parse YAML-like list: ["opt-out", "ai-training"] or [opt-out, ai-training]
   const parseTags = (tagsStr?: string): string[] => {
     if (!tagsStr) return []
     try {
-      // Remove outer brackets and quotes/spaces
       const clean = tagsStr.replace(/[[\]"]/g, "").trim()
       if (!clean) return []
       return clean.split(",").map((t) => t.trim())
@@ -93,6 +59,32 @@ async function extractFrontmatter(content: string): Promise<BlogPostMeta> {
     publishDate: meta.publishDate || "",
     canonicalUrl: meta.canonicalUrl,
     type: meta.type || "BlogPosting",
-    readingTime: 0, // Will be calculated
+    readingTime: 0,
   }
+}
+
+export function getBlogPosts(): BlogPostMeta[] {
+  const posts: BlogPostMeta[] = []
+
+  for (const [, mod] of Object.entries(mdxSources)) {
+    const raw = mod.default
+    try {
+      const meta = extractFrontmatter(raw)
+      const wordCount = raw.split(/\s+/).filter(Boolean).length
+      meta.readingTime = Math.max(1, Math.ceil(wordCount / 200))
+      posts.push(meta)
+    } catch {
+      // skip files without valid frontmatter
+    }
+  }
+
+  return posts.sort(
+    (a, b) =>
+      new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+  )
+}
+
+export function getBlogPostBySlug(slug: string): BlogPostMeta | null {
+  const posts = getBlogPosts()
+  return posts.find((p) => p.slug === slug) || null
 }
