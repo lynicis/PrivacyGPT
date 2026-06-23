@@ -4,6 +4,7 @@ import {
   getCompaniesFn,
   getSnapshotCountsFn,
   getSnapshotTotalCountFn,
+  getPendingReviewsCountFn,
 } from "../lib/api"
 import { useState, useMemo } from "react"
 import { formatDateTime } from "../lib/utils"
@@ -71,27 +72,30 @@ export const Route = createFileRoute("/changelog")({
   }),
   loader: async ({ deps }) => {
     const pageIndex = (deps.page ?? 1) - 1
-    const [changelogsRes, snapshots, res, totalSnapshots] = await Promise.all([
-      getChangelogsFn({
-        data: {
-          page: pageIndex,
-          pageSize: deps.pageSize,
-          sortBy: deps.sortBy,
-          sortOrder: deps.sortOrder,
-          companyFilter: deps.companyFilter,
-          statusFilter: deps.statusFilter,
-        },
-      }),
-      getSnapshotCountsFn(),
-      getCompaniesFn({ data: { limit: 1000 } }),
-      getSnapshotTotalCountFn(),
-    ])
+    const [changelogsRes, snapshots, res, totalSnapshots, pendingReviewsCount] =
+      await Promise.all([
+        getChangelogsFn({
+          data: {
+            page: pageIndex,
+            pageSize: deps.pageSize,
+            sortBy: deps.sortBy,
+            sortOrder: deps.sortOrder,
+            companyFilter: deps.companyFilter,
+            statusFilter: deps.statusFilter,
+          },
+        }),
+        getSnapshotCountsFn(),
+        getCompaniesFn({ data: { limit: 1000 } }),
+        getSnapshotTotalCountFn(),
+        getPendingReviewsCountFn(),
+      ])
     return {
       changelogs: changelogsRes.changelogs,
       totalCount: changelogsRes.totalCount,
       snapshots,
       companies: res.companies,
       totalSnapshots,
+      pendingReviewsCount,
     }
   },
   head: () => ({
@@ -135,8 +139,14 @@ export const Route = createFileRoute("/changelog")({
 })
 
 function ChangelogPage() {
-  const { changelogs, totalCount, snapshots, companies, totalSnapshots } =
-    Route.useLoaderData()
+  const {
+    changelogs,
+    totalCount,
+    snapshots,
+    companies,
+    totalSnapshots,
+    pendingReviewsCount,
+  } = Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
 
@@ -421,10 +431,9 @@ function ChangelogPage() {
               </div>
             </Card>
             <Card className="p-4">
-              {/* Note: since totalCount is paginated, we don't calculate pendingReviews on the subset of data. We can fetch this stat or show placeholder/simplified info. */}
-              <div className="text-2xl font-bold">-</div>
+              <div className="text-2xl font-bold">{pendingReviewsCount}</div>
               <div className="text-xs text-muted-foreground">
-                Real-time Database
+                Pending Reviews
               </div>
             </Card>
           </div>

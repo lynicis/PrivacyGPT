@@ -331,6 +331,22 @@ export const getSnapshotTotalCountFn = createServerFn({
   }
 })
 
+export const getPendingReviewsCountFn = createServerFn({
+  method: "GET",
+}).handler(async () => {
+  try {
+    const db = await getDb()
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(changelogs)
+      .where(eq(changelogs.status, "pending_review"))
+    return result[0]?.count ?? 0
+  } catch (error) {
+    console.error("Failed to count pending reviews:", error)
+    throw new Error("Failed to count pending reviews")
+  }
+})
+
 export function checkAdminAuth(headers: Headers) {
   const authHeader = headers.get("authorization")
 
