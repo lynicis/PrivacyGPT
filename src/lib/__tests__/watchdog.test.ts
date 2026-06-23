@@ -7,6 +7,8 @@ import {
   checkCompany,
   handleWatchdogQueueMessage,
   runWatchdog,
+  normalizeText,
+  decodeHtmlEntities,
 } from "../watchdog"
 import FirecrawlApp from "@mendable/firecrawl-js"
 
@@ -55,6 +57,71 @@ vi.mock("cloudflare:workers", () => {
 vi.mock("@mendable/firecrawl-js")
 
 describe("watchdog utilities", () => {
+  describe("normalizeText", () => {
+    it("converts text to lowercase", () => {
+      expect(normalizeText("HELLO WORLD")).toBe("hello world")
+      expect(normalizeText("Hello World")).toBe("hello world")
+    })
+
+    it("strips numbered list markers", () => {
+      expect(normalizeText("1. First item")).toBe("first item")
+      expect(normalizeText("2) Second item")).toBe("second item")
+      expect(normalizeText("10. Tenth item")).toBe("tenth item")
+    })
+
+    it("strips bullet markers", () => {
+      expect(normalizeText("* Bullet item")).toBe("bullet item")
+      expect(normalizeText("- Dash item")).toBe("dash item")
+    })
+
+    it("removes punctuation", () => {
+      expect(normalizeText("Hello, world!")).toBe("hello world")
+      expect(normalizeText("Terms & Conditions")).toBe("terms conditions")
+      expect(normalizeText("Price: $99.99")).toBe("price 99 99")
+    })
+
+    it("collapses whitespace", () => {
+      expect(normalizeText("  Multiple   spaces  ")).toBe("multiple spaces")
+      expect(normalizeText("Line1\nLine2")).toBe("line1 line2")
+    })
+
+    it("normalizes identical formatting differences", () => {
+      const text1 = "Is my data used for model training?"
+      const text2 = "IS MY DATA USED FOR MODEL TRAINING?"
+      expect(normalizeText(text1)).toBe(normalizeText(text2))
+    })
+
+    it("normalizes list formatting differences", () => {
+      const text1 = "1. Select Vibe under Manage"
+      const text2 = "Select Vibe under Manage"
+      expect(normalizeText(text1)).toBe(normalizeText(text2))
+    })
+
+    it("detects actual content changes", () => {
+      const text1 = "We collect your data for training"
+      const text2 = "We do not collect your data for training"
+      expect(normalizeText(text1)).not.toBe(normalizeText(text2))
+    })
+
+    it("normalizes text with HTML entities correctly", () => {
+      const text1 = "User Privacy &gt; StepFun"
+      const text2 = "User Privacy > StepFun"
+      expect(normalizeText(text1)).toBe(normalizeText(text2))
+    })
+  })
+
+  describe("decodeHtmlEntities", () => {
+    it("decodes entities to their standard characters", () => {
+      expect(decodeHtmlEntities("&amp;")).toBe("&")
+      expect(decodeHtmlEntities("&lt;")).toBe("<")
+      expect(decodeHtmlEntities("&gt;")).toBe(">")
+      expect(decodeHtmlEntities("&quot;")).toBe('"')
+      expect(decodeHtmlEntities("&#39;")).toBe("'")
+      expect(decodeHtmlEntities("&apos;")).toBe("'")
+      expect(decodeHtmlEntities("&nbsp;")).toBe(" ")
+    })
+  })
+
   describe("stripHtmlToText", () => {
     it("removes script and style tags entirely", () => {
       const html = `
@@ -185,6 +252,18 @@ describe("watchdog utilities", () => {
       const hash2 = hashText("content version 2")
       expect(hash1).not.toBe(hash2)
     })
+
+    it("returns same hash for formatting differences", () => {
+      const hash1 = hashText("Is my data used for training?")
+      const hash2 = hashText("IS MY DATA USED FOR TRAINING?")
+      expect(hash1).toBe(hash2)
+    })
+
+    it("returns same hash for list formatting differences", () => {
+      const hash1 = hashText("1. Select Vibe under Manage")
+      const hash2 = hashText("Select Vibe under Manage")
+      expect(hash1).toBe(hash2)
+    })
   })
 
   describe("generateDiff", () => {
@@ -206,18 +285,118 @@ describe("watchdog utilities", () => {
       expect(removed.some((l) => l.includes("protect"))).toBe(true)
     })
 
-    it("returns empty diff for identical content", () => {
+    it("returns only unchanged lines for identical content", () => {
       const text = "We collect data. We store data."
       const { diffLines } = generateDiff(text, text)
-      expect(diffLines).toHaveLength(0)
+      // All lines should be unchanged (no +/- prefixes)
+      expect(diffLines.every((l) => l.startsWith("  "))).toBe(true)
+      expect(diffLines.filter((l) => l.startsWith("+ "))).toHaveLength(0)
+      expect(diffLines.filter((l) => l.startsWith("- "))).toHaveLength(0)
     })
 
-    it("generates HTML diff output", () => {
-      const before = "Old policy text."
-      const after = "New policy text."
+    it("generates HTML diff output with all three types", () => {
+      const before = "We collect data. We store data."
+      const after = "We collect data. We share data."
       const { diffHtml } = generateDiff(before, after)
       expect(diffHtml).toContain("diff-removed")
       expect(diffHtml).toContain("diff-added")
+      expect(diffHtml).toContain("diff-unchanged")
+    })
+
+    it("ignores case differences", () => {
+      const before = "Is my data used for training?"
+      const after = "IS MY DATA USED FOR TRAINING?"
+      const { diffLines } = generateDiff(before, after)
+      // Should be marked as unchanged since normalization makes them equal
+      expect(diffLines.every((l) => l.startsWith("  "))).toBe(true)
+    })
+
+    it("ignores list formatting differences", () => {
+      const before = "1. Select Vibe under Manage"
+      const after = "Select Vibe under Manage"
+      const { diffLines } = generateDiff(before, after)
+      // Should be marked as unchanged since normalization makes them equal
+      expect(diffLines.every((l) => l.startsWith("  "))).toBe(true)
+    })
+
+    it("ignores punctuation differences", () => {
+      const before = "Hello, world!"
+      const after = "Hello world"
+      const { diffLines } = generateDiff(before, after)
+      // Should be marked as unchanged since normalization makes them equal
+      expect(diffLines.every((l) => l.startsWith("  "))).toBe(true)
+    })
+
+    it("preserves order of unchanged context between additions", () => {
+      const before = "A. B. C."
+      const after = "A. D. C."
+      const { diffLines } = generateDiff(before, after)
+      // Should have: unchanged A, removed B, added D, unchanged C
+      const aIdx = diffLines.findIndex((l) => l.includes("A"))
+      const bIdx = diffLines.findIndex(
+        (l) => l.startsWith("- ") && l.includes("B")
+      )
+      const dIdx = diffLines.findIndex(
+        (l) => l.startsWith("+ ") && l.includes("D")
+      )
+      const cIdx = diffLines.findIndex((l) => l.includes("C"))
+      expect(aIdx).toBeLessThan(bIdx)
+      expect(bIdx).toBeLessThan(dIdx)
+      expect(dIdx).toBeLessThan(cIdx)
+    })
+
+    it("handles completely replaced content", () => {
+      const before = "We collect data."
+      const after = "We share data."
+      const { diffLines } = generateDiff(before, after)
+      const removed = diffLines.filter((l) => l.startsWith("- "))
+      const added = diffLines.filter((l) => l.startsWith("+ "))
+      expect(removed.length).toBe(1)
+      expect(added.length).toBe(1)
+    })
+
+    it("handles empty 'before' text", () => {
+      const after = "New policy text."
+      const { diffLines } = generateDiff("", after)
+      expect(diffLines).toHaveLength(1)
+      expect(diffLines[0].startsWith("+ ")).toBe(true)
+    })
+
+    it("handles empty 'after' text", () => {
+      const before = "Old policy text."
+      const { diffLines } = generateDiff(before, "")
+      expect(diffLines).toHaveLength(1)
+      expect(diffLines[0].startsWith("- ")).toBe(true)
+    })
+
+    it("handles both empty texts", () => {
+      const { diffLines } = generateDiff("", "")
+      expect(diffLines).toHaveLength(0)
+    })
+
+    it("preserves original text casing in unchanged lines", () => {
+      const before = "Is my data used for training?"
+      const after = "IS MY DATA USED FOR TRAINING?"
+      // These are considered the same after normalization
+      const { diffLines } = generateDiff(before, after)
+      // Should show as unchanged with the original text (before's casing)
+      expect(diffLines).toHaveLength(1)
+      expect(diffLines[0].startsWith("  ")).toBe(true)
+      expect(diffLines[0]).toContain("Is my data used for training?")
+    })
+
+    it("detects multi-sentence changes with context", () => {
+      const before =
+        "We collect data. We store data. We protect data. We share data."
+      const after =
+        "We collect data. We protect data. We share data with partners."
+      const { diffLines } = generateDiff(before, after)
+      // "We store data." should be removed
+      const removed = diffLines.filter((l) => l.startsWith("- "))
+      expect(removed.some((l) => l.includes("store"))).toBe(true)
+      // "We share data with partners." should be added
+      const added = diffLines.filter((l) => l.startsWith("+ "))
+      expect(added.some((l) => l.includes("with partners"))).toBe(true)
     })
   })
 

@@ -7,6 +7,34 @@ import { convert } from "html-to-text"
 import escapeHtml from "escape-html"
 
 /**
+ * Decodes standard HTML entities back to their raw characters.
+ */
+export function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&apos;/gi, "'")
+    .replace(/&nbsp;/gi, " ")
+}
+
+/**
+ * Normalizes text for consistent comparison by removing formatting artifacts.
+ * Converts to lowercase, strips list markers, removes punctuation, and collapses whitespace.
+ */
+export function normalizeText(text: string): string {
+  return decodeHtmlEntities(text)
+    .toLowerCase()
+    .replace(/^\d+[.)]\s+/gm, "") // strip numbered list markers (1. or 1))
+    .replace(/^[*-]\s+/gm, "") // strip bullet markers (* or -)
+    .replace(/[^\w\s]/g, " ") // remove punctuation
+    .replace(/\s+/g, " ") // collapse whitespace
+    .trim()
+}
+
+/**
  * Strips HTML of scripts, styles, nav, footer, and tag markup,
  * returning only the visible text content of the page.
  */
@@ -28,7 +56,7 @@ export function stripHtmlToText(html: string): string {
     preserveNewlines: true,
   }
 
-  const plainText = convert(html, options)
+  const plainText = decodeHtmlEntities(convert(html, options))
 
   // Filter out metadata and navigation junk lines before collapsing whitespace
   const text = plainText
@@ -54,6 +82,12 @@ export function stripHtmlToText(html: string): string {
       if (/this help content/i.test(trimmed)) return false
       if (/general help/i.test(trimmed)) return false
       if (/privacy hub/i.test(trimmed)) return false
+      // Skip documentation / LLM crawler indexing header junk
+      if (/documentation index/i.test(trimmed)) return false
+      if (/llms\.txt/i.test(trimmed)) return false
+      if (/discover.*available pages/i.test(trimmed)) return false
+      if (/stepfun.*documentation/i.test(trimmed)) return false
+      if (/fetch.*documentation/i.test(trimmed)) return false
       return true
     })
     .join("\n")
@@ -130,51 +164,151 @@ export async function fetchPolicyText(
 
 /**
  * Generates a SHA-256 hash of the given text.
+ * Normalizes text before hashing to ignore formatting differences.
  */
 export function hashText(text: string): string {
-  return createHash("sha256").update(text).digest("hex")
+  return createHash("sha256").update(normalizeText(text)).digest("hex")
 }
 
 /**
- * Generates a simple line-by-line diff between two texts.
- * Returns an array of diff lines with +/- prefixes.
+ * Strips numbered list markers and bullet markers from text for splitting purposes,
+ * preventing "1. Something" from splitting into two segments.
+ */
+function stripListMarkers(text: string): string {
+  return text.replace(/^\d+[.)]\s+/gm, "").replace(/^[*-]\s+/gm, "")
+}
+
+/**
+ * Splits text into sentence-like segments while preserving the original text.
+ * Returns both the original and normalized forms of each segment.
+ */
+function splitIntoSegments(
+  text: string
+): Array<{ original: string; normalized: string }> {
+  // Strip numbered/bullet list markers before splitting so "1. Something" stays together
+  const cleaned = stripListMarkers(text)
+  // Split on sentence boundaries: period/exclamation/question followed by space or end
+  const parts = cleaned.split(/(?<=[.!?])\s+/)
+  const segments: Array<{ original: string; normalized: string }> = []
+
+  for (const part of parts) {
+    const trimmed = part.trim()
+    if (trimmed) {
+      segments.push({ original: trimmed, normalized: normalizeText(trimmed) })
+    }
+  }
+
+  return segments
+}
+
+/**
+ * Computes the Longest Common Subsequence (LCS) of two normalized segment arrays.
+ * Returns a 2D DP table where dp[i][j] is the LCS length of segmentsA[0..i-1] and segmentsB[0..j-1].
+ */
+function computeLcsTable(
+  segmentsA: Array<{ original: string; normalized: string }>,
+  segmentsB: Array<{ original: string; normalized: string }>
+): number[][] {
+  const m = segmentsA.length
+  const n = segmentsB.length
+  const dp: number[][] = Array.from({ length: m + 1 }, () =>
+    new Array(n + 1).fill(0)
+  )
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (segmentsA[i - 1].normalized === segmentsB[j - 1].normalized) {
+        dp[i][j] = dp[i - 1][j - 1] + 1
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+      }
+    }
+  }
+
+  return dp
+}
+
+/**
+ * Backtracks through the LCS table to produce an ordered diff of segments.
+ * Each entry is tagged as 'unchanged', 'added', or 'removed'.
+ */
+type DiffEntry = {
+  type: "unchanged" | "added" | "removed"
+  text: string
+}
+
+function backtrackDiff(
+  segmentsA: Array<{ original: string; normalized: string }>,
+  segmentsB: Array<{ original: string; normalized: string }>,
+  dp: number[][]
+): DiffEntry[] {
+  const entries: DiffEntry[] = []
+  let i = segmentsA.length
+  let j = segmentsB.length
+
+  while (i > 0 || j > 0) {
+    if (
+      i > 0 &&
+      j > 0 &&
+      segmentsA[i - 1].normalized === segmentsB[j - 1].normalized
+    ) {
+      // Unchanged segment — push to front so order is preserved
+      entries.unshift({ type: "unchanged", text: segmentsA[i - 1].original })
+      i--
+      j--
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      // Added segment in 'after' — push to front
+      entries.unshift({ type: "added", text: segmentsB[j - 1].original })
+      j--
+    } else {
+      // Removed segment in 'before' — push to front
+      entries.unshift({ type: "removed", text: segmentsA[i - 1].original })
+      i--
+    }
+  }
+
+  return entries
+}
+
+/**
+ * Generates an ordered, context-aware diff between two texts.
+ * Uses normalized text for comparison but displays original text.
+ * Returns an array of diff lines and HTML for visualization.
  */
 export function generateDiff(
   before: string,
   after: string
 ): { diffLines: string[]; diffHtml: string } {
-  const beforeLines = before.split(/[.!?]\s+/)
-  const afterLines = after.split(/[.!?]\s+/)
+  const segmentsA = splitIntoSegments(before)
+  const segmentsB = splitIntoSegments(after)
 
-  const diffLines: string[] = []
-
-  // Simple LCS-based approach: find removed and added sentences
-  const beforeSet = new Set(beforeLines.map((l) => l.trim()).filter(Boolean))
-  const afterSet = new Set(afterLines.map((l) => l.trim()).filter(Boolean))
-
-  for (const line of beforeLines) {
-    const trimmed = line.trim()
-    if (trimmed && !afterSet.has(trimmed)) {
-      diffLines.push(`- ${trimmed}`)
-    }
+  // No segments to diff
+  if (segmentsA.length === 0 && segmentsB.length === 0) {
+    return { diffLines: [], diffHtml: "" }
   }
 
-  for (const line of afterLines) {
-    const trimmed = line.trim()
-    if (trimmed && !beforeSet.has(trimmed)) {
-      diffLines.push(`+ ${trimmed}`)
-    }
-  }
+  // Compute LCS table
+  const dp = computeLcsTable(segmentsA, segmentsB)
+
+  // Backtrack to produce ordered diff entries
+  const entries = backtrackDiff(segmentsA, segmentsB, dp)
+
+  // Build diff lines array
+  const diffLines: string[] = entries.map((entry) => {
+    if (entry.type === "added") return `+ ${entry.text}`
+    if (entry.type === "removed") return `- ${entry.text}`
+    return `  ${entry.text}`
+  })
 
   // Generate HTML diff for visualization
-  const diffHtml = diffLines
-    .map((line) => {
-      if (line.startsWith("+ ")) {
-        return `<div class="diff-added">${escapeHtml(line.slice(2))}</div>`
-      } else if (line.startsWith("- ")) {
-        return `<div class="diff-removed">${escapeHtml(line.slice(2))}</div>`
+  const diffHtml = entries
+    .map((entry) => {
+      if (entry.type === "added") {
+        return `<div class="diff-added">${escapeHtml(entry.text)}</div>`
+      } else if (entry.type === "removed") {
+        return `<div class="diff-removed">${escapeHtml(entry.text)}</div>`
       }
-      return `<div>${escapeHtml(line)}</div>`
+      return `<div class="diff-unchanged">${escapeHtml(entry.text)}</div>`
     })
     .join("\n")
 
