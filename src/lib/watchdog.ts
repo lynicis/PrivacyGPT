@@ -191,6 +191,83 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;")
 }
 
+export async function checkCompany(companyId: number): Promise<void> {
+  const db = await getDb()
+  const company = await db
+    .select()
+    .from(companies)
+    .where(eq(companies.id, companyId))
+    .limit(1)
+    .then((rows) => rows[0] || null)
+
+  if (!company) {
+    throw new Error(`Company with ID ${companyId} not found`)
+  }
+
+  console.log(`[watchdog] Checking ${company.companyName}...`)
+  const result = await fetchPolicyText(company.sourceUrl)
+  if (!result) {
+    throw new Error(`Failed to fetch policy text for ${company.companyName}`)
+  }
+
+  const contentHash = hashText(result.text)
+  const now = new Date().toISOString()
+
+  const latestSnapshot = await db
+    .select()
+    .from(snapshots)
+    .where(eq(snapshots.companyId, company.id))
+    .orderBy(desc(snapshots.fetchedAt))
+    .limit(1)
+    .then((rows) => rows[0] || null)
+
+  if (!latestSnapshot) {
+    console.log(`[watchdog] Storing baseline for ${company.companyName}`)
+    await db.insert(snapshots).values({
+      companyId: company.id,
+      fetchedAt: now,
+      contentHash,
+      rawContent: result.text,
+    })
+  } else if (latestSnapshot.contentHash !== contentHash) {
+    console.log(`[watchdog] ⚠ CHANGE DETECTED for ${company.companyName}!`)
+    const { diffHtml } = generateDiff(latestSnapshot.rawContent, result.text)
+
+    await db.insert(changelogs).values({
+      companyId: company.id,
+      detectedAt: now,
+      beforeText: latestSnapshot.rawContent.slice(0, 5000),
+      afterText: result.text.slice(0, 5000),
+      diffHtml,
+      status: "pending_review",
+    })
+
+    await db.insert(snapshots).values({
+      companyId: company.id,
+      fetchedAt: now,
+      contentHash,
+      rawContent: result.text,
+    })
+
+    await db
+      .update(companies)
+      .set({ lastChangedDate: now.split("T")[0] })
+      .where(eq(companies.id, company.id))
+  } else {
+    console.log(`[watchdog] No changes for ${company.companyName}`)
+  }
+}
+
+export async function handleWatchdogQueueMessage(
+  body: { companyId: number },
+  _env?: any
+): Promise<void> {
+  if (!body || typeof body.companyId !== "number") {
+    throw new Error("Invalid watchdog queue message body")
+  }
+  await checkCompany(body.companyId)
+}
+
 /**
  * Main watchdog pipeline. For each company:
  * 1. Fetch the current policy text.
@@ -199,83 +276,46 @@ function escapeHtml(str: string): string {
  * 4. If changed (or no baseline exists), store snapshot and changelog.
  */
 export async function runWatchdog(): Promise<{
-  checked: number
-  baselines: number
-  changes: number
-  errors: number
+  checked?: number
+  baselines?: number
+  changes?: number
+  errors?: number
+  enqueued?: number
 }> {
   const db = await getDb()
   const allCompanies = await db.select().from(companies)
+
+  // Attempt to check if queue binding exists (Cloudflare context)
+  let queue: { send(msg: any): Promise<void> } | undefined
+  try {
+    const mod = await import("cloudflare:workers")
+    queue = (mod.env as any).WATCHDOG_QUEUE
+  } catch {
+    // Fallback to direct synchronous execution if not in Worker context with Queue
+  }
+
+  if (queue) {
+    console.log("[watchdog] Queue binding detected. Enqueuing checks...")
+    let enqueued = 0
+    for (const company of allCompanies) {
+      await queue.send({ companyId: company.id })
+      enqueued++
+    }
+    return { enqueued }
+  }
+
   let checked = 0
   let baselines = 0
   let changes = 0
   let errors = 0
 
   for (const company of allCompanies) {
-    console.log(`[watchdog] Checking ${company.companyName}...`)
-
-    const result = await fetchPolicyText(company.sourceUrl)
-    if (!result) {
+    try {
+      await checkCompany(company.id)
+      checked++
+    } catch (e) {
+      console.error(`[watchdog] Error checking company ${company.id}:`, e)
       errors++
-      continue
-    }
-
-    checked++
-    const contentHash = hashText(result.text)
-    const now = new Date().toISOString()
-
-    // Get the latest snapshot for this company
-    const latestSnapshot = await db
-      .select()
-      .from(snapshots)
-      .where(eq(snapshots.companyId, company.id))
-      .orderBy(desc(snapshots.fetchedAt))
-      .limit(1)
-      .then((rows) => (rows[0] as (typeof rows)[0] | undefined) || null)
-
-    if (!latestSnapshot) {
-      // First run — store baseline snapshot
-      console.log(`[watchdog] Storing baseline for ${company.companyName}`)
-      await db.insert(snapshots).values({
-        companyId: company.id,
-        fetchedAt: now,
-        contentHash,
-        rawContent: result.text,
-      })
-      baselines++
-    } else if (latestSnapshot.contentHash !== contentHash) {
-      // Change detected!
-      console.log(`[watchdog] ⚠ CHANGE DETECTED for ${company.companyName}!`)
-
-      const { diffHtml } = generateDiff(latestSnapshot.rawContent, result.text)
-
-      // Insert changelog entry
-      await db.insert(changelogs).values({
-        companyId: company.id,
-        detectedAt: now,
-        beforeText: latestSnapshot.rawContent.slice(0, 5000),
-        afterText: result.text.slice(0, 5000),
-        diffHtml,
-        status: "pending_review",
-      })
-
-      // Insert new snapshot
-      await db.insert(snapshots).values({
-        companyId: company.id,
-        fetchedAt: now,
-        contentHash,
-        rawContent: result.text,
-      })
-
-      // Update the company's lastChangedDate
-      await db
-        .update(companies)
-        .set({ lastChangedDate: now.split("T")[0] })
-        .where(eq(companies.id, company.id))
-
-      changes++
-    } else {
-      console.log(`[watchdog] No changes for ${company.companyName}`)
     }
   }
 
