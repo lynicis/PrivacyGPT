@@ -3,6 +3,7 @@ import {
   getChangelogsFn,
   getCompaniesFn,
   getSnapshotCountsFn,
+  getSnapshotTotalCountFn,
 } from "../lib/api"
 import { useState, useMemo } from "react"
 import { formatDateTime } from "../lib/utils"
@@ -70,7 +71,7 @@ export const Route = createFileRoute("/changelog")({
   }),
   loader: async ({ deps }) => {
     const pageIndex = (deps.page ?? 1) - 1
-    const [changelogsRes, snapshots, res] = await Promise.all([
+    const [changelogsRes, snapshots, res, totalSnapshots] = await Promise.all([
       getChangelogsFn({
         data: {
           page: pageIndex,
@@ -83,12 +84,14 @@ export const Route = createFileRoute("/changelog")({
       }),
       getSnapshotCountsFn(),
       getCompaniesFn({ data: { limit: 1000 } }),
+      getSnapshotTotalCountFn(),
     ])
     return {
       changelogs: changelogsRes.changelogs,
       totalCount: changelogsRes.totalCount,
       snapshots,
       companies: res.companies,
+      totalSnapshots,
     }
   },
   head: () => ({
@@ -132,7 +135,8 @@ export const Route = createFileRoute("/changelog")({
 })
 
 function ChangelogPage() {
-  const { changelogs, totalCount, snapshots, companies } = Route.useLoaderData()
+  const { changelogs, totalCount, snapshots, companies, totalSnapshots } =
+    Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
 
@@ -321,7 +325,6 @@ function ChangelogPage() {
 
   const pageCount = Math.ceil(totalCount / (search.pageSize ?? 20))
   const companiesTracked = trackedCompanies.length
-  const totalSnapshots = snapshots.length
 
   const renderSubComponent = ({ row }: { row: any }) => {
     const entry = row.original
@@ -521,33 +524,21 @@ function ChangelogPage() {
               Latest Snapshots
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Group snapshots by company and show latest */}
-              {(() => {
-                const latestByCompany = new Map<string, (typeof snapshots)[0]>()
-                for (const snap of snapshots) {
-                  const key = snap.companyKey || ""
-                  if (!latestByCompany.has(key)) {
-                    latestByCompany.set(key, snap)
-                  }
-                }
-                return Array.from(latestByCompany.entries()).map(
-                  ([key, snap]) => (
-                    <Card key={key} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          {snap.companyName}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {snap.contentHash.slice(0, 8)}…
-                        </Badge>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Last fetched: {formatDateTime(snap.fetchedAt)}
-                      </p>
-                    </Card>
-                  )
-                )
-              })()}
+              {snapshots.map((snap) => (
+                <Card key={snap.companyId || snap.companyKey} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">
+                      {snap.companyName}
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {snap.contentHash.slice(0, 8)}…
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Last fetched: {formatDateTime(snap.fetchedAt)}
+                  </p>
+                </Card>
+              ))}
             </div>
           </section>
         )}

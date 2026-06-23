@@ -278,6 +278,18 @@ export const getSnapshotCountsFn = createServerFn({ method: "GET" }).handler(
   async () => {
     try {
       const db = await getDb()
+
+      const latestSubquery = db
+        .select({
+          companyId: snapshots.companyId,
+          maxFetched: sql<string>`max(${snapshots.fetchedAt})`.as(
+            "max_fetched"
+          ),
+        })
+        .from(snapshots)
+        .groupBy(snapshots.companyId)
+        .as("latest_sub")
+
       const rows = await db
         .select({
           companyId: snapshots.companyId,
@@ -287,6 +299,13 @@ export const getSnapshotCountsFn = createServerFn({ method: "GET" }).handler(
           contentHash: snapshots.contentHash,
         })
         .from(snapshots)
+        .innerJoin(
+          latestSubquery,
+          and(
+            eq(snapshots.companyId, latestSubquery.companyId),
+            eq(snapshots.fetchedAt, latestSubquery.maxFetched)
+          )
+        )
         .leftJoin(companies, eq(snapshots.companyId, companies.id))
         .orderBy(desc(snapshots.fetchedAt))
       return rows
@@ -296,6 +315,21 @@ export const getSnapshotCountsFn = createServerFn({ method: "GET" }).handler(
     }
   }
 )
+
+export const getSnapshotTotalCountFn = createServerFn({
+  method: "GET",
+}).handler(async () => {
+  try {
+    const db = await getDb()
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(snapshots)
+    return result[0]?.count ?? 0
+  } catch (error) {
+    console.error("Failed to count snapshots:", error)
+    throw new Error("Failed to count snapshots")
+  }
+})
 
 export function checkAdminAuth(headers: Headers) {
   const authHeader = headers.get("authorization")

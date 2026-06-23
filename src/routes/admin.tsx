@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 import {
   getChangelogsFn,
   getSnapshotCountsFn,
+  getSnapshotTotalCountFn,
   reviewChangelogFn,
   checkAdminAuthFn,
 } from "../lib/api"
@@ -54,13 +55,24 @@ export const Route = createFileRoute("/admin")({
   },
   loader: async ({ context }) => {
     if (!context.auth.success) {
-      return { changelogs: [], snapshots: [], unauthorized: true }
+      return {
+        changelogs: [],
+        snapshots: [],
+        totalSnapshots: 0,
+        unauthorized: true,
+      }
     }
-    const [res, snapshots] = await Promise.all([
+    const [res, snapshots, totalSnapshots] = await Promise.all([
       getChangelogsFn({ data: { page: 0, pageSize: 1000 } }),
       getSnapshotCountsFn(),
+      getSnapshotTotalCountFn(),
     ])
-    return { changelogs: res.changelogs, snapshots, unauthorized: false }
+    return {
+      changelogs: res.changelogs,
+      snapshots,
+      totalSnapshots,
+      unauthorized: false,
+    }
   },
   headers: ({ loaderData }): Record<string, string> => {
     if (loaderData && (loaderData as any).unauthorized) {
@@ -140,7 +152,8 @@ function ChangelogReview({ id }: { id: number }) {
 }
 
 function AdminPage() {
-  const { changelogs, snapshots, unauthorized } = Route.useLoaderData()
+  const { changelogs, snapshots, totalSnapshots, unauthorized } =
+    Route.useLoaderData()
   const [companyFilter, setCompanyFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("pending_review") // Default to pending review
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
@@ -203,7 +216,6 @@ function AdminPage() {
   }
 
   // Stats
-  const totalSnapshots = snapshots.length
   const totalChanges = changelogs.length
   const pendingReviews = changelogs.filter(
     (c) => c.status === "pending_review"
