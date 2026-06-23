@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest"
 import seedData from "../db/seedData.json"
 
 describe("PrivacyGPT Seed Data Schema Validation", () => {
-  it("should contain 37 companies (10 original + 31 new providers + 3 overlaps + 1 opencode + 2 new)", () => {
-    expect(seedData).toHaveLength(37)
+  it("should contain 38 companies (10 original + 31 new providers + 3 overlaps + 1 opencode + 3 new)", () => {
+    expect(seedData).toHaveLength(38)
   })
 
   it("should have all required fields for every company profile", () => {

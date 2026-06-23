@@ -881,5 +881,29 @@
     "lastVerifiedDate": "2026-06-23",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
+  },
+  {
+    "companyKey": "codeium",
+    "companyName": "Codeium",
+    "productName": "Windsurf",
+    "trainsOnDataByDefault": false,
+    "trainsOnDataNuance": "Does not train models on private user code. Zero Data Retention is active by default.",
+    "optOutAvailable": true,
+    "optOutHow": "Zero Data Retention is active by default. You can adjust telemetry settings in your web profile or extension options.",
+    "optOutUrl": "https://codeium.com/privacy",
+    "retentionPeriod": "The servers do not store plaintext code. The app keeps telemetry data to monitor performance.",
+    "dataDeletedOnRequest": true,
+    "dataDeletedOnRequestTimeframe": "You can delete your account and associated metadata by contacting support.",
+    "thirdPartySharing": "Uses telemetry internally. Under Zero Data Retention, the app processes code in transit and does not share it for model training.",
+    "humanReviewOfChats": false,
+    "humanReviewConditions": "No human reviews private code or chat history. Telemetry is reviewed to monitor performance.",
+    "regionalVariation": "EU users have standard GDPR rights, including data access and deletion.",
+    "childrenDataPolicy": "Intended for users 13 years of age or older.",
+    "enterpriseVsConsumerDifference": true,
+    "enterpriseVsConsumerSummary": "Teams and Enterprise plans offer dedicated deployment options and guaranteed Zero Data Retention. Cognition acquired the brand in 2025.",
+    "sourceUrl": "https://codeium.com/privacy",
+    "lastVerifiedDate": "2026-06-23",
+    "lastChangedDate": null,
+    "confidence": "verified_from_policy_text"
   }
 ]
