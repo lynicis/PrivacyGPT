@@ -274,7 +274,7 @@ function RootLayout() {
           <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-12 md:gap-8">
               {/* Brand */}
-              <div className="sm:col-span-2 md:col-span-5">
+              <div className="sm:col-span-2 md:col-span-4">
                 <Link to="/" className="group inline-flex items-center gap-2.5">
                   <img
                     src="/logo.png"
@@ -298,7 +298,7 @@ function RootLayout() {
               </div>
 
               {/* Product Links */}
-              <div className="md:col-span-3 md:col-start-7">
+              <div className="md:col-span-3 md:col-start-6">
                 <h3 className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
                   Product
                 </h3>
@@ -323,7 +323,7 @@ function RootLayout() {
               </div>
 
               {/* About */}
-              <div className="md:col-span-3">
+              <div className="md:col-span-2 md:col-start-9">
                 <h3 className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
                   About
                 </h3>
@@ -338,6 +338,28 @@ function RootLayout() {
                       Not affiliated with any AI company
                     </span>
                   </li>
+                </ul>
+              </div>
+
+              {/* Legal */}
+              <div className="md:col-span-3 md:col-start-11">
+                <h3 className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
+                  Legal
+                </h3>
+                <ul className="mt-3.5 space-y-2.5">
+                  {[
+                    { to: "/privacy", label: "Privacy Policy" },
+                    { to: "/terms", label: "Terms of Usage" },
+                  ].map((link) => (
+                    <li key={link.to}>
+                      <Link
+                        to={link.to}
+                        className="text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>

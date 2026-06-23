@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ChangelogRouteImport } from './routes/changelog'
@@ -22,9 +24,19 @@ import { Route as BlogFeedDotxmlRouteImport } from './routes/blog.feed[.]xml'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiCronWatchdogRouteImport } from './routes/api.cron.watchdog'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MethodologyRoute = MethodologyRouteImport.update({
@@ -89,7 +101,9 @@ export interface FileRoutesByFullPath {
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
@@ -103,7 +117,9 @@ export interface FileRoutesByTo {
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
@@ -118,7 +134,9 @@ export interface FileRoutesById {
   '/changelog': typeof ChangelogRouteWithChildren
   '/compare': typeof CompareRoute
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/feed.xml': typeof BlogFeedDotxmlRoute
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
@@ -134,7 +152,9 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/compare'
     | '/methodology'
+    | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/blog/$slug'
     | '/blog/feed.xml'
     | '/changelog/feed.xml'
@@ -148,7 +168,9 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/compare'
     | '/methodology'
+    | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/blog/$slug'
     | '/blog/feed.xml'
     | '/changelog/feed.xml'
@@ -162,7 +184,9 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/compare'
     | '/methodology'
+    | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/blog/$slug'
     | '/blog/feed.xml'
     | '/changelog/feed.xml'
@@ -177,7 +201,9 @@ export interface RootRouteChildren {
   ChangelogRoute: typeof ChangelogRouteWithChildren
   CompareRoute: typeof CompareRoute
   MethodologyRoute: typeof MethodologyRoute
+  PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogFeedDotxmlRoute: typeof BlogFeedDotxmlRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
@@ -187,11 +213,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/methodology': {
@@ -292,7 +332,9 @@ const rootRouteChildren: RootRouteChildren = {
   ChangelogRoute: ChangelogRouteWithChildren,
   CompareRoute: CompareRoute,
   MethodologyRoute: MethodologyRoute,
+  PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogFeedDotxmlRoute: BlogFeedDotxmlRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
