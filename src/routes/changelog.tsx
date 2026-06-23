@@ -1,5 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { getChangelogsFn, getSnapshotCountsFn } from "../lib/api"
+import {
+  getChangelogsFn,
+  getCompaniesFn,
+  getSnapshotCountsFn,
+} from "../lib/api"
 import { useState } from "react"
 import { formatDateTime } from "../lib/utils"
 import {
@@ -34,11 +38,12 @@ import {
 export const Route = createFileRoute("/changelog")({
   component: ChangelogPage,
   loader: async () => {
-    const [changelogs, snapshots] = await Promise.all([
+    const [changelogs, snapshots, companies] = await Promise.all([
       getChangelogsFn(),
       getSnapshotCountsFn(),
+      getCompaniesFn(),
     ])
-    return { changelogs, snapshots }
+    return { changelogs, snapshots, companies }
   },
   head: () => ({
     meta: [
@@ -55,15 +60,15 @@ export const Route = createFileRoute("/changelog")({
 })
 
 function ChangelogPage() {
-  const { changelogs, snapshots } = Route.useLoaderData()
+  const { changelogs, snapshots, companies } = Route.useLoaderData()
   const [companyFilter, setCompanyFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
 
-  // Get unique companies from snapshots for filter dropdown
-  const trackedCompanies = Array.from(
-    new Map(snapshots.map((s) => [s.companyKey, s.companyName])).entries()
-  ).sort((a, b) => (a[1] || "").localeCompare(b[1] || ""))
+  // Get all companies from the database for filter dropdown
+  const trackedCompanies = companies
+    .map((c) => [c.companyKey, c.companyName] as const)
+    .sort((a, b) => (a[1] || "").localeCompare(b[1] || ""))
 
   // Filter changelogs
   const filteredChangelogs = changelogs.filter((entry) => {
