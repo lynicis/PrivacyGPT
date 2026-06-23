@@ -176,7 +176,7 @@ function ChangelogPage() {
   )
 
   const onSortingChange = (nextState: SortingState) => {
-    const firstSort = nextState[0]
+    const firstSort = nextState[0] as (typeof nextState)[number] | undefined
     if (firstSort) {
       navigate({
         search: {
@@ -563,6 +563,20 @@ function ChangelogPage() {
 function parseDiffHtml(diffHtml: string): React.ReactNode[] {
   const lines = diffHtml.split("\n").filter(Boolean)
   return lines.map((line, i) => {
+    if (
+      line.includes('class="diff-paragraph"') ||
+      line.includes('class="diff-modified"') ||
+      line.includes('class="diff-word-added"') ||
+      line.includes('class="diff-word-removed"')
+    ) {
+      return (
+        <div
+          key={i}
+          className="px-2 py-1 font-sans text-sm leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: line }}
+        />
+      )
+    }
     if (line.includes('class="diff-added"')) {
       const text = line.replace(/<[^>]+>/g, "")
       return (

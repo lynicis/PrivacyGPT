@@ -1,0 +1,159 @@
+import { describe, it, expect } from "vitest"
+import {
+  normalizeText,
+  decodeHtmlEntities,
+  hashText,
+  generateDiff,
+  wordLevelDiff,
+  splitIntoBlocks,
+} from "../diff"
+
+describe("diff engine utilities", () => {
+  describe("normalizeText", () => {
+    it("converts text to lowercase by default", () => {
+      expect(normalizeText("HELLO WORLD")).toBe("hello world")
+      expect(normalizeText("Hello World")).toBe("hello world")
+    })
+
+    it("strips numbered list markers by default", () => {
+      expect(normalizeText("1. First item")).toBe("first item")
+      expect(normalizeText("2) Second item")).toBe("second item")
+      expect(normalizeText("10. Tenth item")).toBe("tenth item")
+    })
+
+    it("strips bullet markers by default", () => {
+      expect(normalizeText("* Bullet item")).toBe("bullet item")
+      expect(normalizeText("- Dash item")).toBe("dash item")
+    })
+
+    it("removes punctuation by default", () => {
+      expect(normalizeText("Hello, world!")).toBe("hello world")
+      expect(normalizeText("Terms & Conditions")).toBe("terms conditions")
+      expect(normalizeText("Price: $99.99")).toBe("price 99 99")
+    })
+
+    it("collapses whitespace by default", () => {
+      expect(normalizeText("  Multiple   spaces  ")).toBe("multiple spaces")
+      expect(normalizeText("Line1\nLine2")).toBe("line1 line2")
+    })
+
+    it("supports configurable normalization options", () => {
+      const text = "1. Hello, World!"
+      // Disable everything
+      expect(
+        normalizeText(text, {
+          lowerCase: false,
+          stripListMarkers: false,
+          removePunctuation: false,
+          collapseWhitespace: false,
+        })
+      ).toBe("1. Hello, World!")
+
+      // Case preserved
+      expect(
+        normalizeText(text, {
+          lowerCase: false,
+          stripListMarkers: true,
+          removePunctuation: true,
+          collapseWhitespace: true,
+        })
+      ).toBe("Hello World")
+    })
+  })
+
+  describe("decodeHtmlEntities", () => {
+    it("decodes entities to their standard characters", () => {
+      expect(decodeHtmlEntities("&amp;")).toBe("&")
+      expect(decodeHtmlEntities("&lt;")).toBe("<")
+      expect(decodeHtmlEntities("&gt;")).toBe(">")
+      expect(decodeHtmlEntities("&quot;")).toBe('"')
+      expect(decodeHtmlEntities("&#39;")).toBe("'")
+      expect(decodeHtmlEntities("&apos;")).toBe("'")
+      expect(decodeHtmlEntities("&nbsp;")).toBe(" ")
+    })
+  })
+
+  describe("hashText", () => {
+    it("returns a consistent SHA-256 hash", () => {
+      const hash1 = hashText("test content")
+      const hash2 = hashText("test content")
+      expect(hash1).toBe(hash2)
+      expect(hash1).toHaveLength(64)
+    })
+
+    it("respects normalization differences", () => {
+      const hash1 = hashText("Hello, World!")
+      const hash2 = hashText("hello world")
+      expect(hash1).toBe(hash2)
+    })
+  })
+
+  describe("splitIntoBlocks", () => {
+    it("splits text by double newlines into blocks", () => {
+      const text = "Paragraph 1.\n\nParagraph 2.\n  \nParagraph 3."
+      expect(splitIntoBlocks(text)).toEqual([
+        "Paragraph 1.",
+        "Paragraph 2.",
+        "Paragraph 3.",
+      ])
+    })
+  })
+
+  describe("wordLevelDiff", () => {
+    it("calculates inline difference for similar sentences", () => {
+      const before = "We collect your email address."
+      const after = "We collect your physical address."
+      const { diffHtml, isSimilar } = wordLevelDiff(before, after)
+      expect(isSimilar).toBe(true)
+      expect(diffHtml).toContain('<del class="diff-word-removed">email</del>')
+      expect(diffHtml).toContain('<ins class="diff-word-added">physical</ins>')
+    })
+
+    it("returns isSimilar=false for completely different sentences", () => {
+      const before = "We collect your email address."
+      const after = "You must be 18 years old to register."
+      const { isSimilar } = wordLevelDiff(before, after)
+      expect(isSimilar).toBe(false)
+    })
+  })
+
+  describe("generateDiff", () => {
+    it("detects added sentences within paragraphs", () => {
+      const before = "We collect data. We store data."
+      const after = "We collect data. We store data. We share data."
+      const { diffLines } = generateDiff(before, after)
+      const added = diffLines.filter((l) => l.startsWith("+ "))
+      expect(added.length).toBeGreaterThan(0)
+      expect(added.some((l) => l.includes("share"))).toBe(true)
+    })
+
+    it("detects removed sentences", () => {
+      const before = "We collect data. We store data. We protect data."
+      const after = "We collect data. We store data."
+      const { diffLines } = generateDiff(before, after)
+      const removed = diffLines.filter((l) => l.startsWith("- "))
+      expect(removed.length).toBeGreaterThan(0)
+      expect(removed.some((l) => l.includes("protect"))).toBe(true)
+    })
+
+    it("performs inline word-level diffing for modified sentences", () => {
+      const before = "We collect your email address."
+      const after = "We collect your billing address."
+      const { diffHtml } = generateDiff(before, after)
+      expect(diffHtml).toContain("diff-modified")
+      expect(diffHtml).toContain("diff-word-removed")
+      expect(diffHtml).toContain("diff-word-added")
+    })
+
+    it("preserves block-level paragraphs in HTML output", () => {
+      const before = "Paragraph one.\n\nParagraph two."
+      const after = "Paragraph one modified.\n\nParagraph two."
+      const { diffHtml } = generateDiff(before, after)
+      expect(diffHtml).toContain("diff-paragraph")
+      // Should have two paragraph containers
+      const paragraphCount = (diffHtml.match(/class="diff-paragraph"/g) || [])
+        .length
+      expect(paragraphCount).toBe(2)
+    })
+  })
+})

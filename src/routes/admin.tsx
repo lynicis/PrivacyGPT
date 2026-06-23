@@ -472,6 +472,20 @@ function AdminPage() {
 function parseDiffHtml(diffHtml: string): React.ReactNode[] {
   const lines = diffHtml.split("\n").filter(Boolean)
   return lines.map((line, i) => {
+    if (
+      line.includes('class="diff-paragraph"') ||
+      line.includes('class="diff-modified"') ||
+      line.includes('class="diff-word-added"') ||
+      line.includes('class="diff-word-removed"')
+    ) {
+      return (
+        <div
+          key={i}
+          className="px-2 py-1 font-sans text-sm leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: line }}
+        />
+      )
+    }
     if (line.includes('class="diff-added"')) {
       const text = line.replace(/<[^>]+>/g, "")
       return (

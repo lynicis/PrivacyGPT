@@ -4,7 +4,8 @@ import { createServerFn } from "@tanstack/react-start"
 import { getRequestHeaders } from "@tanstack/react-start/server"
 import { getDb, companies } from "./db"
 import { changelogs, snapshots } from "./db/schema"
-import { eq, desc, SQL, and, asc, sql } from "drizzle-orm"
+import { eq, desc, and, asc, sql } from "drizzle-orm"
+import type { SQL } from "drizzle-orm"
 import { getBlogPosts, getBlogPostBySlug } from "./blog-data"
 import {
   calculateSubScores,
@@ -218,7 +219,7 @@ export async function getChangelogs(
     } else if (sortBy === "status") {
       orderByClause =
         sortOrder === "asc" ? asc(changelogs.status) : desc(changelogs.status)
-    } else if (sortBy === "detectedAt") {
+    } else {
       orderByClause =
         sortOrder === "asc"
           ? asc(changelogs.detectedAt)

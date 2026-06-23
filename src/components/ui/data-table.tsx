@@ -101,7 +101,7 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <React.Fragment key={row.id}>
                   <TableRow data-state={row.getIsSelected() && "selected"}>
