@@ -833,5 +833,29 @@
     "lastVerifiedDate": "2026-06-23",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
+  },
+  {
+    "companyKey": "anysphere",
+    "companyName": "Anysphere",
+    "productName": "Cursor",
+    "trainsOnDataByDefault": true,
+    "trainsOnDataNuance": "Free and Pro accounts train on your prompts and code. Business and Enterprise tiers turn off training by default.",
+    "optOutAvailable": true,
+    "optOutHow": "Toggle Privacy Mode in Cursor settings (General tab) or in your online account settings.",
+    "optOutUrl": "https://www.cursor.com/privacy",
+    "retentionPeriod": "Cursor retains data when Privacy Mode is off. Turning it on ensures zero data retention for upstream models, and Cursor avoids storing prompts.",
+    "dataDeletedOnRequest": true,
+    "dataDeletedOnRequestTimeframe": "You can request account deletion to remove personal data, though the company keeps anonymous telemetry.",
+    "thirdPartySharing": "Sends data to OpenAI and Anthropic under zero data retention terms when you use Privacy Mode.",
+    "humanReviewOfChats": true,
+    "humanReviewConditions": "Staff review conversations only if automated filters trigger safety or abuse alerts.",
+    "regionalVariation": "GDPR protections apply for EU and UK users, including data deletion and processing objection.",
+    "childrenDataPolicy": "Requires users to be at least 13 years old.",
+    "enterpriseVsConsumerDifference": true,
+    "enterpriseVsConsumerSummary": "Enterprise plans enable Privacy Mode by default, ensuring zero data retention and no model training.",
+    "sourceUrl": "https://www.cursor.com/privacy",
+    "lastVerifiedDate": "2026-06-23",
+    "lastChangedDate": null,
+    "confidence": "verified_from_policy_text"
   }
 ]
