@@ -52,12 +52,12 @@ interface DashboardSearch {
   optOut?: boolean
   noHumanReview?: boolean
   sortBy?:
-    | "score-desc"
-    | "score-asc"
-    | "name-asc"
-    | "name-desc"
-    | "training-first"
-    | "confidence-first"
+  | "score-desc"
+  | "score-asc"
+  | "name-asc"
+  | "name-desc"
+  | "training-first"
+  | "confidence-first"
   weights?: string
 }
 export const Route = createFileRoute("/")({
@@ -380,7 +380,7 @@ function App() {
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
               We monitor how major AI companies handle your conversational data.
-              This living database tracks model training defaults, opt-out
+              <br />This living database tracks model training defaults, opt-out
               mechanisms, and retention timelines directly from source policies.
             </p>
             <div className="mt-8 flex justify-center gap-3">
