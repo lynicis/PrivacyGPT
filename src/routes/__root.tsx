@@ -204,11 +204,11 @@ function RootLayout() {
         {/* Navbar */}
         <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md transition-all duration-300">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="PrivacyGPT" className="h-10 w-10" />
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="PrivacyGPT" className="h-12 w-12" />
               <Link
                 to="/"
-                className="text-xl font-bold tracking-tight text-foreground"
+                className="text-lg leading-none font-bold tracking-tight text-foreground"
               >
                 PrivacyGPT
               </Link>
@@ -317,13 +317,13 @@ function RootLayout() {
             <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-12 md:gap-8">
               {/* Brand */}
               <div className="sm:col-span-2 md:col-span-4">
-                <Link to="/" className="group inline-flex items-center gap-2.5">
+                <Link to="/" className="group inline-flex items-center gap-2">
                   <img
                     src="/logo.png"
                     alt="PrivacyGPT"
-                    className="h-7 w-7 transition-transform duration-200 group-hover:scale-105"
+                    className="h-12 w-12 transition-transform duration-200 group-hover:scale-105"
                   />
-                  <span className="text-base font-bold tracking-tight text-foreground">
+                  <span className="text-lg leading-none font-bold tracking-tight text-foreground">
                     PrivacyGPT
                   </span>
                 </Link>
