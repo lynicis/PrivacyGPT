@@ -4,7 +4,7 @@ import { createServerFn } from "@tanstack/react-start"
 import { getRequestHeaders } from "@tanstack/react-start/server"
 import { getDb, companies } from "./db"
 import { changelogs, snapshots } from "./db/schema"
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, SQL, and, asc, sql } from "drizzle-orm"
 import { getBlogPosts, getBlogPostBySlug } from "./blog-data"
 import {
   calculateSubScores,
@@ -170,34 +170,108 @@ export const getCompanyByKeyFn = createServerFn({ method: "GET" })
     }
   })
 
-export const getChangelogsFn = createServerFn({ method: "GET" }).handler(
-  async () => {
-    try {
-      const db = await getDb()
-      const rows = await db
-        .select({
-          id: changelogs.id,
-          companyId: changelogs.companyId,
-          detectedAt: changelogs.detectedAt,
-          beforeText: changelogs.beforeText,
-          afterText: changelogs.afterText,
-          diffHtml: changelogs.diffHtml,
-          status: changelogs.status,
-          reviewNotes: changelogs.reviewNotes,
-          reviewedAt: changelogs.reviewedAt,
-          companyName: companies.companyName,
-          companyKey: companies.companyKey,
-        })
-        .from(changelogs)
-        .leftJoin(companies, eq(changelogs.companyId, companies.id))
-        .orderBy(desc(changelogs.detectedAt))
-      return rows
-    } catch (error) {
-      console.error("Failed to fetch changelogs:", error)
-      throw new Error("Failed to fetch changelogs")
+export async function getChangelogs(
+  data: {
+    page?: number
+    pageSize?: number
+    sortBy?: "detectedAt" | "companyName" | "status"
+    sortOrder?: "asc" | "desc"
+    companyFilter?: string
+    statusFilter?: string
+  } = {}
+): Promise<{ changelogs: any[]; totalCount: number }> {
+  try {
+    const db = await getDb()
+    const page = data.page ?? 0
+    const pageSize = data.pageSize ?? 20
+    const sortBy = data.sortBy ?? "detectedAt"
+    const sortOrder = data.sortOrder ?? "desc"
+    const companyFilter = data.companyFilter ?? "all"
+    const statusFilter = data.statusFilter ?? "all"
+
+    const conditions: SQL[] = []
+    if (companyFilter !== "all") {
+      conditions.push(eq(companies.companyKey, companyFilter))
     }
+    if (statusFilter !== "all") {
+      conditions.push(eq(changelogs.status, statusFilter))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    // Fetch count query
+    const countRes = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(changelogs)
+      .leftJoin(companies, eq(changelogs.companyId, companies.id))
+      .where(whereClause)
+
+    const totalCount = countRes[0]?.count ?? 0
+
+    // Ordering logic
+    let orderByClause: any = desc(changelogs.detectedAt)
+    if (sortBy === "companyName") {
+      orderByClause =
+        sortOrder === "asc"
+          ? asc(companies.companyName)
+          : desc(companies.companyName)
+    } else if (sortBy === "status") {
+      orderByClause =
+        sortOrder === "asc" ? asc(changelogs.status) : desc(changelogs.status)
+    } else if (sortBy === "detectedAt") {
+      orderByClause =
+        sortOrder === "asc"
+          ? asc(changelogs.detectedAt)
+          : desc(changelogs.detectedAt)
+    }
+
+    // Query data
+    const rows = await db
+      .select({
+        id: changelogs.id,
+        companyId: changelogs.companyId,
+        detectedAt: changelogs.detectedAt,
+        beforeText: changelogs.beforeText,
+        afterText: changelogs.afterText,
+        diffHtml: changelogs.diffHtml,
+        status: changelogs.status,
+        reviewNotes: changelogs.reviewNotes,
+        reviewedAt: changelogs.reviewedAt,
+        companyName: companies.companyName,
+        companyKey: companies.companyKey,
+      })
+      .from(changelogs)
+      .leftJoin(companies, eq(changelogs.companyId, companies.id))
+      .where(whereClause)
+      .orderBy(orderByClause)
+      .limit(pageSize)
+      .offset(page * pageSize)
+
+    return { changelogs: rows, totalCount }
+  } catch (error) {
+    console.error("Failed to fetch changelogs:", error)
+    throw new Error("Failed to fetch changelogs")
   }
-)
+}
+
+export const getChangelogsFn = createServerFn({ method: "GET" })
+  .validator(
+    (
+      input:
+        | {
+            page?: number
+            pageSize?: number
+            sortBy?: "detectedAt" | "companyName" | "status"
+            sortOrder?: "asc" | "desc"
+            companyFilter?: string
+            statusFilter?: string
+          }
+        | undefined
+    ) => input || {}
+  )
+  .handler(async ({ data }) => {
+    return getChangelogs(data)
+  })
 
 export const getSnapshotCountsFn = createServerFn({ method: "GET" }).handler(
   async () => {

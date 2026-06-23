@@ -1,26 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
   getChangelogsFn,
   getCompaniesFn,
   getSnapshotCountsFn,
 } from "../lib/api"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { formatDateTime } from "../lib/utils"
 import {
   ArrowLeft,
   History,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
   Rss,
   FileText,
   Filter,
   Plus,
   Minus,
+  ArrowUpDown,
+  ChevronRight,
+  ChevronDown,
 } from "lucide-react"
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -34,16 +33,63 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { DataTable } from "@/components/ui/data-table"
+import type {
+  ColumnDef,
+  SortingState,
+  PaginationState,
+  ExpandedState,
+} from "@tanstack/react-table"
+
+interface ChangelogSearch {
+  page?: number
+  pageSize?: number
+  sortBy?: "detectedAt" | "companyName" | "status"
+  sortOrder?: "asc" | "desc"
+  companyFilter?: string
+  statusFilter?: string
+}
 
 export const Route = createFileRoute("/changelog")({
   component: ChangelogPage,
-  loader: async () => {
-    const [changelogs, snapshots, res] = await Promise.all([
-      getChangelogsFn(),
+  validateSearch: (search: Record<string, unknown>): ChangelogSearch => ({
+    page: Number(search.page || 1),
+    pageSize: Number(search.pageSize || 20),
+    sortBy: (search.sortBy as ChangelogSearch["sortBy"]) || "detectedAt",
+    sortOrder: (search.sortOrder as ChangelogSearch["sortOrder"]) || "desc",
+    companyFilter: (search.companyFilter as string) || "all",
+    statusFilter: (search.statusFilter as string) || "all",
+  }),
+  loaderDeps: ({ search }) => ({
+    page: search.page,
+    pageSize: search.pageSize,
+    sortBy: search.sortBy,
+    sortOrder: search.sortOrder,
+    companyFilter: search.companyFilter,
+    statusFilter: search.statusFilter,
+  }),
+  loader: async ({ deps }) => {
+    const pageIndex = (deps.page ?? 1) - 1
+    const [changelogsRes, snapshots, res] = await Promise.all([
+      getChangelogsFn({
+        data: {
+          page: pageIndex,
+          pageSize: deps.pageSize,
+          sortBy: deps.sortBy,
+          sortOrder: deps.sortOrder,
+          companyFilter: deps.companyFilter,
+          statusFilter: deps.statusFilter,
+        },
+      }),
       getSnapshotCountsFn(),
       getCompaniesFn({ data: { limit: 1000 } }),
     ])
-    return { changelogs, snapshots, companies: res.companies }
+    return {
+      changelogs: changelogsRes.changelogs,
+      totalCount: changelogsRes.totalCount,
+      snapshots,
+      companies: res.companies,
+    }
   },
   head: () => ({
     meta: [
@@ -86,43 +132,232 @@ export const Route = createFileRoute("/changelog")({
 })
 
 function ChangelogPage() {
-  const { changelogs, snapshots, companies } = Route.useLoaderData()
-  const [companyFilter, setCompanyFilter] = useState<string>("all")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
+  const { changelogs, totalCount, snapshots, companies } = Route.useLoaderData()
+  const search = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+
+  const [expanded, setExpanded] = useState<ExpandedState>({})
 
   // Get all companies from the database for filter dropdown
-  const trackedCompanies = companies
-    .map((c) => [c.companyKey, c.companyName] as const)
-    .sort((a, b) => (a[1] || "").localeCompare(b[1] || ""))
+  const trackedCompanies = useMemo(() => {
+    return companies
+      .map((c) => [c.companyKey, c.companyName] as const)
+      .sort((a, b) => (a[1] || "").localeCompare(b[1] || ""))
+  }, [companies])
 
-  // Filter changelogs
-  const filteredChangelogs = changelogs.filter((entry) => {
-    if (companyFilter !== "all" && entry.companyKey !== companyFilter)
-      return false
-    if (statusFilter !== "all" && entry.status !== statusFilter) return false
-    return true
-  })
+  // Map router search params to tanstack-table pagination state
+  const pagination: PaginationState = useMemo(
+    () => ({
+      pageIndex: (search.page ?? 1) - 1,
+      pageSize: search.pageSize ?? 20,
+    }),
+    [search.page, search.pageSize]
+  )
 
-  const toggleExpand = (id: number) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
+  const onPaginationChange = (nextState: PaginationState) => {
+    navigate({
+      search: {
+        ...search,
+        page: nextState.pageIndex + 1,
+        pageSize: nextState.pageSize,
+      },
     })
   }
 
-  // Stats
-  const totalSnapshots = snapshots.length
-  const totalChanges = changelogs.length
-  const pendingReviews = changelogs.filter(
-    (c) => c.status === "pending_review"
-  ).length
+  // Map router search params to tanstack-table sorting state
+  const sorting: SortingState = useMemo(
+    () => [
+      {
+        id: search.sortBy ?? "detectedAt",
+        desc: search.sortOrder === "desc",
+      },
+    ],
+    [search.sortBy, search.sortOrder]
+  )
+
+  const onSortingChange = (nextState: SortingState) => {
+    const firstSort = nextState[0]
+    if (firstSort) {
+      navigate({
+        search: {
+          ...search,
+          sortBy: firstSort.id as ChangelogSearch["sortBy"],
+          sortOrder: firstSort.desc ? "desc" : "asc",
+        },
+      })
+    }
+  }
+
+  const columns = useMemo<ColumnDef<any>[]>(
+    () => [
+      {
+        id: "expand",
+        header: () => null,
+        cell: ({ row }) => (
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => row.toggleExpanded()}
+          >
+            {row.getIsExpanded() ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: () => {
+          return (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => {
+                const currentOrder = search.sortOrder
+                const isStatusSort = search.sortBy === "status"
+                const nextOrder =
+                  isStatusSort && currentOrder === "asc" ? "desc" : "asc"
+                navigate({
+                  search: {
+                    ...search,
+                    page: 1,
+                    sortBy: "status",
+                    sortOrder: nextOrder,
+                  },
+                })
+              }}
+            >
+              Status
+              <ArrowUpDown className="ml-1 h-3 w-3" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => {
+          const isPending = row.original.status === "pending_review"
+          return (
+            <Badge variant={isPending ? "outline" : "secondary"}>
+              {isPending ? "Pending Review" : "Reviewed"}
+            </Badge>
+          )
+        },
+      },
+      {
+        accessorKey: "companyName",
+        header: () => {
+          return (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => {
+                const currentOrder = search.sortOrder
+                const isCompanySort = search.sortBy === "companyName"
+                const nextOrder =
+                  isCompanySort && currentOrder === "asc" ? "desc" : "asc"
+                navigate({
+                  search: {
+                    ...search,
+                    page: 1,
+                    sortBy: "companyName",
+                    sortOrder: nextOrder,
+                  },
+                })
+              }}
+            >
+              Company
+              <ArrowUpDown className="ml-1 h-3 w-3" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => (
+          <Link
+            to="/company/$companyKey"
+            params={{
+              companyKey: row.original.companyKey || "",
+            }}
+            className="font-medium text-foreground hover:underline"
+          >
+            {row.original.companyName}
+          </Link>
+        ),
+      },
+      {
+        accessorKey: "detectedAt",
+        header: () => {
+          return (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => {
+                const currentOrder = search.sortOrder
+                const isDetectedSort = search.sortBy === "detectedAt"
+                const nextOrder =
+                  isDetectedSort && currentOrder === "asc" ? "desc" : "asc"
+                navigate({
+                  search: {
+                    ...search,
+                    page: 1,
+                    sortBy: "detectedAt",
+                    sortOrder: nextOrder,
+                  },
+                })
+              }}
+            >
+              Detected At
+              <ArrowUpDown className="ml-1 h-3 w-3" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {formatDateTime(row.original.detectedAt)}
+          </span>
+        ),
+      },
+    ],
+    [search, navigate]
+  )
+
+  const pageCount = Math.ceil(totalCount / (search.pageSize ?? 20))
   const companiesTracked = trackedCompanies.length
+  const totalSnapshots = snapshots.length
+
+  const renderSubComponent = ({ row }: { row: any }) => {
+    const entry = row.original
+    return (
+      <div className="space-y-3">
+        {entry.diffHtml ? (
+          <div className="overflow-hidden border border-border">
+            <div className="border-b border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
+              Policy Text Changes
+            </div>
+            <div className="max-h-96 overflow-y-auto p-3 font-mono text-xs leading-relaxed">
+              {parseDiffHtml(entry.diffHtml)}
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            No diff data available for this entry.
+          </p>
+        )}
+
+        {entry.reviewNotes && (
+          <div className="border border-border bg-muted/30 p-3">
+            <div className="mb-1 text-xs font-medium text-muted-foreground">
+              Review Notes
+            </div>
+            <p className="text-sm">{entry.reviewNotes}</p>
+            {entry.reviewedAt && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Reviewed on {formatDateTime(entry.reviewedAt)}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <>
@@ -177,15 +412,16 @@ function ChangelogPage() {
               </div>
             </Card>
             <Card className="p-4">
-              <div className="text-2xl font-bold">{totalChanges}</div>
+              <div className="text-2xl font-bold">{totalCount}</div>
               <div className="text-xs text-muted-foreground">
                 Changes Detected
               </div>
             </Card>
             <Card className="p-4">
-              <div className="text-2xl font-bold">{pendingReviews}</div>
+              {/* Note: since totalCount is paginated, we don't calculate pendingReviews on the subset of data. We can fetch this stat or show placeholder/simplified info. */}
+              <div className="text-2xl font-bold">-</div>
               <div className="text-xs text-muted-foreground">
-                Pending Review
+                Real-time Database
               </div>
             </Card>
           </div>
@@ -200,7 +436,18 @@ function ChangelogPage() {
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filters:</span>
           </div>
-          <Select value={companyFilter} onValueChange={setCompanyFilter}>
+          <Select
+            value={search.companyFilter || "all"}
+            onValueChange={(val) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  companyFilter: val,
+                },
+              })
+            }}
+          >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All Companies" />
             </SelectTrigger>
@@ -213,7 +460,18 @@ function ChangelogPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select
+            value={search.statusFilter || "all"}
+            onValueChange={(val) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  statusFilter: val,
+                },
+              })
+            }}
+          >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
@@ -225,124 +483,35 @@ function ChangelogPage() {
           </Select>
         </div>
 
-        {/* Timeline */}
-        {filteredChangelogs.length === 0 ? (
+        {/* DataTable */}
+        {changelogs.length === 0 ? (
           <Card className="p-12 text-center">
             <CardHeader>
               <div className="mx-auto mb-2 w-fit rounded-full bg-muted p-3 text-muted-foreground">
                 <FileText className="h-6 w-6" />
               </div>
               <CardTitle className="text-lg font-bold">
-                {changelogs.length === 0
-                  ? "No Changes Detected Yet"
-                  : "No Matching Changes"}
+                No Matching Changes
               </CardTitle>
               <CardDescription>
-                {changelogs.length === 0
-                  ? "The watchdog crawler has not detected any privacy policy changes yet."
-                  : "Try adjusting your filters to see more results."}
+                Try adjusting your filters to see more results.
               </CardDescription>
             </CardHeader>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {filteredChangelogs.map((entry) => {
-              const isExpanded = expandedIds.has(entry.id)
-              const isPending = entry.status === "pending_review"
-
-              return (
-                <Card key={entry.id} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`rounded-full p-1.5 ${
-                            isPending
-                              ? "bg-chart-1/10 text-chart-1"
-                              : "bg-chart-5/10 text-chart-5"
-                          }`}
-                        >
-                          {isPending ? (
-                            <AlertCircle className="h-4 w-4" />
-                          ) : (
-                            <CheckCircle2 className="h-4 w-4" />
-                          )}
-                        </div>
-                        <div>
-                          <CardTitle className="text-base font-semibold">
-                            <Link
-                              to="/company/$companyKey"
-                              params={{
-                                companyKey: entry.companyKey || "",
-                              }}
-                              className="hover:underline"
-                            >
-                              {entry.companyName}
-                            </Link>
-                          </CardTitle>
-                          <CardDescription className="mt-0.5 flex items-center gap-1.5 text-xs">
-                            <Clock className="h-3 w-3" />
-                            {formatDateTime(entry.detectedAt)}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={isPending ? "outline" : "secondary"}>
-                          {isPending ? "Pending Review" : "Reviewed"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="pt-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleExpand(entry.id)}
-                      className="mb-2 text-xs"
-                    >
-                      {isExpanded ? "Hide" : "Show"} Diff Details
-                    </Button>
-
-                    {isExpanded && (
-                      <div className="mt-2 space-y-3">
-                        {/* Diff visualization */}
-                        {entry.diffHtml ? (
-                          <div className="overflow-hidden border border-border">
-                            <div className="border-b border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                              Policy Text Changes
-                            </div>
-                            <div className="max-h-96 overflow-y-auto p-3 font-mono text-xs leading-relaxed">
-                              {parseDiffHtml(entry.diffHtml)}
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">
-                            No diff data available for this entry.
-                          </p>
-                        )}
-
-                        {/* Review notes */}
-                        {entry.reviewNotes && (
-                          <div className="border border-border bg-muted/30 p-3">
-                            <div className="mb-1 text-xs font-medium text-muted-foreground">
-                              Review Notes
-                            </div>
-                            <p className="text-sm">{entry.reviewNotes}</p>
-                            {entry.reviewedAt && (
-                              <p className="mt-1 text-xs text-muted-foreground">
-                                Reviewed on {formatDateTime(entry.reviewedAt)}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
+          <DataTable
+            columns={columns}
+            data={changelogs}
+            pageCount={pageCount}
+            pagination={pagination}
+            onPaginationChange={onPaginationChange}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            expanded={expanded}
+            onExpandedChange={setExpanded}
+            getRowCanExpand={() => true}
+            renderSubComponent={renderSubComponent}
+          />
         )}
 
         {/* Snapshot Status Section */}

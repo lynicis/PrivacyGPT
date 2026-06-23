@@ -56,11 +56,11 @@ export const Route = createFileRoute("/admin")({
     if (!context.auth.success) {
       return { changelogs: [], snapshots: [], unauthorized: true }
     }
-    const [changelogs, snapshots] = await Promise.all([
-      getChangelogsFn(),
+    const [res, snapshots] = await Promise.all([
+      getChangelogsFn({ data: { page: 0, pageSize: 1000 } }),
       getSnapshotCountsFn(),
     ])
-    return { changelogs, snapshots, unauthorized: false }
+    return { changelogs: res.changelogs, snapshots, unauthorized: false }
   },
   headers: ({ loaderData }): Record<string, string> => {
     if (loaderData && (loaderData as any).unauthorized) {
