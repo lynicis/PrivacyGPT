@@ -3,37 +3,36 @@ import { companies, snapshots, changelogs } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
 import { createHash } from "node:crypto"
 import FirecrawlApp from "@mendable/firecrawl-js"
+import { convert } from "html-to-text"
+import escapeHtml from "escape-html"
 
 /**
  * Strips HTML of scripts, styles, nav, footer, and tag markup,
  * returning only the visible text content of the page.
  */
 export function stripHtmlToText(html: string): string {
-  let text = html
-  // Remove script and style blocks entirely
-  text = text.replace(/<script[\s\S]*?<\/script>/gi, "")
-  text = text.replace(/<style[\s\S]*?<\/style>/gi, "")
-  text = text.replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
-  // Remove non-content structural elements
-  text = text.replace(/<nav[\s\S]*?<\/nav>/gi, "")
-  text = text.replace(/<footer[\s\S]*?<\/footer>/gi, "")
-  text = text.replace(/<header[\s\S]*?<\/header>/gi, "")
-  text = text.replace(/<aside[\s\S]*?<\/aside>/gi, "")
-  text = text.replace(/<form[\s\S]*?<\/form>/gi, "")
-  text = text.replace(/<svg[\s\S]*?<\/svg>/gi, "")
-  // Remove all HTML tags (replace with newline to preserve line structure)
-  text = text.replace(/<[^>]+>/g, "\n")
-  // Decode common HTML entities
-  text = text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ")
+  const options = {
+    selectors: [
+      { selector: "nav", format: "skip" },
+      { selector: "header", format: "skip" },
+      { selector: "footer", format: "skip" },
+      { selector: "aside", format: "skip" },
+      { selector: "form", format: "skip" },
+      { selector: "svg", format: "skip" },
+      { selector: "script", format: "skip" },
+      { selector: "style", format: "skip" },
+      { selector: "a", options: { ignoreHref: true } },
+      { selector: "img", format: "skip" },
+    ],
+    wordwrap: null,
+    preserveNewlines: true,
+  }
+
+  const plainText = convert(html, options)
+
   // Filter out metadata and navigation junk lines before collapsing whitespace
-  text = text
-    .split(/\n/)
+  const text = plainText
+    .split(/\r?\n/)
     .filter((line) => {
       const trimmed = line.trim()
       // Skip empty lines
@@ -59,8 +58,7 @@ export function stripHtmlToText(html: string): string {
     })
     .join("\n")
   // Collapse whitespace (including newlines) into single spaces
-  text = text.replace(/\s+/g, " ").trim()
-  return text
+  return text.replace(/\s+/g, " ").trim()
 }
 
 /**
@@ -181,14 +179,6 @@ export function generateDiff(
     .join("\n")
 
   return { diffLines, diffHtml }
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
 }
 
 export async function checkCompany(
