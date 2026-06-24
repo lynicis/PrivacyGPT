@@ -150,10 +150,53 @@ describe("diff engine utilities", () => {
       const after = "Paragraph one modified.\n\nParagraph two."
       const { diffHtml } = generateDiff(before, after)
       expect(diffHtml).toContain("diff-paragraph")
-      // Should have two paragraph containers
       const paragraphCount = (diffHtml.match(/class="diff-paragraph"/g) || [])
         .length
       expect(paragraphCount).toBe(2)
+    })
+
+    it("treats reordered sentences within a paragraph as unchanged", () => {
+      const before =
+        "We collect your data. We store it securely. We never share it."
+      const after =
+        "We never share it. We collect your data. We store it securely."
+      const { diffLines } = generateDiff(before, after)
+      const changed = diffLines.filter(
+        (l) => l.startsWith("+ ") || l.startsWith("- ")
+      )
+      expect(changed.length).toBe(0)
+    })
+
+    it("treats reordered blocks as unchanged", () => {
+      const before =
+        "First paragraph content.\n\nSecond paragraph content.\n\nThird paragraph content."
+      const after =
+        "Third paragraph content.\n\nFirst paragraph content.\n\nSecond paragraph content."
+      const { diffLines } = generateDiff(before, after)
+      const changed = diffLines.filter(
+        (l) => l.startsWith("+ ") || l.startsWith("- ")
+      )
+      expect(changed.length).toBe(0)
+    })
+
+    it("handles list formatting changes (adding numbering) without noise", () => {
+      const before =
+        "Data collection section.\nData storage section.\nData deletion section."
+      const after =
+        "1. Data collection section.\n2. Data storage section.\n3. Data deletion section."
+      const { diffLines } = generateDiff(before, after)
+      const unchanged = diffLines.filter((l) => l.startsWith("  "))
+      expect(unchanged.length).toBeGreaterThan(0)
+    })
+
+    it("detects formatting-only changes as minimal noise", () => {
+      const before = "Section 1: Introduction\nThis is the privacy policy."
+      const after = "SECTION 1: INTRODUCTION\nThis is the privacy policy."
+      const { diffLines } = generateDiff(before, after)
+      const changed = diffLines.filter(
+        (l) => l.startsWith("+ ") || l.startsWith("- ")
+      )
+      expect(changed.length).toBeLessThanOrEqual(1)
     })
   })
 })

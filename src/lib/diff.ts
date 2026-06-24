@@ -22,6 +22,16 @@ export interface NormalizationOptions {
   collapseWhitespace?: boolean
 }
 
+export interface DiffOptions {
+  normalization?: NormalizationOptions
+  /**
+   * When true, suppresses diffs where the only change is a numeric value
+   * (e.g. star count "51.2k" → "51.3k", commit count "39,804" → "39,813").
+   * This reduces noise from dynamic UI counters on scraped pages.
+   */
+  suppressNumericNoise?: boolean
+}
+
 const DEFAULT_NORM_OPTIONS: NormalizationOptions = {
   lowerCase: true,
   stripListMarkers: true,
@@ -69,13 +79,55 @@ export function hashText(text: string, options?: NormalizationOptions): string {
 }
 
 /**
- * Splits text into paragraphs/blocks.
+ * Patterns that match navigation/UI junk content commonly leaked through
+ * HTML-to-text conversion (GitHub navbar, session messages, error placeholders).
  */
-export function splitIntoBlocks(text: string): string[] {
+const LOW_QUALITY_PATTERNS = [
+  /^you signed in with another tab or window\.?$/i,
+  /^you signed out in another tab or window\.?$/i,
+  /^you switched accounts on another tab or window\.?$/i,
+  /^reload to refresh your session\.?$/i,
+  /^dismiss alert/i,
+  /^there was an error while loading\.?$/i,
+  /^please reload this page\.?$/i,
+  /^notifications you must be signed in/i,
+  /^uh oh!?$/i,
+  /^main menu$/i,
+  /^search.*clear.*search$/i,
+  /^close search$/i,
+  /^help center$/i,
+  /^community$/i,
+  /^privacy hub$/i,
+  /^this help content/i,
+  /^general help/i,
+]
+
+/**
+ * Returns true when a block of text consists entirely of low-quality /
+ * navigational content that should be excluded from diff analysis.
+ */
+export function isLowQualityBlock(text: string): boolean {
+  const segments = splitIntoSegments(text)
+  if (segments.length === 0) return true
+  const nonJunk = segments.filter(
+    (seg) => !LOW_QUALITY_PATTERNS.some((p) => p.test(seg.original.trim()))
+  )
+  return nonJunk.length === 0
+}
+
+/**
+ * Splits text into paragraphs/blocks, filtering out low-quality
+ * navigation/UI content in the process.
+ */
+export function splitIntoBlocks(
+  text: string,
+  filterLowQuality?: boolean
+): string[] {
   return text
     .split(/\n\s*\n/)
     .map((block) => block.trim())
     .filter(Boolean)
+    .filter((block) => !filterLowQuality || !isLowQualityBlock(block))
 }
 
 /**
@@ -315,67 +367,214 @@ export function detectModifiedEntries(
 }
 
 /**
+ * Compares two blocks using a two-tier strategy:
+ * 1. Exact normalized text match (fast path)
+ * 2. Sentence-bag equivalence (handles reordered but identical sentences)
+ */
+function blocksMatch(
+  bA: string,
+  bB: string,
+  options?: NormalizationOptions
+): boolean {
+  if (normalizeText(bA, options) === normalizeText(bB, options)) return true
+
+  const segmentsA = splitIntoSegments(bA, options)
+  const segmentsB = splitIntoSegments(bB, options)
+
+  if (segmentsA.length !== segmentsB.length) return false
+
+  // Use bag (multiset) comparison instead of Set to correctly handle
+  // duplicate sentences that may be reordered (e.g. a sentence appearing
+  // twice in both A and B — Set would miss the duplicate count mismatch).
+  const freqA = new Map<string, number>()
+  const freqB = new Map<string, number>()
+  for (const s of segmentsA)
+    freqA.set(s.normalized, (freqA.get(s.normalized) || 0) + 1)
+  for (const s of segmentsB)
+    freqB.set(s.normalized, (freqB.get(s.normalized) || 0) + 1)
+
+  if (freqA.size !== freqB.size) return false
+
+  for (const [key, count] of freqA) {
+    if (freqB.get(key) !== count) return false
+  }
+
+  return true
+}
+
+/**
+ * Renders a block entry as HTML with diff markers.
+ */
+function renderBlock(
+  blockText: string,
+  type: "unchanged" | "added" | "removed",
+  options?: NormalizationOptions
+): { diffLines: string[]; html: string } {
+  const prefix = type === "unchanged" ? "  " : type === "added" ? "+ " : "- "
+  const cssClass =
+    type === "unchanged"
+      ? "diff-unchanged"
+      : type === "added"
+        ? "diff-added"
+        : "diff-removed"
+  const blockClass = type === "unchanged" ? "" : ` diff-block-${type}`
+
+  const segments = splitIntoSegments(blockText, options)
+  const diffLines: string[] = []
+  let html = `<div class="diff-paragraph${blockClass}">`
+
+  for (const seg of segments) {
+    diffLines.push(`${prefix}${seg.original}`)
+    html += `<span class="${cssClass}">${escapeHtml(seg.original)}</span>`
+  }
+
+  html += "</div>"
+  return { diffLines, html }
+}
+
+/**
+ * Post-processes block-level diff entries to pair orphaned removed↔added blocks
+ * that have identical content (content was reordered, not changed).
+ * Converts matching pairs to "unchanged" blocks.
+ */
+function matchReorderedBlocks(
+  entries: DiffEntry[],
+  options?: NormalizationOptions
+): DiffEntry[] {
+  const result: DiffEntry[] = [...entries]
+
+  const removedIndices: number[] = []
+  const addedIndices: number[] = []
+
+  for (let i = 0; i < result.length; i++) {
+    if (result[i].type === "removed") removedIndices.push(i)
+    if (result[i].type === "added") addedIndices.push(i)
+  }
+
+  const skipped = new Set<number>()
+  for (const ri of removedIndices) {
+    for (const ai of addedIndices) {
+      if (skipped.has(ai)) continue
+      if (
+        normalizeText(result[ri].text, options) ===
+        normalizeText(result[ai].text, options)
+      ) {
+        result[ri] = { type: "unchanged", text: result[ri].text }
+        result[ai] = { type: "unchanged", text: result[ai].text }
+        skipped.add(ai)
+        break
+      }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Replaces numeric tokens (integers, decimals, comma-separated, and
+ * abbreviations like 51.2k, 39,813) with a uniform placeholder.
+ * Useful for comparing text where only dynamic numeric counters changed.
+ */
+export function normalizeNumericValues(text: string): string {
+  return text.replace(/\b\d{1,3}(?:,\d{3})*(?:\.\d+)?[kKmMbB]?\b/g, "999")
+}
+
+/**
+ * Returns true when two text blocks are effectively the same after
+ * normalizing all numeric values to a placeholder. This catches
+ * blocks where only a dynamic counter (star count, commit count)
+ * changed.
+ */
+function textEqualsIgnoringNumericNoise(
+  a: string,
+  b: string,
+  options?: NormalizationOptions
+): boolean {
+  return (
+    normalizeNumericValues(normalizeText(a, options)) ===
+    normalizeNumericValues(normalizeText(b, options))
+  )
+}
+
+/**
  * Generates an ordered, context-aware diff between two texts.
  * Handles block/paragraph-level structures and highlights sentence changes.
  */
 export function generateDiff(
   before: string,
   after: string,
-  options?: NormalizationOptions
+  options?: NormalizationOptions | DiffOptions
 ): { diffLines: string[]; diffHtml: string } {
-  // Paragraph/block level splitting
-  const blocksA = splitIntoBlocks(before)
-  const blocksB = splitIntoBlocks(after)
+  const normOpts: NormalizationOptions | undefined = options
+    ? "suppressNumericNoise" in options
+      ? (options as DiffOptions).normalization
+      : (options as NormalizationOptions)
+    : undefined
+  const suppressNumeric =
+    options && "suppressNumericNoise" in options
+      ? ((options as DiffOptions).suppressNumericNoise ?? false)
+      : false
+
+  const blocksA = splitIntoBlocks(before, suppressNumeric)
+  const blocksB = splitIntoBlocks(after, suppressNumeric)
 
   if (blocksA.length === 0 && blocksB.length === 0) {
     return { diffLines: [], diffHtml: "" }
   }
 
-  // Helper to compare blocks
-  const blockEquals = (bA: string, bB: string) => {
-    return normalizeText(bA, options) === normalizeText(bB, options)
-  }
+  const blockEq = suppressNumeric
+    ? (bA: string, bB: string) =>
+        textEqualsIgnoringNumericNoise(bA, bB, normOpts)
+    : (bA: string, bB: string) => blocksMatch(bA, bB, normOpts)
 
-  const blockDp = computeLcsTable(blocksA, blocksB, blockEquals)
-  const blockEntries = backtrackDiff(
+  const blockDp = computeLcsTable(blocksA, blocksB, blockEq)
+  let blockEntries = backtrackDiff(
     blocksA,
     blocksB,
     blockDp,
-    blockEquals,
+    blockEq,
     (bA) => ({ type: "unchanged", text: bA }),
     (bB) => ({ type: "added", text: bB }),
     (bA) => ({ type: "removed", text: bA })
   )
 
-  const finalHtmlEntries: string[] = []
+  blockEntries = matchReorderedBlocks(blockEntries, normOpts)
+
+  const htmlEntries: string[] = []
   const diffLines: string[] = []
 
-  for (const blockEntry of blockEntries) {
-    if (blockEntry.type === "unchanged") {
-      // Diff sentences within the unchanged block to capture minor edits accurately
-      const segmentsA = splitIntoSegments(blockEntry.text, options)
-      const segmentsB = splitIntoSegments(blockEntry.text, options) // they are the same block
+  for (let idx = 0; idx < blockEntries.length; idx++) {
+    const current = blockEntries[idx]
+    const next = blockEntries[idx + 1] as DiffEntry | undefined
 
-      const sentenceDp = computeLcsTable(
-        segmentsA,
-        segmentsB,
-        (sA, sB) => sA.normalized === sB.normalized
-      )
+    if (current.type === "removed" && next && next.type === "added") {
+      const segmentsA = splitIntoSegments(current.text, normOpts)
+      const segmentsB = splitIntoSegments(next.text, normOpts)
+
+      const sentenceEq = suppressNumeric
+        ? (sA: { normalized: string }, sB: { normalized: string }) =>
+            sA.normalized === sB.normalized ||
+            normalizeNumericValues(sA.normalized) ===
+              normalizeNumericValues(sB.normalized)
+        : (sA: { normalized: string }, sB: { normalized: string }) =>
+            sA.normalized === sB.normalized
+
+      const sentenceDp = computeLcsTable(segmentsA, segmentsB, sentenceEq)
 
       const sentenceEntries = backtrackDiff(
         segmentsA,
         segmentsB,
         sentenceDp,
-        (sA, sB) => sA.normalized === sB.normalized,
+        sentenceEq,
         (sA) => ({ type: "unchanged", text: sA.original }),
         (sB) => ({ type: "added", text: sB.original }),
         (sA) => ({ type: "removed", text: sA.original })
       )
 
-      const processedSentences = detectModifiedEntries(sentenceEntries, options)
+      const processed = detectModifiedEntries(sentenceEntries, normOpts)
 
       let paragraphHtml = '<div class="diff-paragraph">'
-      for (const entry of processedSentences) {
+      for (const entry of processed) {
         if (entry.type === "added") {
           diffLines.push(`+ ${entry.text}`)
           paragraphHtml += `<span class="diff-added">${escapeHtml(entry.text)}</span>`
@@ -392,120 +591,21 @@ export function generateDiff(
         }
       }
       paragraphHtml += "</div>"
-      finalHtmlEntries.push(paragraphHtml)
-    } else if (blockEntry.type === "added") {
-      // Entire block was added
-      const segments = splitIntoSegments(blockEntry.text, options)
-      let paragraphHtml = '<div class="diff-paragraph diff-block-added">'
-      for (const seg of segments) {
-        diffLines.push(`+ ${seg.original}`)
-        paragraphHtml += `<span class="diff-added">${escapeHtml(seg.original)}</span>`
-      }
-      paragraphHtml += "</div>"
-      finalHtmlEntries.push(paragraphHtml)
+      htmlEntries.push(paragraphHtml)
+      idx++
     } else {
-      // Entire block was removed
-      const segments = splitIntoSegments(blockEntry.text, options)
-      let paragraphHtml = '<div class="diff-paragraph diff-block-removed">'
-      for (const seg of segments) {
-        diffLines.push(`- ${seg.original}`)
-        paragraphHtml += `<span class="diff-removed">${escapeHtml(seg.original)}</span>`
-      }
-      paragraphHtml += "</div>"
-      finalHtmlEntries.push(paragraphHtml)
-    }
-  }
-
-  // To maintain compatibility with block layout, we can do some similarity detection
-  // between adjacent added/removed blocks and perform sentence-level cross-block diffing
-  // but for paragraphs/sections in policies, keeping them block-aligned is cleaner.
-  // We can post-process the block entries to merge adjacent removed and added blocks into sentence diffs!
-  // Let's do that to get the absolute best of both worlds: paragraph layout + sentence/word-level diffs!
-  const finalMergedHtmlEntries: string[] = []
-  const finalDiffLines: string[] = []
-
-  for (let idx = 0; idx < blockEntries.length; idx++) {
-    const current = blockEntries[idx]
-    const next = blockEntries[idx + 1] as DiffEntry | undefined
-
-    if (current.type === "removed" && next && next.type === "added") {
-      // Diff at the sentence level between the removed and added blocks
-      const segmentsA = splitIntoSegments(current.text, options)
-      const segmentsB = splitIntoSegments(next.text, options)
-
-      const sentenceDp = computeLcsTable(
-        segmentsA,
-        segmentsB,
-        (sA, sB) => sA.normalized === sB.normalized
+      const result = renderBlock(
+        current.text,
+        current.type as "unchanged" | "added" | "removed",
+        normOpts
       )
-
-      const sentenceEntries = backtrackDiff(
-        segmentsA,
-        segmentsB,
-        sentenceDp,
-        (sA, sB) => sA.normalized === sB.normalized,
-        (sA) => ({ type: "unchanged", text: sA.original }),
-        (sB) => ({ type: "added", text: sB.original }),
-        (sA) => ({ type: "removed", text: sA.original })
-      )
-
-      const processedSentences = detectModifiedEntries(sentenceEntries, options)
-
-      let paragraphHtml = '<div class="diff-paragraph">'
-      for (const entry of processedSentences) {
-        if (entry.type === "added") {
-          finalDiffLines.push(`+ ${entry.text}`)
-          paragraphHtml += `<span class="diff-added">${escapeHtml(entry.text)}</span>`
-        } else if (entry.type === "removed") {
-          finalDiffLines.push(`- ${entry.text}`)
-          paragraphHtml += `<span class="diff-removed">${escapeHtml(entry.text)}</span>`
-        } else if (entry.type === "modified") {
-          finalDiffLines.push(`- ${entry.beforeText}`)
-          finalDiffLines.push(`+ ${entry.text}`)
-          paragraphHtml += `<span class="diff-modified">${entry.wordDiffHtml}</span>`
-        } else {
-          finalDiffLines.push(`  ${entry.text}`)
-          paragraphHtml += `<span class="diff-unchanged">${escapeHtml(entry.text)}</span>`
-        }
-      }
-      paragraphHtml += "</div>"
-      finalMergedHtmlEntries.push(paragraphHtml)
-      idx++ // Skip the next block (added block)
-    } else {
-      // Render as before
-      if (current.type === "unchanged") {
-        const segmentsA = splitIntoSegments(current.text, options)
-        let paragraphHtml = '<div class="diff-paragraph">'
-        for (const seg of segmentsA) {
-          finalDiffLines.push(`  ${seg.original}`)
-          paragraphHtml += `<span class="diff-unchanged">${escapeHtml(seg.original)}</span>`
-        }
-        paragraphHtml += "</div>"
-        finalMergedHtmlEntries.push(paragraphHtml)
-      } else if (current.type === "added") {
-        const segments = splitIntoSegments(current.text, options)
-        let paragraphHtml = '<div class="diff-paragraph diff-block-added">'
-        for (const seg of segments) {
-          finalDiffLines.push(`+ ${seg.original}`)
-          paragraphHtml += `<span class="diff-added">${escapeHtml(seg.original)}</span>`
-        }
-        paragraphHtml += "</div>"
-        finalMergedHtmlEntries.push(paragraphHtml)
-      } else {
-        const segments = splitIntoSegments(current.text, options)
-        let paragraphHtml = '<div class="diff-paragraph diff-block-removed">'
-        for (const seg of segments) {
-          finalDiffLines.push(`- ${seg.original}`)
-          paragraphHtml += `<span class="diff-removed">${escapeHtml(seg.original)}</span>`
-        }
-        paragraphHtml += "</div>"
-        finalMergedHtmlEntries.push(paragraphHtml)
-      }
+      diffLines.push(...result.diffLines)
+      htmlEntries.push(result.html)
     }
   }
 
   return {
-    diffLines: finalDiffLines,
-    diffHtml: finalMergedHtmlEntries.join("\n"),
+    diffLines,
+    diffHtml: htmlEntries.join("\n"),
   }
 }
