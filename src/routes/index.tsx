@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { getCompaniesFn } from "../lib/api"
 import { useState, useMemo } from "react"
+import { useCompanies, companiesQueryOptions } from "../lib/queries"
 import {
   Search,
   AlertTriangle,
@@ -83,40 +83,27 @@ export const Route = createFileRoute("/")({
     sortBy: search.sortBy,
     weights: search.weights,
   }),
-  loader: async ({ deps }) => {
+  loader: async ({ deps, context }) => {
     try {
       const parsedWeights = deps.weights ? JSON.parse(deps.weights) : undefined
       const page = deps.page || 1
       const limit = 9
       const offset = (page - 1) * limit
 
-      const { companies, totalCount, stats, overallStats } =
-        await getCompaniesFn({
-          data: {
-            limit,
-            offset,
-            searchQuery: deps.search,
-            filterNoTraining: deps.noTraining,
-            filterOptOut: deps.optOut,
-            filterNoHumanReview: deps.noHumanReview,
-            sortBy: deps.sortBy,
-            weights: parsedWeights,
-          },
+      await context.queryClient!.ensureQueryData(
+        companiesQueryOptions({
+          limit,
+          offset,
+          searchQuery: deps.search,
+          filterNoTraining: deps.noTraining,
+          filterOptOut: deps.optOut,
+          filterNoHumanReview: deps.noHumanReview,
+          sortBy: deps.sortBy,
+          weights: parsedWeights,
         })
-      return { companies, totalCount, stats, overallStats }
+      )
     } catch (error) {
-      console.error("Failed to load companies on dashboard:", error)
-      return {
-        companies: [],
-        totalCount: 0,
-        stats: { total: 0, trainsDefault: 0, hasOptOut: 0, hasHumanReview: 0 },
-        overallStats: {
-          total: 0,
-          trainsDefault: 0,
-          hasOptOut: 0,
-          hasHumanReview: 0,
-        },
-      }
+      console.error("Failed to prefetch companies on dashboard:", error)
     }
   },
   head: () => ({
@@ -167,11 +154,6 @@ export const Route = createFileRoute("/")({
 })
 
 function App() {
-  const {
-    companies: allCompanies,
-    totalCount,
-    overallStats,
-  } = Route.useLoaderData()
   const navigate = useNavigate({ from: "/" })
 
   const search = Route.useSearch()
@@ -188,6 +170,38 @@ function App() {
     }
     return DEFAULT_WEIGHTS
   }, [search.weights])
+
+  const filters = useMemo(
+    () => ({
+      limit: 9,
+      offset: ((search.page || 1) - 1) * 9,
+      searchQuery: search.search,
+      filterNoTraining: search.noTraining,
+      filterOptOut: search.optOut,
+      filterNoHumanReview: search.noHumanReview,
+      sortBy: search.sortBy,
+      weights,
+    }),
+    [
+      search.page,
+      search.search,
+      search.noTraining,
+      search.optOut,
+      search.noHumanReview,
+      search.sortBy,
+      weights,
+    ]
+  )
+
+  const { data, isLoading, isError, error, refetch } = useCompanies(filters)
+  const allCompanies = data?.companies ?? []
+  const totalCount = data?.totalCount ?? 0
+  const overallStats = data?.overallStats ?? {
+    total: 0,
+    trainsDefault: 0,
+    hasOptOut: 0,
+    hasHumanReview: 0,
+  }
 
   const totalWeightSum = useMemo(() => {
     const sum =
@@ -379,6 +393,64 @@ function App() {
     { key: "sharingScore" as const, label: "Sharing", icon: Share2 },
     { key: "humanReviewScore" as const, label: "Review", icon: UserCheck },
   ]
+
+  if (isLoading) {
+    return (
+      <>
+        <section className="border-b-2 border-border">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="mx-auto mb-6 h-5 w-64 animate-pulse bg-muted" />
+              <div className="mx-auto mb-4 h-12 w-3/4 animate-pulse bg-muted" />
+              <div className="mx-auto h-5 w-1/2 animate-pulse bg-muted" />
+            </div>
+            <div className="mx-auto mt-12 grid max-w-4xl grid-cols-2 gap-4 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="border border-border bg-card p-4">
+                  <div className="mx-auto mb-2 h-10 w-10 animate-pulse bg-muted" />
+                  <div className="mx-auto h-8 w-16 animate-pulse bg-muted" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+          <div className="mb-5 h-32 animate-pulse rounded-lg bg-muted" />
+          <div className="mb-6 h-16 animate-pulse rounded-lg bg-muted" />
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-72 animate-pulse rounded-lg bg-muted" />
+            ))}
+          </div>
+        </main>
+      </>
+    )
+  }
+
+  if (isError) {
+    return (
+      <>
+        <section className="border-b-2 border-border">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <div className="mx-auto max-w-3xl text-center">
+              <h1 className="text-4xl font-extrabold tracking-tight text-foreground uppercase sm:text-5xl lg:text-6xl">
+                Failed to load data
+              </h1>
+              <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
+                {error.message ||
+                  "An unexpected error occurred while fetching company data."}
+              </p>
+              <div className="mt-8">
+                <Button variant="outline" onClick={() => refetch()}>
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </>
+    )
+  }
 
   return (
     <>

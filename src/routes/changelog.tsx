@@ -1,11 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
-  getChangelogsFn,
-  getCompaniesFn,
-  getSnapshotCountsFn,
-  getSnapshotTotalCountFn,
-  getPendingReviewsCountFn,
-} from "../lib/api"
+  useChangelogs,
+  useCompanies,
+  useSnapshotCounts,
+  useSnapshotTotalCount,
+  usePendingReviewsCount,
+  changelogsQueryOptions,
+  companiesQueryOptions,
+  snapshotCountsQueryOptions,
+  snapshotTotalCountQueryOptions,
+  pendingReviewsCountQueryOptions,
+} from "../lib/queries"
 import { useState, useMemo } from "react"
 import { formatDateTime } from "../lib/utils"
 import {
@@ -70,33 +75,26 @@ export const Route = createFileRoute("/changelog")({
     companyFilter: search.companyFilter,
     statusFilter: search.statusFilter,
   }),
-  loader: async ({ deps }) => {
+  loader: async ({ deps, context }) => {
     const pageIndex = (deps.page ?? 1) - 1
-    const [changelogsRes, snapshots, res, totalSnapshots, pendingReviewsCount] =
-      await Promise.all([
-        getChangelogsFn({
-          data: {
-            page: pageIndex,
-            pageSize: deps.pageSize,
-            sortBy: deps.sortBy,
-            sortOrder: deps.sortOrder,
-            companyFilter: deps.companyFilter,
-            statusFilter: deps.statusFilter,
-          },
-        }),
-        getSnapshotCountsFn(),
-        getCompaniesFn({ data: { limit: 1000 } }),
-        getSnapshotTotalCountFn(),
-        getPendingReviewsCountFn(),
-      ])
-    return {
-      changelogs: changelogsRes.changelogs,
-      totalCount: changelogsRes.totalCount,
-      snapshots,
-      companies: res.companies,
-      totalSnapshots,
-      pendingReviewsCount,
-    }
+    await Promise.all([
+      context.queryClient!.ensureQueryData(
+        changelogsQueryOptions({
+          page: pageIndex,
+          pageSize: deps.pageSize,
+          sortBy: deps.sortBy,
+          sortOrder: deps.sortOrder,
+          companyFilter: deps.companyFilter,
+          statusFilter: deps.statusFilter,
+        })
+      ),
+      context.queryClient!.ensureQueryData(snapshotCountsQueryOptions()),
+      context.queryClient!.ensureQueryData(
+        companiesQueryOptions({ limit: 1000 })
+      ),
+      context.queryClient!.ensureQueryData(snapshotTotalCountQueryOptions()),
+      context.queryClient!.ensureQueryData(pendingReviewsCountQueryOptions()),
+    ])
   },
   head: () => ({
     meta: [
@@ -139,16 +137,44 @@ export const Route = createFileRoute("/changelog")({
 })
 
 function ChangelogPage() {
-  const {
-    changelogs,
-    totalCount,
-    snapshots,
-    companies,
-    totalSnapshots,
-    pendingReviewsCount,
-  } = Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
+
+  const changelogFilters = useMemo(
+    () => ({
+      page: (search.page ?? 1) - 1,
+      pageSize: search.pageSize,
+      sortBy: search.sortBy,
+      sortOrder: search.sortOrder,
+      companyFilter: search.companyFilter,
+      statusFilter: search.statusFilter,
+    }),
+    [
+      search.page,
+      search.pageSize,
+      search.sortBy,
+      search.sortOrder,
+      search.companyFilter,
+      search.statusFilter,
+    ]
+  )
+
+  const {
+    data: changelogsData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useChangelogs(changelogFilters)
+  const { data: companiesData } = useCompanies({ limit: 1000 })
+  const { data: snapshotsData } = useSnapshotCounts()
+  const { data: totalSnapshots } = useSnapshotTotalCount()
+  const { data: pendingReviewsCount } = usePendingReviewsCount()
+
+  const changelogs = changelogsData?.changelogs ?? []
+  const totalCount = changelogsData?.totalCount ?? 0
+  const companies = companiesData?.companies ?? []
+  const snapshots = snapshotsData ?? []
 
   const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -369,6 +395,45 @@ function ChangelogPage() {
           </div>
         )}
       </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <section className="border-b border-border bg-muted/40 py-12">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto mb-2 h-8 w-48 animate-pulse bg-muted" />
+            <div className="mx-auto h-4 w-72 animate-pulse bg-muted" />
+          </div>
+        </section>
+        <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mb-6 h-24 animate-pulse rounded-lg bg-muted" />
+          <div className="mb-6 h-64 animate-pulse rounded-lg bg-muted" />
+        </main>
+      </>
+    )
+  }
+
+  if (isError) {
+    return (
+      <>
+        <section className="border-b border-border bg-muted/40 py-12">
+          <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground uppercase sm:text-4xl">
+              Failed to load changelog
+            </h1>
+            <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+              {error.message || "An unexpected error occurred."}
+            </p>
+            <div className="mt-6">
+              <Button variant="outline" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </div>
+          </div>
+        </section>
+      </>
     )
   }
 

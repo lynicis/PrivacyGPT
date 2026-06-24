@@ -1,11 +1,14 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { checkAdminAuthFn } from "../lib/api"
 import {
-  getChangelogsFn,
-  getSnapshotCountsFn,
-  getSnapshotTotalCountFn,
-  reviewChangelogFn,
-  checkAdminAuthFn,
-} from "../lib/api"
+  useChangelogs,
+  useSnapshotCounts,
+  useSnapshotTotalCount,
+  useReviewChangelog,
+  changelogsQueryOptions,
+  snapshotCountsQueryOptions,
+  snapshotTotalCountQueryOptions,
+} from "../lib/queries"
 import { useState } from "react"
 import {
   ArrowLeft,
@@ -54,24 +57,16 @@ export const Route = createFileRoute("/admin")({
   },
   loader: async ({ context }) => {
     if (!context.auth.success) {
-      return {
-        changelogs: [],
-        snapshots: [],
-        totalSnapshots: 0,
-        unauthorized: true,
-      }
+      return { unauthorized: true }
     }
-    const [res, snapshots, totalSnapshots] = await Promise.all([
-      getChangelogsFn({ data: { page: 0, pageSize: 1000 } }),
-      getSnapshotCountsFn(),
-      getSnapshotTotalCountFn(),
+    await Promise.all([
+      context.queryClient!.ensureQueryData(
+        changelogsQueryOptions({ page: 0, pageSize: 1000 })
+      ),
+      context.queryClient!.ensureQueryData(snapshotCountsQueryOptions()),
+      context.queryClient!.ensureQueryData(snapshotTotalCountQueryOptions()),
     ])
-    return {
-      changelogs: res.changelogs,
-      snapshots,
-      totalSnapshots,
-      unauthorized: false,
-    }
+    return { unauthorized: false }
   },
   headers: ({ loaderData }): Record<string, string> => {
     if (loaderData && (loaderData as any).unauthorized) {
@@ -100,23 +95,12 @@ export const Route = createFileRoute("/admin")({
 })
 
 function ChangelogReview({ id }: { id: number }) {
-  const router = useRouter()
   const [notes, setNotes] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const reviewMutation = useReviewChangelog()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    try {
-      await reviewChangelogFn({ data: { id, reviewNotes: notes } })
-      router.invalidate()
-    } catch (err: any) {
-      setError(err?.message || "An unexpected error occurred.")
-    } finally {
-      setSubmitting(false)
-    }
+    reviewMutation.mutate({ id, reviewNotes: notes })
   }
 
   return (
@@ -138,21 +122,38 @@ function ChangelogReview({ id }: { id: number }) {
           required
         />
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {reviewMutation.error && (
+        <p className="text-xs text-destructive">
+          {reviewMutation.error instanceof Error
+            ? reviewMutation.error.message
+            : "An unexpected error occurred."}
+        </p>
+      )}
       <Button
         type="submit"
-        disabled={submitting}
+        disabled={reviewMutation.isPending}
         className="h-auto rounded-none bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95"
       >
-        {submitting ? "Approving..." : "Approve"}
+        {reviewMutation.isPending ? "Approving..." : "Approve"}
       </Button>
     </form>
   )
 }
 
 function AdminPage() {
-  const { changelogs, snapshots, totalSnapshots, unauthorized } =
-    Route.useLoaderData()
+  const { unauthorized } = Route.useLoaderData()
+  const {
+    data: changelogsData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useChangelogs({ page: 0, pageSize: 1000 })
+  const { data: snapshotsData } = useSnapshotCounts()
+  const { data: totalSnapshotsData } = useSnapshotTotalCount()
+  const changelogs = changelogsData?.changelogs ?? []
+  const snapshots = snapshotsData ?? []
+  const totalSnapshots = totalSnapshotsData ?? 0
   const [companyFilter, setCompanyFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("pending_review") // Default to pending review
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
@@ -220,6 +221,45 @@ function AdminPage() {
     (c) => c.status === "pending_review"
   ).length
   const reviewedChanges = totalChanges - pendingReviews
+
+  if (isLoading) {
+    return (
+      <>
+        <section className="border-b border-border bg-muted/40 py-12">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto mb-2 h-8 w-48 animate-pulse bg-muted" />
+            <div className="mx-auto h-4 w-72 animate-pulse bg-muted" />
+          </div>
+        </section>
+        <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mb-6 h-24 animate-pulse rounded-lg bg-muted" />
+          <div className="mb-6 h-64 animate-pulse rounded-lg bg-muted" />
+        </main>
+      </>
+    )
+  }
+
+  if (isError) {
+    return (
+      <>
+        <section className="border-b border-border bg-muted/40 py-12">
+          <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground uppercase sm:text-4xl">
+              Failed to load admin data
+            </h1>
+            <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+              {error.message || "An unexpected error occurred."}
+            </p>
+            <div className="mt-6">
+              <Button variant="outline" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </div>
+          </div>
+        </section>
+      </>
+    )
+  }
 
   return (
     <>

@@ -12,10 +12,13 @@ import { PwaRegister } from "../components/PwaRegister"
 
 import appCss from "../styles.css?url"
 
+import type { QueryClient } from "@tanstack/react-query"
+
 const APP_URL = process.env.APP_URL || "https://privacygpt.lynicis.dev"
 
 interface RouterContext {
   router?: any
+  queryClient?: QueryClient
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -192,7 +195,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
     ],
   }),
-  loader: async () => {},
+  loader: async () => { },
   notFoundComponent: () => (
     <main className="container mx-auto p-4 pt-16">
       <h1>404</h1>

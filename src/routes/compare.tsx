@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
-import { getCompaniesFn, getCompanyByKeyFn } from "@/lib/api"
+import { useState } from "react"
+import {
+  useCompanies,
+  useCompanyByKey,
+  companiesQueryOptions,
+} from "@/lib/queries"
 import {
   calculateSubScores,
   calculateTotalScore,
   mapScoreToGrade,
   DEFAULT_WEIGHTS,
 } from "@/lib/scoring"
-import type { companies } from "@/lib/db/schema"
 import { CompanySelect } from "@/components/CompanySelect"
 import { CompareScores } from "@/components/CompareScores"
 import { CompareSection } from "@/components/CompareSection"
@@ -22,8 +25,6 @@ import {
   BookOpen,
 } from "lucide-react"
 
-type Company = typeof companies.$inferSelect
-
 interface CompareSearch {
   companyA?: string
   companyB?: string
@@ -34,9 +35,10 @@ export const Route = createFileRoute("/compare")({
     companyA: search.companyA as string | undefined,
     companyB: search.companyB as string | undefined,
   }),
-  loader: async () => {
-    const { companies } = await getCompaniesFn({ data: { limit: 1000 } })
-    return { companies }
+  loader: async ({ context }) => {
+    await context.queryClient!.ensureQueryData(
+      companiesQueryOptions({ limit: 1000 })
+    )
   },
   head: () => ({
     meta: [
@@ -83,31 +85,17 @@ export const Route = createFileRoute("/compare")({
 })
 
 function ComparePage() {
-  const { companies } = Route.useLoaderData()
   const search = Route.useSearch()
 
   const [selectedA, setSelectedA] = useState(search.companyA || "")
   const [selectedB, setSelectedB] = useState(search.companyB || "")
   const [activeTab, setActiveTab] = useState<"a" | "b">("a")
 
-  const [companyA, setCompanyA] = useState<Company | null>(null)
-  const [companyB, setCompanyB] = useState<Company | null>(null)
+  const { data: companiesData } = useCompanies({ limit: 1000 })
+  const companies = companiesData?.companies ?? []
 
-  useEffect(() => {
-    if (selectedA) {
-      getCompanyByKeyFn({ data: selectedA }).then(setCompanyA)
-    } else {
-      setCompanyA(null)
-    }
-  }, [selectedA])
-
-  useEffect(() => {
-    if (selectedB) {
-      getCompanyByKeyFn({ data: selectedB }).then(setCompanyB)
-    } else {
-      setCompanyB(null)
-    }
-  }, [selectedB])
+  const { data: companyA, isLoading: loadingA } = useCompanyByKey(selectedA)
+  const { data: companyB, isLoading: loadingB } = useCompanyByKey(selectedB)
 
   const updateSearch = (key: "companyA" | "companyB", value: string) => {
     if (key === "companyA") setSelectedA(value)
@@ -306,6 +294,18 @@ function ComparePage() {
                 their privacy policies, training defaults, and data handling
                 practices.
               </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Loading state for company comparison */}
+        {hasSelection && (loadingA || loadingB) && (
+          <Card className="p-12 text-center">
+            <CardContent>
+              <div className="mx-auto mb-4 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-muted" />
+              <h2 className="text-lg font-bold text-foreground">
+                Loading company data...
+              </h2>
             </CardContent>
           </Card>
         )}
