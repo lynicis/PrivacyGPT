@@ -39,27 +39,29 @@ The dashboard lets you compare companies side by side, filter by privacy stance,
 
 ## Architecture
 
-<div align="center">
-  <pre style="background:#f6f8fa;padding:16px;border-radius:8px;text-align:left;font-size:13px;line-height:1.5">
-+----------------+     +---------------------------------------+     +------------------+
-|    Browser     | --> |   Cloudflare Worker (TanStack SSR)     | --> |  D1 Database     |
-|   (React 19)   |     |                                       |     |   (libsql)       |
-+----------------+     |   +----------------+  +--------------+ |     +------------------+
-                       |   |   Router       |  |   Server     | |
-                       |   | (TanStack Start)|  |  Functions   | |
-                       |   +----------------+  |    (API)     | |
-                       |                        +--------------+ |
-                       +---------------------------------------+
-                                    |
-                       +-----------------------------------------+
-                       |                    |                    |
-                       v                    v                    v
-           +---------------------+  +---------------------+  (shared DB)
-           |  Watchdog (Cron)    |  |  Queue Consumer     |
-           |  fetches & diffs    |  |  (async processing) |
-           +---------------------+  +---------------------+
-  </pre>
-</div>
+```mermaid
+flowchart TD
+    Browser["Browser\n(React 19)"]
+    Worker["Cloudflare Worker\n(TanStack SSR)"]
+    D1["D1 Database\n(libsql)"]
+    Watchdog["Watchdog (Cron)\nfetches & diffs"]
+    Queue["Queue Consumer\n(async processing)"]
+
+    Browser --> Worker
+    Worker --> D1
+
+    subgraph WorkerInternal [" "]
+        Router["Router\n(TanStack Start)"]
+        ServerFns["Server Functions\n(API)"]
+    end
+    Worker -.-> Router
+    Worker -.-> ServerFns
+
+    Worker --> Watchdog
+    Worker --> Queue
+    Watchdog --> D1
+    Queue --> D1
+```
 
 The app runs on **Cloudflare Workers** with server-side rendering via **TanStack Start**. Data is fetched through `createServerFn` calls — no direct database access from the client. A separate cron worker triggers the watchdog every 6 hours, which fetches privacy policies, detects changes via content hashing and line-level diffing, then queues results for admin review.
 
