@@ -102,7 +102,9 @@ export const Route = createFileRoute("/")({
   }),
   loader: async ({ deps, context }) => {
     try {
-      const parsedWeights = deps.weights ? JSON.parse(deps.weights) : undefined
+      const parsedWeights = deps.weights
+        ? JSON.parse(deps.weights)
+        : defaultWeights
       const page = deps.page || 1
       const limit = 9
       const offset = (page - 1) * limit
