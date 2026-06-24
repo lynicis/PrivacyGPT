@@ -18,49 +18,30 @@ export function CompareSection({
   booleanB,
   booleanGood = false,
 }: CompareSectionProps) {
-  const renderBooleanIcon = (value: boolean) => {
-    if (booleanGood) {
-      return value ? (
-        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-      ) : (
-        <XCircle className="h-4 w-4 text-red-400" />
-      )
-    }
-    return value ? (
-      <AlertTriangle className="h-4 w-4 text-amber-500" />
+  const booleanIcon = (value: boolean, goodIs: boolean) => {
+    const positive = goodIs ? value : !value
+    if (positive) return <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+    return goodIs ? (
+      <XCircle className="h-4 w-4 text-red-400" />
     ) : (
-      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+      <AlertTriangle className="h-4 w-4 text-amber-500" />
     )
   }
 
-  const renderBooleanBadge = (value: boolean) => {
-    if (booleanGood) {
-      return (
-        <Badge
-          variant="outline"
-          className={
-            value
-              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-              : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
-          }
-        >
-          {value ? "Yes" : "No"}
-        </Badge>
-      )
-    }
-    return (
-      <Badge
-        variant="outline"
-        className={
-          value
-            ? "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-            : "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-        }
-      >
-        {value ? "Yes" : "No"}
-      </Badge>
-    )
-  }
+  const booleanBadge = (value: boolean, goodIs: boolean) => (
+    <Badge
+      variant="outline"
+      className={
+        (goodIs ? value : !value)
+          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          : goodIs
+            ? "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
+            : "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+      }
+    >
+      {value ? "Yes" : "No"}
+    </Badge>
+  )
 
   return (
     <div className="overflow-hidden border border-border bg-card">
@@ -74,8 +55,8 @@ export function CompareSection({
           <div className="flex items-center gap-2">
             {booleanA !== undefined && (
               <>
-                {renderBooleanIcon(booleanA)}
-                {renderBooleanBadge(booleanA)}
+                {booleanIcon(booleanA, booleanGood)}
+                {booleanBadge(booleanA, booleanGood)}
               </>
             )}
           </div>
@@ -87,8 +68,8 @@ export function CompareSection({
           <div className="flex items-center gap-2">
             {booleanB !== undefined && (
               <>
-                {renderBooleanIcon(booleanB)}
-                {renderBooleanBadge(booleanB)}
+                {booleanIcon(booleanB, booleanGood)}
+                {booleanBadge(booleanB, booleanGood)}
               </>
             )}
           </div>

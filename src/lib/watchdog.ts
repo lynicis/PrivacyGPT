@@ -27,43 +27,7 @@ export function stripHtmlToText(html: string): string {
     preserveNewlines: true,
   }
 
-  const plainText = decodeHtmlEntities(convert(html, options))
-
-  // Filter out metadata and navigation junk lines before collapsing whitespace
-  const text = plainText
-    .split(/\r?\n/)
-    .filter((line) => {
-      const trimmed = line.trim()
-      // Skip empty lines
-      if (!trimmed) return false
-      // Skip lines that are only numbers (IDs, timestamps)
-      if (/^\d+$/.test(trimmed)) return false
-      // Skip lines that are only booleans
-      if (/^(true|false)$/i.test(trimmed)) return false
-      // Skip lines that are only "number boolean" patterns (like "2661833742547574305 true")
-      if (/^\d+\s+(true|false)$/i.test(trimmed)) return false
-      // Skip lines that are only "boolean number" patterns
-      if (/^(true|false)\s+\d+$/i.test(trimmed)) return false
-      // Skip common navigation/UI junk patterns
-      if (/help center/i.test(trimmed)) return false
-      if (/community/i.test(trimmed)) return false
-      if (/search.*clear.*search/i.test(trimmed)) return false
-      if (/close search/i.test(trimmed)) return false
-      if (/main menu/i.test(trimmed)) return false
-      if (/this help content/i.test(trimmed)) return false
-      if (/general help/i.test(trimmed)) return false
-      if (/privacy hub/i.test(trimmed)) return false
-      // Skip documentation / LLM crawler indexing header junk
-      if (/documentation index/i.test(trimmed)) return false
-      if (/llms\.txt/i.test(trimmed)) return false
-      if (/discover.*available pages/i.test(trimmed)) return false
-      if (/stepfun.*documentation/i.test(trimmed)) return false
-      if (/fetch.*documentation/i.test(trimmed)) return false
-      return true
-    })
-    .join("\n")
-  // Collapse whitespace (including newlines) into single spaces
-  return text.replace(/\s+/g, " ").trim()
+  return decodeHtmlEntities(convert(html, options)).replace(/\s+/g, " ").trim()
 }
 
 /**

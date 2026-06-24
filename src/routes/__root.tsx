@@ -8,7 +8,6 @@ import {
 } from "@tanstack/react-router"
 import { ThemeProvider } from "../components/ThemeProvider"
 import { ThemeToggle } from "../components/ThemeToggle"
-import { PwaRegister } from "../components/PwaRegister"
 
 import appCss from "../styles.css?url"
 
@@ -195,7 +194,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
     ],
   }),
-  loader: async () => { },
+  loader: async () => {},
   notFoundComponent: () => (
     <main className="container mx-auto p-4 pt-16">
       <h1>404</h1>
@@ -325,8 +324,6 @@ function RootLayout() {
             </nav>
           )}
         </header>
-
-        <PwaRegister />
 
         {/* Page Content */}
         <div className="flex-1">
