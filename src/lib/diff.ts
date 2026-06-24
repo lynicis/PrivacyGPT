@@ -234,7 +234,7 @@ export function wordLevelDiff(
   before: string,
   after: string,
   options?: NormalizationOptions
-): { diffHtml: string; isSimilar: boolean } {
+): { diffHtml: string; isSimilar: boolean; similarity: number } {
   // Use regex split to keep words and whitespace separate so spacing is preserved in the output
   const wordsA = before.split(/(\s+)/).filter(Boolean)
   const wordsB = after.split(/(\s+)/).filter(Boolean)
@@ -290,7 +290,7 @@ export function wordLevelDiff(
   const similarityThreshold = 0.4 // At least 40% of words must match to qualify as "modified"
 
   if (similarity < similarityThreshold) {
-    return { diffHtml: "", isSimilar: false }
+    return { diffHtml: "", isSimilar: false, similarity }
   }
 
   // Backtrack to build the inline HTML representation
@@ -326,41 +326,117 @@ export function wordLevelDiff(
     }
   }
 
-  return { diffHtml: html, isSimilar: true }
+  return { diffHtml: html, isSimilar: true, similarity }
 }
 
 /**
- * Post-processes a list of sentence diff entries to merge adjacent removed/added sentences
- * into a single "modified" entry with inline word-level diffing.
+ * Post-processes a list of sentence diff entries to merge removed/added sentences
+ * into single "modified" entries with inline word-level diffing.
+ *
+ * Uses a two-pass strategy:
+ * 1. Adjacent removed→added pairs are matched first (preserves readable ordering).
+ * 2. Remaining orphaned entries are matched by best pairwise similarity,
+ *    so that reordered-but-similar sentences are still detected as "modified".
  */
 export function detectModifiedEntries(
   entries: DiffEntry[],
   options?: NormalizationOptions
 ): DiffEntry[] {
-  const result: DiffEntry[] = []
+  if (entries.length < 2) return [...entries]
 
-  for (let idx = 0; idx < entries.length; idx++) {
-    const current = entries[idx]
-    const next = entries[idx + 1] as DiffEntry | undefined
+  const used = new Array(entries.length).fill(false)
+  const modifiedPairs = new Map<number, number>() // removedIdx → addedIdx
 
-    if (current.type === "removed" && next && next.type === "added") {
-      const { diffHtml, isSimilar } = wordLevelDiff(
-        current.text,
-        next.text,
+  // Phase 1: Adjacent removed→added matching
+  for (let idx = 0; idx < entries.length - 1; idx++) {
+    if (used[idx] || used[idx + 1]) continue
+    if (entries[idx].type === "removed" && entries[idx + 1].type === "added") {
+      const { isSimilar } = wordLevelDiff(
+        entries[idx].text,
+        entries[idx + 1].text,
         options
       )
       if (isSimilar) {
-        result.push({
-          type: "modified",
-          text: next.text,
-          beforeText: current.text,
-          wordDiffHtml: diffHtml,
-        })
-        idx++ // skip the next (added) entry
-        continue
+        modifiedPairs.set(idx, idx + 1)
+        used[idx] = true
+        used[idx + 1] = true
       }
     }
-    result.push(current)
+  }
+
+  // Phase 2: Best-pair matching for remaining orphaned removed/added entries
+  const remainingRemoved: number[] = []
+  const remainingAdded: number[] = []
+  for (let i = 0; i < entries.length; i++) {
+    if (used[i]) continue
+    if (entries[i].type === "removed") remainingRemoved.push(i)
+    if (entries[i].type === "added") remainingAdded.push(i)
+  }
+
+  if (remainingRemoved.length > 0 && remainingAdded.length > 0) {
+    interface Candidate {
+      rIdx: number
+      aIdx: number
+      similarity: number
+      diffHtml: string
+    }
+    const candidates: Candidate[] = []
+
+    for (const ri of remainingRemoved) {
+      for (const ai of remainingAdded) {
+        const result = wordLevelDiff(
+          entries[ri].text,
+          entries[ai].text,
+          options
+        )
+        if (result.isSimilar) {
+          candidates.push({
+            rIdx: ri,
+            aIdx: ai,
+            similarity: result.similarity,
+            diffHtml: result.diffHtml,
+          })
+        }
+      }
+    }
+
+    candidates.sort((a, b) => b.similarity - a.similarity)
+
+    const usedRemoved = new Set<number>()
+    const usedAdded = new Set<number>()
+    for (const c of candidates) {
+      if (!usedRemoved.has(c.rIdx) && !usedAdded.has(c.aIdx)) {
+        modifiedPairs.set(c.rIdx, c.aIdx)
+        usedRemoved.add(c.rIdx)
+        usedAdded.add(c.aIdx)
+      }
+    }
+  }
+
+  // Build result preserving original order
+  const result: DiffEntry[] = []
+  for (let i = 0; i < entries.length; i++) {
+    if (modifiedPairs.has(i)) {
+      const addedIdx = modifiedPairs.get(i)!
+      const removedEntry = entries[i]
+      const addedEntry = entries[addedIdx]
+      const wlResult = wordLevelDiff(
+        removedEntry.text,
+        addedEntry.text,
+        options
+      )
+      result.push({
+        type: "modified",
+        text: addedEntry.text,
+        beforeText: removedEntry.text,
+        wordDiffHtml: wlResult.diffHtml,
+      })
+    } else if (entries[i].type === "added") {
+      const isPaired = [...modifiedPairs.values()].some((v) => v === i)
+      if (!isPaired) result.push(entries[i])
+    } else {
+      result.push(entries[i])
+    }
   }
 
   return result
@@ -451,14 +527,13 @@ function matchReorderedBlocks(
     if (result[i].type === "added") addedIndices.push(i)
   }
 
+  // Use blocksMatch (sentence-bag equivalence) rather than exact normalized text,
+  // so that reordered sentences within a block are still recognized as identical.
   const skipped = new Set<number>()
   for (const ri of removedIndices) {
     for (const ai of addedIndices) {
       if (skipped.has(ai)) continue
-      if (
-        normalizeText(result[ri].text, options) ===
-        normalizeText(result[ai].text, options)
-      ) {
+      if (blocksMatch(result[ri].text, result[ai].text, options)) {
         result[ri] = { type: "unchanged", text: result[ri].text }
         result[ai] = { type: "unchanged", text: result[ai].text }
         skipped.add(ai)
@@ -496,6 +571,127 @@ function textEqualsIgnoringNumericNoise(
   )
 }
 
+export type ChangeCategory =
+  | "numeric_only"
+  | "formatting_only"
+  | "content_change"
+  | "structural_change"
+  | "mixed"
+
+export interface DiffClassification {
+  category: ChangeCategory
+  hasNumericChanges: boolean
+  hasFormattingChanges: boolean
+  hasContentChanges: boolean
+  hasStructuralChanges: boolean
+  blocksAdded: number
+  blocksRemoved: number
+  blocksModified: number
+  summary: string
+}
+
+/**
+ * Classifies a diff output to indicate what kind of change was detected.
+ * Helps downstream consumers distinguish content-relevant changes from noise.
+ */
+export function classifyDiff(
+  before: string,
+  after: string,
+  options?: NormalizationOptions
+): DiffClassification {
+  const normOpts = options || DEFAULT_NORM_OPTIONS
+
+  const normBefore = normalizeText(before, normOpts)
+  const normAfter = normalizeText(after, normOpts)
+
+  if (normBefore === normAfter) {
+    return {
+      category: "formatting_only",
+      hasNumericChanges: false,
+      hasFormattingChanges: true,
+      hasContentChanges: false,
+      hasStructuralChanges: false,
+      blocksAdded: 0,
+      blocksRemoved: 0,
+      blocksModified: 0,
+      summary: "Only formatting, whitespace, or case changes detected",
+    }
+  }
+
+  const normNumBefore = normalizeNumericValues(normBefore)
+  const normNumAfter = normalizeNumericValues(normAfter)
+  const isOnlyNumeric =
+    normNumBefore === normNumAfter && normBefore !== normAfter
+
+  if (isOnlyNumeric) {
+    return {
+      category: "numeric_only",
+      hasNumericChanges: true,
+      hasFormattingChanges: false,
+      hasContentChanges: false,
+      hasStructuralChanges: false,
+      blocksAdded: 0,
+      blocksRemoved: 0,
+      blocksModified: 0,
+      summary:
+        "Only numeric counter values changed (e.g. stars, forks, commit counts)",
+    }
+  }
+
+  const blocksA = splitIntoBlocks(before, false)
+  const blocksB = splitIntoBlocks(after, false)
+  const diff = generateDiff(before, after, { normalization: normOpts })
+
+  const addedCount = (diff.diffHtml.match(/diff-added/g) || []).length
+  const removedCount = (diff.diffHtml.match(/diff-removed/g) || []).length
+  const modifiedCount = (diff.diffHtml.match(/diff-modified/g) || []).length
+  const hasContentChange =
+    removedCount > 0 || addedCount > 0 || modifiedCount > 0
+
+  const structuralChange = Math.abs(blocksA.length - blocksB.length) > 1
+
+  let category: ChangeCategory = "content_change"
+  if (!hasContentChange) category = "formatting_only"
+  else if (structuralChange) category = "structural_change"
+
+  const hasActualNumeric =
+    normNumBefore !== normNumAfter &&
+    (normNumBefore !== normBefore || normNumAfter !== normAfter)
+  if (hasActualNumeric && category === "content_change") {
+    category = "mixed"
+  }
+
+  return {
+    category,
+    hasNumericChanges: hasActualNumeric,
+    hasFormattingChanges: normBefore !== normAfter,
+    hasContentChanges: hasContentChange,
+    hasStructuralChanges: structuralChange,
+    blocksAdded: addedCount,
+    blocksRemoved: removedCount,
+    blocksModified: modifiedCount,
+    summary: buildClassificationSummary(
+      category,
+      addedCount,
+      removedCount,
+      modifiedCount
+    ),
+  }
+}
+
+function buildClassificationSummary(
+  category: ChangeCategory,
+  added: number,
+  removed: number,
+  modified: number
+): string {
+  const parts: string[] = []
+  if (added > 0) parts.push(`${added} added`)
+  if (removed > 0) parts.push(`${removed} removed`)
+  if (modified > 0) parts.push(`${modified} modified`)
+  return `${category}: ${parts.join(", ") || "no visible changes"}`
+}
+
 /**
  * Generates an ordered, context-aware diff between two texts.
  * Handles block/paragraph-level structures and highlights sentence changes.
@@ -507,12 +703,12 @@ export function generateDiff(
 ): { diffLines: string[]; diffHtml: string } {
   const normOpts: NormalizationOptions | undefined = options
     ? "suppressNumericNoise" in options
-      ? (options as DiffOptions).normalization
+      ? options.normalization
       : (options as NormalizationOptions)
     : undefined
   const suppressNumeric =
     options && "suppressNumericNoise" in options
-      ? ((options as DiffOptions).suppressNumericNoise ?? false)
+      ? (options.suppressNumericNoise ?? false)
       : false
 
   const blocksA = splitIntoBlocks(before, suppressNumeric)

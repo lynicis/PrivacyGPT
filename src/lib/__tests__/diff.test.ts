@@ -6,7 +6,10 @@ import {
   generateDiff,
   wordLevelDiff,
   splitIntoBlocks,
+  classifyDiff,
+  detectModifiedEntries,
 } from "../diff"
+import type { DiffEntry } from "../diff"
 
 describe("diff engine utilities", () => {
   describe("normalizeText", () => {
@@ -197,6 +200,111 @@ describe("diff engine utilities", () => {
         (l) => l.startsWith("+ ") || l.startsWith("- ")
       )
       expect(changed.length).toBeLessThanOrEqual(1)
+    })
+
+    it("classifies numeric-only changes", () => {
+      const before = "Star 51.3k\nFork 9.1k"
+      const after = "Star 51.4k\nFork 9.2k"
+      const classification = classifyDiff(before, after)
+      expect(classification.category).toBe("numeric_only")
+      expect(classification.hasNumericChanges).toBe(true)
+      expect(classification.hasContentChanges).toBe(false)
+    })
+
+    it("classifies content changes", () => {
+      const before = "We collect your email address."
+      const after = "We collect your physical address."
+      const classification = classifyDiff(before, after)
+      expect(classification.hasContentChanges).toBe(true)
+      expect(classification.category).toBe("content_change")
+    })
+
+    it("classifies formatting-only changes", () => {
+      const before = "Hello World"
+      const after = "HELLO WORLD"
+      const classification = classifyDiff(before, after)
+      expect(classification.category).toBe("formatting_only")
+      expect(classification.hasFormattingChanges).toBe(true)
+      expect(classification.hasContentChanges).toBe(false)
+    })
+
+    it("exposes similarity from wordLevelDiff", () => {
+      const before = "We collect your email address."
+      const after = "We collect your physical address."
+      const result = wordLevelDiff(before, after)
+      expect(result.isSimilar).toBe(true)
+      expect(result.similarity).toBeGreaterThanOrEqual(0.4)
+      expect(result.similarity).toBeLessThanOrEqual(1.0)
+    })
+
+    it("returns low similarity for completely different sentences", () => {
+      const before = "We collect your email address."
+      const after = "You must be 18 years old to register."
+      const result = wordLevelDiff(before, after)
+      expect(result.isSimilar).toBe(false)
+      expect(result.similarity).toBeLessThan(0.4)
+    })
+  })
+
+  describe("detectModifiedEntries with best-pair matching", () => {
+    it("pairs adjacent removed→added as before (backward compatible)", () => {
+      const entries: DiffEntry[] = [
+        { type: "removed", text: "We collect your email." },
+        { type: "added", text: "We collect your phone number." },
+      ]
+      const result = detectModifiedEntries(entries)
+      expect(result).toHaveLength(1)
+      expect(result[0].type).toBe("modified")
+    })
+
+    it("matches non-adjacent removed/added pairs by best similarity", () => {
+      const entries: DiffEntry[] = [
+        { type: "removed", text: "We collect your email address." },
+        { type: "removed", text: "We store data in the cloud." },
+        { type: "added", text: "We store data in secure servers." },
+        { type: "added", text: "We collect your physical address." },
+      ]
+      const result = detectModifiedEntries(entries)
+      const modified = result.filter((e) => e.type === "modified")
+      // Both pairs should be matched as "modified" (not orphaned as separate removed/added)
+      expect(modified.length).toBe(2)
+    })
+
+    it("leaves unmatched entries as-is when no similarity found", () => {
+      const entries: DiffEntry[] = [
+        { type: "removed", text: "We collect your email." },
+        { type: "removed", text: "Data is stored securely." },
+        { type: "added", text: "You must be 18 or older." },
+        { type: "added", text: "Contact support for help." },
+      ]
+      const result = detectModifiedEntries(entries)
+      const modified = result.filter((e) => e.type === "modified")
+      expect(modified.length).toBe(0)
+    })
+  })
+
+  describe("classifyDiff", () => {
+    it("detects numeric_only category", () => {
+      const result = classifyDiff("Stars: 51.3k", "Stars: 51.4k")
+      expect(result.category).toBe("numeric_only")
+      expect(result.hasNumericChanges).toBe(true)
+      expect(result.summary).toContain("numeric")
+    })
+
+    it("detects formatting_only category", () => {
+      const result = classifyDiff("Privacy Policy", "PRIVACY POLICY")
+      expect(result.category).toBe("formatting_only")
+      expect(result.hasFormattingChanges).toBe(true)
+    })
+
+    it("detects content_change category", () => {
+      const result = classifyDiff(
+        "We share data with third parties.",
+        "We do not share data with third parties."
+      )
+      expect(result.category).toBe("content_change")
+      expect(result.hasContentChanges).toBe(true)
+      expect(result.blocksModified).toBeGreaterThan(0)
     })
   })
 })
