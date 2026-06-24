@@ -1,9 +1,26 @@
+import { createHash } from "node:crypto"
 import { getDb } from "./db"
 import { companies, snapshots, changelogs } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
 import FirecrawlApp from "@mendable/firecrawl-js"
 import { convert } from "html-to-text"
-import { decodeHtmlEntities, hashText, generateDiff } from "./diff"
+import escapeHtml from "escape-html"
+import { diffLines } from "diff"
+
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&apos;/gi, "'")
+    .replace(/&nbsp;/gi, " ")
+}
+
+export function hashText(text: string): string {
+  return createHash("sha256").update(text).digest("hex")
+}
 
 /**
  * Strips HTML of scripts, styles, nav, footer, and tag markup,
@@ -140,7 +157,15 @@ export async function checkCompany(
     return "baseline"
   } else if (latestSnapshot.contentHash !== contentHash) {
     console.log(`[watchdog] ⚠ CHANGE DETECTED for ${company.companyName}!`)
-    const { diffHtml } = generateDiff(latestSnapshot.rawContent, result.text)
+    const diffHtml = diffLines(latestSnapshot.rawContent, result.text)
+      .map((part) =>
+        part.added
+          ? `<span class="diff-added">${escapeHtml(part.value)}</span>`
+          : part.removed
+            ? `<span class="diff-removed">${escapeHtml(part.value)}</span>`
+            : `<span class="diff-unchanged">${escapeHtml(part.value)}</span>`
+      )
+      .join("\n")
 
     await db.insert(changelogs).values({
       companyId: company.id,
