@@ -9,8 +9,16 @@ import {
   calculateSubScores,
   calculateTotalScore,
   mapScoreToGrade,
-  DEFAULT_WEIGHTS,
 } from "@/lib/scoring"
+
+const defaultWeights = {
+  trainingWeight: 30,
+  optOutWeight: 20,
+  retentionWeight: 15,
+  deletionWeight: 15,
+  sharingWeight: 10,
+  humanReviewWeight: 10,
+}
 import { CompanySelect } from "@/components/CompanySelect"
 import { CompareScores } from "@/components/CompareScores"
 import { CompareSection } from "@/components/CompareSection"
@@ -127,12 +135,8 @@ function ComparePage() {
   const scoresA = companyA ? calculateSubScores(companyA) : null
   const scoresB = companyB ? calculateSubScores(companyB) : null
 
-  const totalScoreA = scoresA
-    ? calculateTotalScore(scoresA, DEFAULT_WEIGHTS)
-    : 0
-  const totalScoreB = scoresB
-    ? calculateTotalScore(scoresB, DEFAULT_WEIGHTS)
-    : 0
+  const totalScoreA = scoresA ? calculateTotalScore(scoresA, defaultWeights) : 0
+  const totalScoreB = scoresB ? calculateTotalScore(scoresB, defaultWeights) : 0
   const totalA = { letter: mapScoreToGrade(totalScoreA), points: totalScoreA }
   const totalB = { letter: mapScoreToGrade(totalScoreB), points: totalScoreB }
 

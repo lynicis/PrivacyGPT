@@ -1,30 +1,3 @@
-export interface SubScores {
-  trainingScore: number
-  optOutScore: number
-  retentionScore: number
-  deletionScore: number
-  sharingScore: number
-  humanReviewScore: number
-}
-
-export interface Weights {
-  trainingWeight: number
-  optOutWeight: number
-  retentionWeight: number
-  deletionWeight: number
-  sharingWeight: number
-  humanReviewWeight: number
-}
-
-export const DEFAULT_WEIGHTS: Weights = {
-  trainingWeight: 30,
-  optOutWeight: 20,
-  retentionWeight: 15,
-  deletionWeight: 15,
-  sharingWeight: 10,
-  humanReviewWeight: 10,
-}
-
 /**
  * Calculates individual points (0-100) for the six sub-categories
  */
@@ -39,7 +12,14 @@ export function calculateSubScores(company: {
   thirdPartySharing: string
   humanReviewOfChats: boolean
   humanReviewConditions: string
-}): SubScores {
+}): {
+  trainingScore: number
+  optOutScore: number
+  retentionScore: number
+  deletionScore: number
+  sharingScore: number
+  humanReviewScore: number
+} {
   // 1. Model Training
   const trainingScore = company.trainsOnDataByDefault ? 0 : 100
 
@@ -158,8 +138,22 @@ export function calculateSubScores(company: {
  * Calculates total weighted score (0-100)
  */
 export function calculateTotalScore(
-  subScores: SubScores,
-  weights: Weights
+  subScores: {
+    trainingScore: number
+    optOutScore: number
+    retentionScore: number
+    deletionScore: number
+    sharingScore: number
+    humanReviewScore: number
+  },
+  weights: {
+    trainingWeight: number
+    optOutWeight: number
+    retentionWeight: number
+    deletionWeight: number
+    sharingWeight: number
+    humanReviewWeight: number
+  }
 ): number {
   const totalWeight =
     weights.trainingWeight +

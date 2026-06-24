@@ -42,8 +42,25 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { mapScoreToGrade, DEFAULT_WEIGHTS } from "../lib/scoring"
-import type { Weights } from "../lib/scoring"
+import { mapScoreToGrade } from "../lib/scoring"
+
+interface Weights {
+  trainingWeight: number
+  optOutWeight: number
+  retentionWeight: number
+  deletionWeight: number
+  sharingWeight: number
+  humanReviewWeight: number
+}
+
+const defaultWeights: Weights = {
+  trainingWeight: 30,
+  optOutWeight: 20,
+  retentionWeight: 15,
+  deletionWeight: 15,
+  sharingWeight: 10,
+  humanReviewWeight: 10,
+}
 
 interface DashboardSearch {
   page?: number
@@ -165,10 +182,10 @@ function App() {
       try {
         return JSON.parse(search.weights)
       } catch {
-        return DEFAULT_WEIGHTS
+        return defaultWeights
       }
     }
-    return DEFAULT_WEIGHTS
+    return defaultWeights
   }, [search.weights])
 
   const filters = useMemo(
@@ -215,7 +232,7 @@ function App() {
   }, [weights])
 
   const handleResetWeights = () => {
-    const newWeights = { ...DEFAULT_WEIGHTS }
+    const newWeights = { ...defaultWeights }
     navigate({
       search: (prev) => ({
         ...prev,

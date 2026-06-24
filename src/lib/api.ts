@@ -6,13 +6,13 @@ import { getDb, companies } from "./db"
 import { changelogs, snapshots } from "./db/schema"
 import { eq, desc, and, asc, sql } from "drizzle-orm"
 import type { SQL } from "drizzle-orm"
+import escapeHtml from "escape-html"
 import { getBlogPosts, getBlogPostBySlug } from "./blog-data"
 import {
   calculateSubScores,
   calculateTotalScore,
   mapScoreToGrade,
 } from "./scoring"
-import type { Weights } from "./scoring"
 
 export async function getCompanies(
   data: {
@@ -23,7 +23,14 @@ export async function getCompanies(
     filterOptOut?: boolean
     filterNoHumanReview?: boolean
     sortBy?: string
-    weights?: Weights
+    weights?: {
+      trainingWeight: number
+      optOutWeight: number
+      retentionWeight: number
+      deletionWeight: number
+      sharingWeight: number
+      humanReviewWeight: number
+    }
   } = {}
 ): Promise<{
   companies: any[]
@@ -145,7 +152,14 @@ export const getCompaniesFn = createServerFn({ method: "GET" })
             filterOptOut?: boolean
             filterNoHumanReview?: boolean
             sortBy?: string
-            weights?: Weights
+            weights?: {
+              trainingWeight: number
+              optOutWeight: number
+              retentionWeight: number
+              deletionWeight: number
+              sharingWeight: number
+              humanReviewWeight: number
+            }
           }
         | undefined
     ) => input || {}
@@ -409,12 +423,7 @@ export const reviewChangelogFn = createServerFn({ method: "POST" })
   })
 
 function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
+  return escapeHtml(str)
 }
 
 export const getRssFeedFn = createServerFn({ method: "GET" }).handler(

@@ -4,8 +4,16 @@ import {
   calculateSubScores,
   calculateTotalScore,
   mapScoreToGrade,
-  DEFAULT_WEIGHTS,
 } from "../lib/scoring"
+
+const defaultWeights = {
+  trainingWeight: 30,
+  optOutWeight: 20,
+  retentionWeight: 15,
+  deletionWeight: 15,
+  sharingWeight: 10,
+  humanReviewWeight: 10,
+}
 import {
   ArrowLeft,
   ExternalLink,
@@ -118,7 +126,7 @@ function CompanyDetailPage() {
 
   // Calculate scores
   const subScores = calculateSubScores(company)
-  const totalScore = calculateTotalScore(subScores, DEFAULT_WEIGHTS)
+  const totalScore = calculateTotalScore(subScores, defaultWeights)
   const overallGrade = mapScoreToGrade(totalScore)
 
   // Helper for boolean status badges

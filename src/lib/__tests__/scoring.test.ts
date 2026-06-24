@@ -3,8 +3,16 @@ import {
   calculateSubScores,
   calculateTotalScore,
   mapScoreToGrade,
-  DEFAULT_WEIGHTS,
 } from "../scoring"
+
+const defaultWeights = {
+  trainingWeight: 30,
+  optOutWeight: 20,
+  retentionWeight: 15,
+  deletionWeight: 15,
+  sharingWeight: 10,
+  humanReviewWeight: 10,
+}
 
 describe("PrivacyGPT Scoring Logic Validation", () => {
   // Test company: private by default, easy opt-out, no retention, full deletion, secure sharing, no human review (Perfect profile)
@@ -71,13 +79,13 @@ describe("PrivacyGPT Scoring Logic Validation", () => {
   describe("calculateTotalScore", () => {
     it("should return 100 for a perfect company", () => {
       const subScores = calculateSubScores(perfectCompany)
-      const total = calculateTotalScore(subScores, DEFAULT_WEIGHTS)
+      const total = calculateTotalScore(subScores, defaultWeights)
       expect(total).toBe(100)
     })
 
     it("should return the correct weighted score for a mixed company", () => {
       const subScores = calculateSubScores(worstCompany)
-      const total = calculateTotalScore(subScores, DEFAULT_WEIGHTS)
+      const total = calculateTotalScore(subScores, defaultWeights)
 
       // Expected math:
       // trainingScore: 0 * 30 = 0
