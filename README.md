@@ -126,34 +126,44 @@ bun run format       # Format with Prettier
 
 ```
 src/
-├── routes/              # TanStack Start file-based routing
-│   ├── __root.tsx       # Main layout (navbar, footer, theme toggle)
-│   ├── index.tsx        # Comparison dashboard
-│   ├── compare.tsx      # Side-by-side comparison
-│   ├── company.$companyKey.tsx  # Company profile
-│   ├── methodology.tsx  # Scoring rubric & FAQ
-│   ├── changelog.tsx    # Policy changelog feed
-│   ├── admin.tsx        # Admin CRUD interface
-│   ├── blog/            # MDX blog pages
-│   └── api/             # API endpoints (watchdog, feeds, sitemap)
+├── routes/                   # TanStack Start file-based routing
+│   ├── __root.tsx            # Main layout (navbar, footer, theme toggle)
+│   ├── index.tsx             # Comparison dashboard
+│   ├── compare.tsx           # Side-by-side comparison
+│   ├── company.$companyKey.tsx       # Company profile
+│   ├── methodology.tsx       # Scoring rubric & FAQ
+│   ├── changelog.tsx         # Policy changelog feed
+│   ├── changelog.feed[.]xml.ts       # Atom/RSS XML feed
+│   ├── admin.tsx             # Admin CRUD interface
+│   ├── blog.index.tsx        # Blog listing page
+│   ├── blog.$slug.tsx        # Individual blog post
+│   ├── blog.feed[.]xml.ts    # Blog RSS feed
+│   ├── api.cron.watchdog.ts  # Cron-triggered watchdog endpoint
+│   ├── sitemap[.]xml.ts      # Sitemap XML endpoint
+│   ├── faq.tsx               # FAQ page
+│   ├── privacy.tsx           # Privacy policy page
+│   └── terms.tsx             # Terms of service page
 ├── components/
-│   ├── ui/              # shadcn/ui components
+│   ├── ui/                   # shadcn/ui components
 │   ├── CompanySelect.tsx
-│   ├── CompareScores.tsx / CompareSection.tsx
-│   ├── ThemeProvider.tsx / ThemeToggle.tsx
-│   └── CompanyLink.tsx
+│   ├── CompanyLink.tsx
+│   ├── CompareScores.tsx
+│   ├── CompareSection.tsx
+│   ├── ThemeProvider.tsx
+│   └── ThemeToggle.tsx
 ├── lib/
-│   ├── db/              # Drizzle schema, seed data, client
-│   ├── __tests__/       # Vitest test suites
-│   ├── api.ts           # Server functions (createServerFn)
-│   ├── scoring.ts       # Scoring engine (6 weighted categories)
-│   ├── watchdog.ts      # Policy change detection pipeline
-│   ├── diff.ts          # Word-level LCS diff algorithm
-│   └── queries.ts       # TanStack Query hooks
-├── content/blog/        # MDX blog posts
-├── styles.css           # Tailwind v4 + custom theme
-├── router.tsx           # Router configuration with SSR hydration
-└── entry.ts             # Cloudflare Worker entry point
+│   ├── db/                   # Drizzle schema, seed data, client
+│   ├── __tests__/            # Vitest test suites
+│   ├── api.ts                # Server functions (createServerFn)
+│   ├── blog-data.ts          # Blog post metadata
+│   ├── queries.ts            # TanStack Query hooks
+│   ├── scoring.ts            # Scoring engine (6 weighted categories)
+│   ├── utils.ts              # Classnames merge helpers
+│   └── watchdog.ts           # Policy change detection pipeline
+├── content/blog/             # MDX blog posts
+├── styles.css                # Tailwind v4 + custom theme
+├── router.tsx                # Router configuration with SSR hydration
+└── entry.ts                  # Cloudflare Worker entry point
 ```
 
 ## Customization
