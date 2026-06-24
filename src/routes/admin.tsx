@@ -21,6 +21,7 @@ import {
   Filter,
   Plus,
   Minus,
+  Bot,
 } from "lucide-react"
 import {
   Card,
@@ -475,8 +476,21 @@ function AdminPage() {
                         {/* Review notes / Admin review form */}
                         {entry.reviewNotes ? (
                           <div className="border border-border bg-muted/30 p-3">
-                            <div className="mb-1 text-xs font-medium text-muted-foreground">
-                              Review Notes
+                            <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                              {entry.reviewNotes.startsWith("AI Review") && (
+                                <Bot className="h-3.5 w-3.5 text-primary" />
+                              )}
+                              {entry.reviewNotes.startsWith("AI Review")
+                                ? "AI Review Notes"
+                                : "Review Notes"}
+                              {entry.reviewNotes.includes("[BREAKING]") && (
+                                <Badge
+                                  variant="destructive"
+                                  className="ml-1 text-[10px]"
+                                >
+                                  Breaking Change Detected
+                                </Badge>
+                              )}
                             </div>
                             <p className="text-sm">{entry.reviewNotes}</p>
                             {entry.reviewedAt && (

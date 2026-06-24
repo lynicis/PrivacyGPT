@@ -23,7 +23,9 @@ const mockChain = {
 const mockDb = {
   select: vi.fn().mockReturnValue(mockChain),
   insert: vi.fn().mockReturnValue({
-    values: vi.fn().mockResolvedValue({}),
+    values: vi.fn().mockReturnValue({
+      returning: vi.fn().mockResolvedValue([{}]),
+    }),
   }),
   update: vi.fn().mockReturnValue({
     set: vi.fn().mockReturnValue({

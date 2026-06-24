@@ -8,7 +8,7 @@ Welcome! This file provides the context, structure, commands, and rules required
 
 ## 🛠️ Project Overview & Technology Stack
 
-The **PrivacyGPT** is a web application designed to monitor how major AI companies handle conversational data. It features a comparison dashboard, detailed company profile pages, a methodology page, a changelog feed, and an SQLite database loaded with verified primary-source privacy data.
+The **PrivacyGPT** is a web application designed to monitor how major AI companies handle conversational data. It features a comparison dashboard, detailed company profile pages, a methodology page, a changelog feed, an AI-powered review system for changelog entries, and an SQLite database loaded with verified primary-source privacy data.
 
 ### Stack Details:
 
@@ -60,6 +60,7 @@ Use this mapping to navigate the repository:
     - 📄 `api.ts` — Server functions (`getCompaniesFn`, `getCompanyByKeyFn`) for data fetching.
     - 📄 `scoring.ts` — Scoring calculation logic.
     - 📄 `watchdog.ts` — Watchdog monitoring logic.
+    - 📄 `ai-reviewer.ts` — AI-powered changelog review logic (queue consumer).
     - 📄 `utils.ts` — Classnames merge helpers.
   - 📄 `logo.svg` — Application logo.
   - 📄 `routeTree.gen.ts` — Automatically generated route tree.
@@ -172,7 +173,7 @@ To maintain code quality and compatibility, adhere to the following guidelines:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **PrivacyGPT** (573 symbols, 1227 relationships, 45 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **PrivacyGPT** (584 symbols, 1253 relationships, 46 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 

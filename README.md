@@ -20,7 +20,7 @@
 
 PrivacyGPT tracks how major AI companies handle conversational data — training practices, opt-out options, data retention, deletion rights, third-party sharing, and human review policies. Each datapoint is sourced from primary-source privacy policies and verified.
 
-The dashboard lets you compare companies side by side, filter by privacy stance, and get a weighted score based on what matters to you. An automated watchdog monitors policy pages for changes and surfaces them in a changelog with admin review workflow.
+The dashboard lets you compare companies side by side, filter by privacy stance, and get a weighted score based on what matters to you. An automated watchdog monitors policy pages for changes and surfaces them in a changelog with AI-powered review and admin workflow.
 
 ## Features
 
@@ -29,6 +29,7 @@ The dashboard lets you compare companies side by side, filter by privacy stance,
 - **Company Profiles** — Deep-dive pages with score breakdown, citation sources, verification badges, and raw privacy stance data
 - **Side-by-Side Comparison** — Select multiple companies and compare their privacy profiles directly
 - **Automated Watchdog** — Cron-scheduled pipeline fetches privacy policy URLs every 6 hours, detects changes via content hashing, generates word-level diffs, and queues entries for admin review
+- **AI-Powered Review** — Cloudflare Queue-based system automatically reviews changelog entries for breaking changes and policy updates using AI
 - **Changelog with Admin Workflow** — Review pending changes, approve or reject, add notes, and notify subscribers
 - **Email Subscriptions** — Double opt-in subscription system for changelog alerts per company
 - **Methodology & Scoring Rubric** — Transparent documentation of how scores are calculated, with verification confidence ratings and FAQ
@@ -45,7 +46,9 @@ flowchart TD
     Worker["Cloudflare Worker\n(TanStack SSR)"]
     D1["D1 Database\n(libsql)"]
     Watchdog["Watchdog (Cron)\nfetches & diffs"]
-    Queue["Queue Consumer\n(async processing)"]
+    WatchdogQueue["Watchdog Queue\n(async processing)"]
+    AIReviewQueue["AI Review Queue\n(async review)"]
+    DLQ["Dead Letter Queue\n(failed reviews)"]
 
     Browser --> Worker
     Worker --> D1
@@ -58,12 +61,15 @@ flowchart TD
     Worker -.-> ServerFns
 
     Worker --> Watchdog
-    Worker --> Queue
+    Worker --> WatchdogQueue
+    Worker --> AIReviewQueue
     Watchdog --> D1
-    Queue --> D1
+    WatchdogQueue --> D1
+    AIReviewQueue --> D1
+    AIReviewQueue -.->|failures| DLQ
 ```
 
-The app runs on **Cloudflare Workers** with server-side rendering via **TanStack Start**. Data is fetched through `createServerFn` calls — no direct database access from the client. A separate cron worker triggers the watchdog every 6 hours, which fetches privacy policies, detects changes via content hashing and line-level diffing, then queues results for admin review.
+The app runs on **Cloudflare Workers** with server-side rendering via **TanStack Start**. Data is fetched through `createServerFn` calls — no direct database access from the client. A separate cron worker triggers the watchdog every 6 hours, which fetches privacy policies, detects changes via content hashing and line-level diffing, then queues results for AI-powered review and admin workflow. The AI review system processes changelog entries asynchronously via Cloudflare Queues with automatic retry and dead letter queue handling.
 
 > [!NOTE]
 > In development, the database runs on a local **libsql** (SQLite) file. In production, it uses **Cloudflare D1**. The same codebase handles both transparently via `getDb()`.
@@ -76,6 +82,7 @@ The app runs on **Cloudflare Workers** with server-side rendering via **TanStack
 | **Framework** | [TanStack Start](https://tanstack.com/router/latest/docs/start/overview) (React 19 + TypeScript 6)                                                      |
 | **UI**        | [Tailwind CSS v4](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)                                                                         |
 | **Database**  | [libsql](https://github.com/tursodatabase/libsql) (dev) / [D1](https://developers.cloudflare.com/d1) (prod) via [Drizzle ORM](https://orm.drizzle.team) |
+| **Queues**    | [Cloudflare Queues](https://developers.cloudflare.com/queues) (async processing with dead letter queues)                                                |
 | **State**     | [TanStack React Query](https://tanstack.com/query/latest) (SSR with 5-min stale time)                                                                   |
 | **Routing**   | [TanStack Router](https://tanstack.com/router/latest) (file-based, SSR)                                                                                 |
 | **Testing**   | [Vitest](https://vitest.dev)                                                                                                                            |
@@ -159,6 +166,7 @@ src/
 │   ├── db/                   # Drizzle schema, seed data, client
 │   ├── __tests__/            # Vitest test suites
 │   ├── api.ts                # Server functions (createServerFn)
+│   ├── ai-reviewer.ts        # AI-powered changelog review logic
 │   ├── blog-data.ts          # Blog post metadata
 │   ├── queries.ts            # TanStack Query hooks
 │   ├── scoring.ts            # Scoring engine (6 weighted categories)
@@ -209,6 +217,20 @@ Configuration is in `wrangler.jsonc` (main app) and `wrangler.cron.jsonc` (cron 
 | `CRON_SECRET`                       | Shared secret for cron-triggered watchdog endpoint |
 | `APP_URL`                           | Public application URL                             |
 | `FIRECRAWL_API_KEY`                 | API key for Firecrawl JS fallback scraper          |
+| `AI_REVIEW_ENABLED`                 | Enable AI-powered changelog review (default: true) |
+
+### Cloudflare Queues
+
+The application uses two Cloudflare Queues for async processing:
+
+| Queue                        | Purpose                                     |
+| ---------------------------- | ------------------------------------------- |
+| `privacygpt-watchdog-queue`  | Processes watchdog change detection results |
+| `privacygpt-watchdog-dlq`    | Dead letter queue for watchdog change detections |
+| `privacygpt-ai-review-queue` | AI-powered changelog entry review           |
+| `privacygpt-ai-review-dlq`   | Dead letter queue for failed AI reviews     |
+
+Queues are automatically created during CI/CD deployment.
 
 ## Database Changes
 

@@ -115,7 +115,8 @@ export async function fetchPolicyText(
 }
 
 export async function checkCompany(
-  companyId: number
+  companyId: number,
+  env?: { AI_REVIEW_QUEUE?: { send: (msg: any) => Promise<void> } }
 ): Promise<"baseline" | "change" | "none"> {
   const db = await getDb()
   const company = await db
@@ -167,14 +168,22 @@ export async function checkCompany(
       )
       .join("\n")
 
-    await db.insert(changelogs).values({
-      companyId: company.id,
-      detectedAt: now,
-      beforeText: latestSnapshot.rawContent.slice(0, 5000),
-      afterText: result.text.slice(0, 5000),
-      diffHtml,
-      status: "pending_review",
-    })
+    const [inserted] = await db
+      .insert(changelogs)
+      .values({
+        companyId: company.id,
+        detectedAt: now,
+        beforeText: latestSnapshot.rawContent.slice(0, 5000),
+        afterText: result.text.slice(0, 5000),
+        diffHtml,
+        status: "pending_review",
+      })
+      .returning({ id: changelogs.id })
+
+    if (env?.AI_REVIEW_QUEUE) {
+      await env.AI_REVIEW_QUEUE.send({ changelogId: inserted.id })
+      console.log(`[watchdog] Enqueued AI review for changelog ${inserted.id}`)
+    }
 
     await db.insert(snapshots).values({
       companyId: company.id,
@@ -222,19 +231,22 @@ export async function runWatchdog(): Promise<{
   const allCompanies = await db.select().from(companies)
 
   // Attempt to check if queue binding exists (Cloudflare context)
-  let queue: { send: (msg: any) => Promise<void> } | undefined
+  let watchdogQueue: { send: (msg: any) => Promise<void> } | undefined
+  let aiReviewQueue: { send: (msg: any) => Promise<void> } | undefined
   try {
     const mod = await import("cloudflare:workers")
-    queue = (mod.env as any).WATCHDOG_QUEUE
+    const env = mod.env as any
+    watchdogQueue = env.WATCHDOG_QUEUE
+    aiReviewQueue = env.AI_REVIEW_QUEUE
   } catch {
     // Fallback to direct synchronous execution if not in Worker context with Queue
   }
 
-  if (queue) {
+  if (watchdogQueue) {
     console.log("[watchdog] Queue binding detected. Enqueuing checks...")
     let enqueued = 0
     for (const company of allCompanies) {
-      await queue.send({ companyId: company.id })
+      await watchdogQueue.send({ companyId: company.id })
       enqueued++
     }
     return { enqueued }
@@ -247,7 +259,9 @@ export async function runWatchdog(): Promise<{
 
   for (const company of allCompanies) {
     try {
-      const status = await checkCompany(company.id)
+      const status = await checkCompany(company.id, {
+        AI_REVIEW_QUEUE: aiReviewQueue,
+      })
       checked++
       if (status === "baseline") {
         baselines++

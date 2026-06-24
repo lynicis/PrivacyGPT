@@ -1,42 +1,52 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "privacygpt",
-	"compatibility_date": "2026-06-22",
-	"compatibility_flags": [
-		"nodejs_compat"
-	],
-	"main": "src/entry.ts",
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "privacygpt-db",
-			"database_id": "0564b525-7dab-4146-acb0-b47616c39bae",
-		},
-	],
-	"queues": {
-		"producers": [
-			{
-				"binding": "WATCHDOG_QUEUE",
-				"queue": "privacygpt-watchdog-queue",
-			},
-		],
-		"consumers": [
-			{
-				"queue": "privacygpt-watchdog-queue",
-				"max_batch_size": 1,
-				"max_batch_timeout": 5,
-			},
-		],
-	},
-	"routes": [
-		{
-			"pattern": "privacygpt.lynicis.dev",
-			"zone_name": "lynicis.dev",
-			"custom_domain": true,
-			"enabled": true,
-			"previews_enabled": false
-		}
-	],
-	"workers_dev": false,
-	"preview_urls": false,
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "privacygpt",
+  "compatibility_date": "2026-06-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/entry.ts",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "privacygpt-db",
+      "database_id": "0564b525-7dab-4146-acb0-b47616c39bae",
+    },
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "WATCHDOG_QUEUE",
+        "queue": "privacygpt-watchdog-queue",
+      },
+      {
+        "binding": "AI_REVIEW_QUEUE",
+        "queue": "privacygpt-ai-review-queue",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "privacygpt-watchdog-queue",
+        "max_batch_size": 1,
+        "max_batch_timeout": 5,
+        "max_retries": 3,
+        "dead_letter_queue": "privacygpt-watchdog-dlq",
+      },
+      {
+        "queue": "privacygpt-ai-review-queue",
+        "max_batch_size": 1,
+        "max_retries": 3,
+        "dead_letter_queue": "privacygpt-ai-review-dlq",
+      },
+    ],
+  },
+  "routes": [
+    {
+      "pattern": "privacygpt.lynicis.dev",
+      "zone_name": "lynicis.dev",
+      "custom_domain": true,
+      "enabled": true,
+      "previews_enabled": false,
+    },
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
 }
