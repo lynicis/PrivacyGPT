@@ -50,6 +50,7 @@ describe("getCompaniesFn API", () => {
         humanReviewOfChats: true,
         humanReviewConditions: "Only on abuse",
         confidence: "verified_from_policy_text",
+        hasValidPrivacyPolicy: true,
         sourceUrl: "https://example.com/a",
       },
       {
@@ -68,6 +69,7 @@ describe("getCompaniesFn API", () => {
         humanReviewOfChats: false,
         humanReviewConditions: "No review",
         confidence: "verified_from_policy_text",
+        hasValidPrivacyPolicy: true,
         sourceUrl: "https://example.com/b",
       },
     ]
@@ -101,6 +103,7 @@ describe("getCompaniesFn API", () => {
         humanReviewOfChats: true,
         humanReviewConditions: "Only on abuse",
         confidence: "verified_from_policy_text",
+        hasValidPrivacyPolicy: true,
         sourceUrl: "https://example.com/a",
       },
       {
@@ -119,6 +122,7 @@ describe("getCompaniesFn API", () => {
         humanReviewOfChats: false,
         humanReviewConditions: "No review",
         confidence: "verified_from_policy_text",
+        hasValidPrivacyPolicy: true,
         sourceUrl: "https://example.com/b",
       },
     ]

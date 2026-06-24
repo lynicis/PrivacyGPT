@@ -61,16 +61,19 @@ export async function getCompanies(
       humanReviewWeight: 10,
     }
 
-    // Overall stats from unfiltered data (for hero section)
+    // Overall stats from companies with valid privacy policies (for hero section)
+    const monitoredCompanies = allRows.filter((c) => c.hasValidPrivacyPolicy)
     const overallStats = {
-      total: allRows.length,
-      trainsDefault: allRows.filter((c) => c.trainsOnDataByDefault).length,
-      hasOptOut: allRows.filter((c) => c.optOutAvailable).length,
-      hasHumanReview: allRows.filter((c) => c.humanReviewOfChats).length,
+      total: monitoredCompanies.length,
+      trainsDefault: monitoredCompanies.filter((c) => c.trainsOnDataByDefault)
+        .length,
+      hasOptOut: monitoredCompanies.filter((c) => c.optOutAvailable).length,
+      hasHumanReview: monitoredCompanies.filter((c) => c.humanReviewOfChats)
+        .length,
     }
 
-    // Calculate scores
-    let scored = allRows.map((c) => {
+    // Calculate scores (only for companies with valid privacy policies)
+    let scored = monitoredCompanies.map((c) => {
       const subScores = calculateSubScores(c)
       const totalScore = calculateTotalScore(subScores, weights)
       const grade = mapScoreToGrade(totalScore)

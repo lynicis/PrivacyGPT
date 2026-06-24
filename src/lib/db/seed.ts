@@ -41,6 +41,7 @@ async function main() {
           lastVerifiedDate: data.lastVerifiedDate,
           lastChangedDate: data.lastChangedDate,
           confidence: data.confidence,
+          hasValidPrivacyPolicy: (data as any).hasValidPrivacyPolicy ?? true,
         })
         .where(eq(companies.companyKey, data.companyKey))
     } else {
@@ -68,6 +69,7 @@ async function main() {
         lastVerifiedDate: data.lastVerifiedDate,
         lastChangedDate: data.lastChangedDate,
         confidence: data.confidence as any,
+        hasValidPrivacyPolicy: (data as any).hasValidPrivacyPolicy ?? true,
       })
     }
   }

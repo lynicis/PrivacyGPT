@@ -469,7 +469,7 @@
     "childrenDataPolicy": "Enterprise platform restricted to users 18 years or older.",
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users. Acts as a processor only.",
-    "sourceUrl": "https://konghq.com/privacy-policy",
+    "sourceUrl": "https://konghq.com/legal/privacy-policy",
     "lastVerifiedDate": "2026-06-22",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
@@ -517,7 +517,7 @@
     "childrenDataPolicy": "N/A - developer tool.",
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users - self-hosted open-source software.",
-    "sourceUrl": "https://github.com/BerriAI/litellm",
+    "sourceUrl": "https://docs.litellm.ai/docs/data_security#legalcompliance-faqs",
     "lastVerifiedDate": "2026-06-22",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
@@ -544,7 +544,8 @@
     "sourceUrl": "https://github.com/deepset-ai/haystack",
     "lastVerifiedDate": "2026-06-22",
     "lastChangedDate": null,
-    "confidence": "verified_from_policy_text"
+    "confidence": "verified_from_policy_text",
+    "hasValidPrivacyPolicy": false
   },
   {
     "companyKey": "cohere",
@@ -664,7 +665,8 @@
     "sourceUrl": "https://nousresearch.com",
     "lastVerifiedDate": "2026-06-22",
     "lastChangedDate": null,
-    "confidence": "verified_from_policy_text"
+    "confidence": "verified_from_policy_text",
+    "hasValidPrivacyPolicy": false
   },
   {
     "companyKey": "stepfun",
@@ -709,7 +711,7 @@
     "childrenDataPolicy": "Children under 14 years old cannot create accounts without guardian consent.",
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Requires developers to secure valid consent from their end users for data collection.",
-    "sourceUrl": "https://ai.unisound.com/doc/platform/policy/privacy.html",
+    "sourceUrl": "https://maas.unisound.com/docs/protocol/privacy-policy",
     "lastVerifiedDate": "2026-06-22",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
@@ -733,10 +735,11 @@
     "childrenDataPolicy": "N/A - research organization.",
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "N/A - research organization.",
-    "sourceUrl": "https://openbmb.ai",
+    "sourceUrl": "https://github.com/OpenBMB",
     "lastVerifiedDate": "2026-06-22",
     "lastChangedDate": null,
-    "confidence": "unverified"
+    "confidence": "unverified",
+    "hasValidPrivacyPolicy": false
   },
   {
     "companyKey": "ollama",
@@ -757,7 +760,7 @@
     "childrenDataPolicy": "N/A - local software.",
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Local execution runs offline on user hardware. Optional cloud subscription services route requests to hosted models without training on prompts.",
-    "sourceUrl": "https://ollama.com",
+    "sourceUrl": "https://ollama.com/privacy",
     "lastVerifiedDate": "2026-06-22",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
@@ -829,7 +832,7 @@
     "childrenDataPolicy": "Enterprise platform restricted to users 18 years or older.",
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Paid models use zero data retention; free tier models may retain data to improve models.",
-    "sourceUrl": "https://opencode.example.com/privacy",
+    "sourceUrl": "https://opencode.ai/legal/privacy-policy",
     "lastVerifiedDate": "2026-06-23",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
@@ -890,7 +893,7 @@
     "trainsOnDataNuance": "Does not train models on private user code. Zero Data Retention is active by default.",
     "optOutAvailable": true,
     "optOutHow": "Zero Data Retention is active by default. You can adjust telemetry settings in your web profile or extension options.",
-    "optOutUrl": "https://codeium.com/privacy",
+    "optOutUrl": "https://codeium.com/privacy-policy",
     "retentionPeriod": "The servers do not store plaintext code. The app keeps telemetry data to monitor performance.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "You can delete your account and associated metadata by contacting support.",
@@ -901,7 +904,7 @@
     "childrenDataPolicy": "Intended for users 13 years of age or older.",
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Teams and Enterprise plans offer dedicated deployment options and guaranteed Zero Data Retention. Cognition acquired the brand in 2025.",
-    "sourceUrl": "https://codeium.com/privacy",
+    "sourceUrl": "https://codeium.com/privacy-policy",
     "lastVerifiedDate": "2026-06-23",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"

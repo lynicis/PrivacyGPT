@@ -228,7 +228,10 @@ export async function runWatchdog(): Promise<{
   enqueued?: number
 }> {
   const db = await getDb()
-  const allCompanies = await db.select().from(companies)
+  const allCompanies = await db
+    .select()
+    .from(companies)
+    .where(eq(companies.hasValidPrivacyPolicy, true))
 
   // Attempt to check if queue binding exists (Cloudflare context)
   let watchdogQueue: { send: (msg: any) => Promise<void> } | undefined

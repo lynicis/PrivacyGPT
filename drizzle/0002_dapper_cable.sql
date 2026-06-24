@@ -1,0 +1,1 @@
+ALTER TABLE `companies` ADD `has_valid_privacy_policy` integer DEFAULT true NOT NULL;

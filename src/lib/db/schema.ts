@@ -52,6 +52,13 @@ export const companies = sqliteTable("companies", {
   lastVerifiedDate: text("last_verified_date").notNull(), // YYYY-MM-DD
   lastChangedDate: text("last_changed_date"), // YYYY-MM-DD (null if no known changes since last_verified_date)
   confidence: text("confidence").notNull(), // 'verified_from_policy_text' | 'inferred' | 'needs_review'
+
+  // Privacy Policy Validation
+  hasValidPrivacyPolicy: integer("has_valid_privacy_policy", {
+    mode: "boolean",
+  })
+    .notNull()
+    .default(true), // False if company has no formal privacy policy
 })
 
 export const snapshots = sqliteTable("snapshots", {
