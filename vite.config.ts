@@ -4,6 +4,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import viteReact from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 import { cloudflare } from "@cloudflare/vite-plugin"
+import { VitePWA } from "vite-plugin-pwa"
 import mdx from "@mdx-js/rollup"
 import remarkFrontmatter from "remark-frontmatter"
 import remarkGfm from "remark-gfm"
@@ -40,6 +41,16 @@ const config = defineConfig(({ command }) => {
       devtools(),
       tailwindcss(),
       tanstackStart(),
+      VitePWA({
+        strategies: "injectManifest",
+        registerType: "autoUpdate",
+        injectRegister: false,
+        srcDir: "public",
+        outDir: "dist/client",
+        filename: "sw.js",
+        manifest: false,
+        selfDestroying: false,
+      }),
       viteReact(),
     ],
   }

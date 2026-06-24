@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router"
 import { ThemeProvider } from "../components/ThemeProvider"
 import { ThemeToggle } from "../components/ThemeToggle"
+import { PwaRegister } from "../components/PwaRegister"
 
 import appCss from "../styles.css?url"
 
@@ -25,7 +26,19 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
+      },
+      {
+        name: "theme-color",
+        content: "#09090b",
+      },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "default",
       },
       {
         title: "PrivacyGPT - AI Privacy Watchdog",
@@ -94,7 +107,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       {
         rel: "apple-touch-icon",
-        href: "/logo.png",
+        href: "/apple-touch-icon-180x180.png",
+      },
+      {
+        rel: "manifest",
+        href: "/manifest.json",
       },
       {
         rel: "stylesheet",
@@ -305,6 +322,8 @@ function RootLayout() {
             </nav>
           )}
         </header>
+
+        <PwaRegister />
 
         {/* Page Content */}
         <div className="flex-1">
