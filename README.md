@@ -41,25 +41,27 @@ The dashboard lets you compare companies side by side, filter by privacy stance,
 
 <div align="center">
   <pre style="background:#f6f8fa;padding:16px;border-radius:8px;text-align:left;font-size:13px;line-height:1.5">
-┌─────────────┐     ┌─────────────────────────────────────┐     ┌──────────────┐
-│   Browser   │────▶│   Cloudflare Worker (TanStack SSR)   │────▶│  D1 Database │
-│  (React 19) │     │  ┌──────────┐ ┌──────────┐          │     │  (libsql)    │
-└─────────────┘     │  │ Router   │ │  Server  │          │     └──────────────┘
-                    │  │ (TanStack│ │ Functions│          │
-                    │  │  Start)  │ │  (API)   │          │
-                    │  └──────────┘ └──────────┘          │
-                    └─────────────────────────────────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    ▼                       ▼
-          ┌─────────────────┐   ┌─────────────────────┐
-          │  Watchdog (Cron) │   │  Queue Consumer     │
-          │  fetches & diffs │   │  (async processing) │
-          └─────────────────┘   └─────────────────────┘
++----------------+     +---------------------------------------+     +------------------+
+|    Browser     | --> |   Cloudflare Worker (TanStack SSR)     | --> |  D1 Database     |
+|   (React 19)   |     |                                       |     |   (libsql)       |
++----------------+     |   +----------------+  +--------------+ |     +------------------+
+                       |   |   Router       |  |   Server     | |
+                       |   | (TanStack Start)|  |  Functions   | |
+                       |   +----------------+  |    (API)     | |
+                       |                        +--------------+ |
+                       +---------------------------------------+
+                                    |
+                       +-----------------------------------------+
+                       |                    |                    |
+                       v                    v                    v
+           +---------------------+  +---------------------+  (shared DB)
+           |  Watchdog (Cron)    |  |  Queue Consumer     |
+           |  fetches & diffs    |  |  (async processing) |
+           +---------------------+  +---------------------+
   </pre>
 </div>
 
-The app runs on **Cloudflare Workers** with server-side rendering via **TanStack Start**. Data is fetched through `createServerFn` calls — no direct database access from the client. A separate cron worker triggers the watchdog every 6 hours, which fetches privacy policies, detects changes via content hashing and word-level LCS diffing, then queues results for admin review.
+The app runs on **Cloudflare Workers** with server-side rendering via **TanStack Start**. Data is fetched through `createServerFn` calls — no direct database access from the client. A separate cron worker triggers the watchdog every 6 hours, which fetches privacy policies, detects changes via content hashing and line-level diffing, then queues results for admin review.
 
 > [!NOTE]
 > In development, the database runs on a local **libsql** (SQLite) file. In production, it uses **Cloudflare D1**. The same codebase handles both transparently via `getDb()`.
