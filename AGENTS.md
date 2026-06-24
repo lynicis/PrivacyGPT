@@ -2,6 +2,8 @@
 
 Welcome! This file provides the context, structure, commands, and rules required for AI coding agents to work effectively on the **PrivacyGPT** codebase.
 
+**Repository**: [github.com/lynicis/PrivacyGPT](https://github.com/lynicis/PrivacyGPT)
+
 ---
 
 ## 🛠️ Project Overview & Technology Stack
