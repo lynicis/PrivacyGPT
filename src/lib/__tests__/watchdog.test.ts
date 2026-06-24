@@ -5,8 +5,8 @@ import {
   checkCompany,
   handleWatchdogQueueMessage,
   runWatchdog,
+  hashText,
 } from "../watchdog"
-import { hashText } from "../watchdog"
 import FirecrawlApp from "@mendable/firecrawl-js"
 
 const mockChain = {

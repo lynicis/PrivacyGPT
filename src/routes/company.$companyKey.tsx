@@ -5,15 +5,6 @@ import {
   calculateTotalScore,
   mapScoreToGrade,
 } from "../lib/scoring"
-
-const defaultWeights = {
-  trainingWeight: 30,
-  optOutWeight: 20,
-  retentionWeight: 15,
-  deletionWeight: 15,
-  sharingWeight: 10,
-  humanReviewWeight: 10,
-}
 import {
   ArrowLeft,
   ExternalLink,
@@ -37,6 +28,15 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+
+const defaultWeights = {
+  trainingWeight: 30,
+  optOutWeight: 20,
+  retentionWeight: 15,
+  deletionWeight: 15,
+  sharingWeight: 10,
+  humanReviewWeight: 10,
+}
 
 export const Route = createFileRoute("/company/$companyKey")({
   loader: async ({ params }) => {

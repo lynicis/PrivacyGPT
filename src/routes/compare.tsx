@@ -10,15 +10,6 @@ import {
   calculateTotalScore,
   mapScoreToGrade,
 } from "@/lib/scoring"
-
-const defaultWeights = {
-  trainingWeight: 30,
-  optOutWeight: 20,
-  retentionWeight: 15,
-  deletionWeight: 15,
-  sharingWeight: 10,
-  humanReviewWeight: 10,
-}
 import { CompanySelect } from "@/components/CompanySelect"
 import { CompareScores } from "@/components/CompareScores"
 import { CompareSection } from "@/components/CompareSection"
@@ -32,6 +23,15 @@ import {
   RotateCcw,
   BookOpen,
 } from "lucide-react"
+
+const defaultWeights = {
+  trainingWeight: 30,
+  optOutWeight: 20,
+  retentionWeight: 15,
+  deletionWeight: 15,
+  sharingWeight: 10,
+  humanReviewWeight: 10,
+}
 
 interface CompareSearch {
   companyA?: string
