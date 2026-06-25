@@ -27,8 +27,8 @@
     "companyKey": "anthropic",
     "companyName": "Anthropic",
     "productName": "Claude / Console API",
-    "trainsOnDataByDefault": true,
-    "trainsOnDataNuance": "Consumer chats on Claude Free and Pro are used for model training by default. Console API and Enterprise plans are excluded from training.",
+    "trainsOnDataByDefault": false,
+    "trainsOnDataNuance": "Consumer chats on Claude Free and Pro require user opt-in for model training. Console API and Enterprise plans are excluded from training.",
     "optOutAvailable": true,
     "optOutHow": "Go to Claude Settings > Data Privacy Controls and toggle off 'Help improve Claude'. You can also request opt-out through the Privacy Center.",
     "optOutUrl": "https://claude.ai/settings",
@@ -211,8 +211,8 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "DeepSeek API platform usage does not train on query data by default. It offers temporary data caching (up to 30 days) for abuse detection and complies with standard enterprise security expectations.",
     "sourceUrl": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html",
-    "lastVerifiedDate": "2026-06-22",
-    "lastChangedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
+    "lastChangedDate": "2026-06-25",
     "confidence": "verified_from_policy_text"
   },
   {
@@ -259,7 +259,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy policy for all users. Acts as a gateway only - data handling determined by selected model provider.",
     "sourceUrl": "https://openrouter.ai/privacy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -306,7 +306,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users. No training on any customer data.",
     "sourceUrl": "https://groq.com/privacy/",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -329,7 +329,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
     "sourceUrl": "https://cerebras.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -352,7 +352,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise accounts offer custom data retention and compliance options.",
     "sourceUrl": "https://fireworks.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -375,7 +375,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise accounts offer custom data retention and compliance options.",
     "sourceUrl": "https://www.together.ai/privacy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -567,7 +567,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise accounts have formal data protection agreements, no training, and 30-day retention.",
     "sourceUrl": "https://cohere.com/privacy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -587,7 +587,7 @@
     "humanReviewOfChats": false,
     "humanReviewConditions": "No human review of customer inference data.",
     "regionalVariation": "French company with EU presence. GDPR compliant. CNIL registered.",
-    "childrenDataPolicy": "Not directed to children under 13. Services intended for developers and researchers.",
+    "childrenDataPolicy": "Not directed to children under 16 (or 13 with parental consent where local law permits). Services intended for developers and researchers.",
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise Hub accounts offer enhanced privacy controls and SOC 2 compliance.",
     "sourceUrl": "https://huggingface.co/privacy",
@@ -615,7 +615,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
     "sourceUrl": "https://replicate.com/privacy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -639,7 +639,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
     "sourceUrl": "https://sambanova.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -785,8 +785,9 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
     "sourceUrl": "https://mlc.ai",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-06-25",
     "lastChangedDate": null,
+    "hasValidPrivacyPolicy": false,
     "confidence": "unverified"
   },
   {
