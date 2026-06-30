@@ -44,7 +44,12 @@ export function stripHtmlToText(html: string): string {
     preserveNewlines: true,
   }
 
-  return decodeHtmlEntities(convert(html, options)).replace(/\s+/g, " ").trim()
+  const converted = decodeHtmlEntities(convert(html, options))
+  return converted
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+/g, " ").trim())
+    .filter((line) => line.length > 0)
+    .join("\n")
 }
 
 /**

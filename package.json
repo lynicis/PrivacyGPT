@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "",
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
@@ -54,6 +55,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.42.2",
+    "@lavamoat/allow-scripts": "^5.1.0",
     "@tanstack/devtools-vite": "^0.8.1",
     "@tanstack/eslint-config": "^0.4.0",
     "@testing-library/dom": "^10.4.1",

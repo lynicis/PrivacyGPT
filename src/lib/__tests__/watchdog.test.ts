@@ -93,11 +93,17 @@ describe("watchdog utilities", () => {
       expect(result).toContain("Terms & Conditions <important>")
     })
 
-    it("collapses whitespace", () => {
-      const html = "<p>  Multiple   spaces   and\n\n\nnewlines  </p>"
+    it("collapses horizontal whitespace but preserves vertical newlines", () => {
+      const html = "<p>Paragraph one.</p><p>Paragraph two.</p>"
+      const result = stripHtmlToText(html)
+      expect(result).toContain("Paragraph one.\nParagraph two.")
+    })
+
+    it("collapses horizontal whitespace within a single line", () => {
+      const html = "<p>  Multiple   spaces   here  </p>"
       const result = stripHtmlToText(html)
       expect(result).not.toContain("  ")
-      expect(result).toContain("Multiple spaces and newlines")
+      expect(result).toContain("Multiple spaces here")
     })
 
     it("removes aside, form, and svg elements", () => {
