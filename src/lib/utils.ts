@@ -41,3 +41,20 @@ export function formatTime(dateStr: string): string {
 export function formatDateTime(dateStr: string): string {
   return `${formatDate(dateStr)} at ${formatTime(dateStr)}`
 }
+
+export function getProp<T extends object, TKey extends keyof T>(
+  obj: T,
+  key: TKey
+): T[TKey] {
+  return Reflect.get(obj, key)
+}
+
+export function setProp<T extends object>(
+  obj: T,
+  key: string,
+  value: unknown
+): T {
+  const result = { ...obj }
+  Reflect.set(result, key, value)
+  return result
+}

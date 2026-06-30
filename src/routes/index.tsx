@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { mapScoreToGrade } from "../lib/scoring"
+import { getProp, setProp } from "../lib/utils"
 
 interface Weights {
   trainingWeight: number
@@ -614,9 +615,13 @@ function App() {
                       {label}
                     </label>
                     <span className="bg-muted px-1.5 py-0.5 font-mono text-[11px] font-semibold text-muted-foreground">
-                      {weights[key]}{" "}
+                      {getProp(weights, key)}{" "}
                       <span className="text-[9px] font-normal">
-                        ({Math.round((weights[key] / totalWeightSum) * 100)}%)
+                        (
+                        {Math.round(
+                          (getProp(weights, key) / totalWeightSum) * 100
+                        )}
+                        %)
                       </span>
                     </span>
                   </div>
@@ -625,12 +630,11 @@ function App() {
                     min="0"
                     max="100"
                     step="5"
-                    value={weights[key]}
+                    value={getProp(weights, key)}
                     onChange={(e) =>
-                      setWeights({
-                        ...weights,
-                        [key]: parseInt(e.target.value),
-                      })
+                      setWeights(
+                        setProp(weights, key, parseInt(e.target.value))
+                      )
                     }
                     className="h-1.5 w-full cursor-pointer bg-border accent-primary"
                   />
@@ -779,12 +783,14 @@ function App() {
                       </span>
                       <div className="h-1.5 flex-1 overflow-hidden bg-border/60">
                         <div
-                          className={`h-full ${getSubScoreColor(company.subScores[key])}`}
-                          style={{ width: `${company.subScores[key]}%` }}
+                          className={`h-full ${getSubScoreColor(getProp(company.subScores, key))}`}
+                          style={{
+                            width: `${getProp(company.subScores, key)}%`,
+                          }}
                         />
                       </div>
                       <span className="w-6 shrink-0 text-right font-mono text-[10px] font-semibold text-muted-foreground tabular-nums">
-                        {mapScoreToGrade(company.subScores[key])}
+                        {mapScoreToGrade(getProp(company.subScores, key))}
                       </span>
                     </div>
                   ))}

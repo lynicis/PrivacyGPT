@@ -1,9 +1,11 @@
 //  @ts-check
 
 import { tanstackConfig } from "@tanstack/eslint-config"
+import pluginSecurity from "eslint-plugin-security"
 
 export default [
   ...tanstackConfig,
+  pluginSecurity.configs.recommended,
   {
     rules: {
       "import/no-cycle": "off",
@@ -15,6 +17,6 @@ export default [
     },
   },
   {
-    ignores: ["eslint.config.js", ".prettierrc", "public/sw.js"],
+    ignores: ["eslint.config.js", ".prettierrc", "public/sw.js", ".gitnexus/"],
   },
 ]

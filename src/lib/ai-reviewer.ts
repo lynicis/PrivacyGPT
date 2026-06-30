@@ -1,3 +1,4 @@
+import { getProp } from "./utils"
 import { getDb } from "./db"
 import { companies, changelogs } from "./db/schema"
 import { eq } from "drizzle-orm"
@@ -41,7 +42,7 @@ export function buildAIPrompt(
   diffHtml: string
 ): string {
   const currentProfile = COMPANY_FIELDS.map(
-    (f) => `- ${f}: ${String(company[f] ?? "N/A")}`
+    (f) => `- ${f}: ${String(getProp(company, f) ?? "N/A")}`
   ).join("\n")
 
   return `Company: ${company.companyName}
