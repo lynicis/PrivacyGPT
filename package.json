@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "",
+    "postinstall": "allow-scripts run",
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
@@ -85,5 +85,14 @@
   },
   "trustedDependencies": [
     "unrs-resolver"
-  ]
+  ],
+  "lavamoat": {
+    "allowScripts": {
+      "@tanstack/eslint-config>eslint-plugin-import-x>unrs-resolver#1.12.2": false,
+      "@vite-pwa/assets-generator>sharp#0.33.5": false,
+      "vite>esbuild#0.25.12": false,
+      "wrangler>miniflare>sharp#0.34.5": false,
+      "wrangler>workerd#1.20260623.1": false
+    }
+  }
 }

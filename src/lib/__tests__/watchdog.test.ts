@@ -390,6 +390,60 @@ describe("watchdog utilities", () => {
         expect(mockDb.insert).toHaveBeenCalledTimes(2) // changelog & snapshot
         expect(mockDb.update).toHaveBeenCalled() // update company
       })
+
+      it("generates line-level diff spans when multi-line content changes", async () => {
+        const oldContent =
+          "Line one stays the same.\nLine two is old.\nLine three stays."
+        const newContent =
+          "Line one stays the same.\nLine two is new.\nLine three stays."
+
+        let selectCount = 0
+        mockChain.then.mockImplementation((onfulfilled) => {
+          selectCount++
+          if (selectCount === 1) {
+            return Promise.resolve([
+              {
+                id: 1,
+                companyName: "Test Company",
+                sourceUrl: "https://example.com",
+              },
+            ]).then(onfulfilled)
+          }
+          return Promise.resolve([
+            {
+              id: 1,
+              companyId: 1,
+              contentHash: hashText(oldContent),
+              rawContent: oldContent,
+            },
+          ]).then(onfulfilled)
+        })
+
+        let capturedDiffHtml = ""
+        mockDb.insert.mockReturnValue({
+          values: vi.fn().mockImplementation((vals: any) => {
+            if (vals.diffHtml) capturedDiffHtml = vals.diffHtml
+            return { returning: vi.fn().mockResolvedValue([{ id: 1 }]) }
+          }),
+        })
+
+        vi.mocked(fetch).mockResolvedValue({
+          ok: true,
+          text: () =>
+            Promise.resolve(`<p>${newContent.split("\n").join("</p><p>")}</p>`),
+        } as any)
+
+        await checkCompany(1)
+
+        // Diff should contain per-line spans, not a single massive block
+        expect(capturedDiffHtml).toContain('class="diff-unchanged"')
+        expect(capturedDiffHtml).toContain('class="diff-removed"')
+        expect(capturedDiffHtml).toContain('class="diff-added"')
+        // Unchanged lines should be separate spans from changed lines
+        expect(capturedDiffHtml).toContain("Line one stays the same.")
+        expect(capturedDiffHtml).toContain("Line two is old.")
+        expect(capturedDiffHtml).toContain("Line two is new.")
+      })
     })
 
     describe("handleWatchdogQueueMessage", () => {
