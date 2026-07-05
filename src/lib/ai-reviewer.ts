@@ -169,12 +169,13 @@ export async function reviewChangelogWithAI(
   }
 
   if (result.isBreaking) {
-    // Breaking change → leave for human, add AI analysis
+    // Leave it as pending_review but attach AI notes
     await db
       .update(changelogs)
       .set({
         status: "pending_review",
         reviewNotes: `AI Review [BREAKING]: ${result.reviewNotes}`,
+        proposedChanges: JSON.stringify(result.fieldChanges),
       })
       .where(eq(changelogs.id, changelogId))
     return { success: true, isBreaking: true }

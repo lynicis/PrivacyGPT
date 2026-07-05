@@ -128,13 +128,21 @@ function ChangelogReview({ id }: { id: number }) {
             : "An unexpected error occurred."}
         </p>
       )}
-      <Button
-        type="submit"
-        disabled={reviewMutation.isPending}
-        className="h-auto rounded-none bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95"
-      >
-        {reviewMutation.isPending ? "Approving..." : "Approve"}
-      </Button>
+      <div className="flex items-center gap-4">
+        <Button
+          type="submit"
+          disabled={reviewMutation.isPending}
+          className="h-auto rounded-none bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95"
+        >
+          {reviewMutation.isPending
+            ? "Approving..."
+            : "Approve & Apply Updates"}
+        </Button>
+        <span className="text-[10px] text-muted-foreground">
+          Approving will automatically apply any AI-proposed field updates to
+          the company profile.
+        </span>
+      </div>
     </form>
   )
 }
@@ -475,8 +483,8 @@ function AdminPage() {
                           </div>
                         </div>
 
-                        {/* Review notes / Admin review form */}
-                        {entry.reviewNotes ? (
+                        {/* Review notes */}
+                        {entry.reviewNotes && (
                           <div className="border border-border bg-muted/30 p-3">
                             <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                               {entry.reviewNotes.startsWith("AI Review") && (
@@ -504,16 +512,17 @@ function AdminPage() {
                               </p>
                             )}
                           </div>
-                        ) : (
-                          isPending && (
-                            <div className="rounded-none border border-border bg-muted/20 p-4">
-                              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-                                Admin Review Action
-                              </div>
-                              <ChangelogReview id={entry.id} />
+                        )}
+
+                        {/* Admin review form */}
+                        {isPending && (
+                          <div className="rounded-none border border-border bg-muted/20 p-4">
+                            <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                              Admin Review Action
                             </div>
-                          )
+                            <ChangelogReview id={entry.id} />
+                          </div>
                         )}
                       </div>
                     )}

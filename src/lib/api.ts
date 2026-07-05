@@ -406,7 +406,35 @@ export const reviewChangelogFn = createServerFn({ method: "POST" })
 
       const db = await getDb()
 
-      // 1. Update the changelog status
+      // 1. Fetch changelog to apply potential proposed changes
+      const [changelog] = await db
+        .select()
+        .from(changelogs)
+        .where(eq(changelogs.id, data.id))
+        .limit(1)
+
+      if (!changelog) throw new Error("Changelog not found")
+
+      // 2. Apply proposed changes to companies table
+      if (changelog.proposedChanges) {
+        try {
+          const fieldChanges = JSON.parse(changelog.proposedChanges)
+          const updateData: Record<string, any> = {}
+          for (const change of fieldChanges) {
+            updateData[change.field] = change.newValue
+          }
+          if (Object.keys(updateData).length > 0) {
+            await db
+              .update(companies)
+              .set(updateData)
+              .where(eq(companies.id, changelog.companyId))
+          }
+        } catch (e) {
+          console.error("Failed to apply proposed changes", e)
+        }
+      }
+
+      // 3. Update the changelog status
       await db
         .update(changelogs)
         .set({

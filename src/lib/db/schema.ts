@@ -81,5 +81,6 @@ export const changelogs = sqliteTable("changelogs", {
   afterText: text("after_text").notNull(),
   status: text("status").notNull(), // 'pending_review' | 'reviewed'
   reviewNotes: text("review_notes"),
+  proposedChanges: text("proposed_changes"), // JSON string of proposed field updates
   reviewedAt: text("reviewed_at"), // ISO Timestamp
 })
