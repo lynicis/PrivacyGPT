@@ -14,8 +14,8 @@ export function hashText(text: string): string {
  */
 export function stripHtmlToText(html: string): string {
   return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim()
@@ -240,7 +240,6 @@ export async function runWatchdog(env?: any): Promise<{
 // CLI entry point
 if (
   typeof process !== "undefined" &&
-  process.argv &&
   import.meta.url === `file://${process.argv[1]}`
 ) {
   console.log("[watchdog] Starting privacy policy watchdog run...")

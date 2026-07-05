@@ -407,13 +407,14 @@ export const reviewChangelogFn = createServerFn({ method: "POST" })
       const db = await getDb()
 
       // 1. Fetch changelog to apply potential proposed changes
-      const [changelog] = await db
+      const results = await db
         .select()
         .from(changelogs)
         .where(eq(changelogs.id, data.id))
         .limit(1)
 
-      if (!changelog) throw new Error("Changelog not found")
+      if (results.length === 0) throw new Error("Changelog not found")
+      const changelog = results[0]
 
       // 2. Apply proposed changes to companies table
       if (changelog.proposedChanges) {
