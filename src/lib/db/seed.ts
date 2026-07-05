@@ -16,34 +16,9 @@ async function main() {
       .get()
 
     if (existing) {
-      console.log(`Updating existing entry for ${data.companyName}...`)
-      await db
-        .update(companies)
-        .set({
-          companyName: data.companyName,
-          productName: data.productName,
-          trainsOnDataByDefault: data.trainsOnDataByDefault,
-          trainsOnDataNuance: data.trainsOnDataNuance,
-          optOutAvailable: data.optOutAvailable,
-          optOutHow: data.optOutHow,
-          optOutUrl: data.optOutUrl ?? null,
-          retentionPeriod: data.retentionPeriod,
-          dataDeletedOnRequest: data.dataDeletedOnRequest,
-          dataDeletedOnRequestTimeframe: data.dataDeletedOnRequestTimeframe,
-          thirdPartySharing: data.thirdPartySharing,
-          humanReviewOfChats: data.humanReviewOfChats,
-          humanReviewConditions: data.humanReviewConditions,
-          regionalVariation: data.regionalVariation,
-          childrenDataPolicy: data.childrenDataPolicy,
-          enterpriseVsConsumerDifference: data.enterpriseVsConsumerDifference,
-          enterpriseVsConsumerSummary: data.enterpriseVsConsumerSummary,
-          sourceUrl: data.sourceUrl,
-          lastVerifiedDate: data.lastVerifiedDate,
-          lastChangedDate: data.lastChangedDate,
-          confidence: data.confidence,
-          hasValidPrivacyPolicy: (data as any).hasValidPrivacyPolicy ?? true,
-        })
-        .where(eq(companies.companyKey, data.companyKey))
+      console.log(
+        `Skipping existing entry for ${data.companyName}... (Live policy state is managed via admin UI)`
+      )
     } else {
       console.log(`Inserting new entry for ${data.companyName}...`)
       await db.insert(companies).values({

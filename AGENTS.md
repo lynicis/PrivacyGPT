@@ -37,7 +37,6 @@ Use this mapping to navigate the repository:
     - 📄 `changelog.tsx` — Changelog feed page.
     - 📄 `changelog.feed[.]xml.ts` — RSS/Atom XML feed endpoint.
     - 📄 `admin.tsx` — Admin interface.
-    - 📄 `api.cron.watchdog.ts` — Cron-triggered watchdog API endpoint.
     - 📄 `sitemap.xml.ts` — Sitemap XML endpoint.
   - 📁 `components/`
     - 📁 `ui/` — Native shadcn/ui components (`badge`, `button`, `card`, `input`, `select`, `switch`, `table`, `tabs`).
@@ -68,12 +67,10 @@ Use this mapping to navigate the repository:
   - 📄 `styles.css` — Custom styling, keyframes, and theme variables.
 - 📁 `drizzle/` — Schema migrations output.
 - 📁 `docs/` — Documentation and assets.
-- 📄 `cron-worker.ts` — Cloudflare Workers cron entry point.
 - 📄 `drizzle.config.ts` — Drizzle CLI configuration.
 - 📄 `package.json` — Dependency management and scripts.
 - 📄 `privacy.db` — Local SQLite development database.
-- 📄 `wrangler.jsonc` — Cloudflare Workers configuration.
-- 📄 `wrangler.cron.jsonc` — Cloudflare cron worker configuration.
+- 📄 `wrangler.jsonc` — Cloudflare Workers configuration (including cron triggers).
 - 📄 `worker-configuration.d.ts` — Cloudflare Worker type definitions.
 
 ---
@@ -144,14 +141,12 @@ npx drizzle-kit push
 
 To maintain code quality and compatibility, adhere to the following guidelines:
 
-### 1. Seed Data updates
+### 1. Data Source of Truth & Seeding
 
-- Do **NOT** write data modifications directly to the `privacy.db` file.
-- The `src/lib/db/seedData.json` is the sole source of truth for comparison data.
-- To update company data:
-  1. Edit `src/lib/db/seedData.json`.
-  2. Run the seed script: `bun run src/lib/db/seed.ts`.
-  3. Run tests `bun run test` to verify structure matches constraints.
+- The production database (specifically the `companies` table) is the ultimate source of truth for the current policy state.
+- The `src/lib/db/seedData.json` file serves as the initial state snapshot used to bootstrap the database or reset a development environment.
+- Policy changes are detected automatically by the AI reviewer and applied directly to the database upon admin approval.
+- When manually adding a completely new company or resetting environments, update `src/lib/db/seedData.json` and run the seed script: `bun run src/lib/db/seed.ts`.
 
 ### 2. Styling Rules
 
@@ -171,6 +166,7 @@ To maintain code quality and compatibility, adhere to the following guidelines:
 - Ensure that the Vitest suite in `src/lib/__tests__/schema.test.ts` passes successfully after any database schema or seed data updates.
 
 <!-- gitnexus:start -->
+
 # GitNexus — Code Intelligence
 
 This project is indexed by GitNexus as **PrivacyGPT** (575 symbols, 1245 relationships, 46 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
@@ -195,22 +191,22 @@ This project is indexed by GitNexus as **PrivacyGPT** (575 symbols, 1245 relatio
 
 ## Resources
 
-| Resource | Use for |
-|----------|---------|
-| `gitnexus://repo/PrivacyGPT/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/PrivacyGPT/clusters` | All functional areas |
-| `gitnexus://repo/PrivacyGPT/processes` | All execution flows |
-| `gitnexus://repo/PrivacyGPT/process/{name}` | Step-by-step execution trace |
+| Resource                                    | Use for                                  |
+| ------------------------------------------- | ---------------------------------------- |
+| `gitnexus://repo/PrivacyGPT/context`        | Codebase overview, check index freshness |
+| `gitnexus://repo/PrivacyGPT/clusters`       | All functional areas                     |
+| `gitnexus://repo/PrivacyGPT/processes`      | All execution flows                      |
+| `gitnexus://repo/PrivacyGPT/process/{name}` | Step-by-step execution trace             |
 
 ## CLI
 
-| Task | Read this skill file |
-|------|---------------------|
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+| Task                                         | Read this skill file                                        |
+| -------------------------------------------- | ----------------------------------------------------------- |
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md`       |
+| Blast radius / "What breaks if I change X?"  | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?"             | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md`       |
+| Rename / extract / split / refactor          | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md`     |
+| Tools, resources, schema reference           | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md`           |
+| Index, status, clean, wiki CLI commands      | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md`             |
 
 <!-- gitnexus:end -->

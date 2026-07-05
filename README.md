@@ -28,7 +28,7 @@ The dashboard lets you compare companies side by side, filter by privacy stance,
 - **Weighted Scoring** — Adjust the importance of six privacy categories; scores update in real-time with letter grades (A–D)
 - **Company Profiles** — Deep-dive pages with score breakdown, citation sources, verification badges, and raw privacy stance data
 - **Side-by-Side Comparison** — Select multiple companies and compare their privacy profiles directly
-- **Automated Watchdog** — Cron-scheduled pipeline fetches privacy policy URLs every 6 hours, detects changes via content hashing, generates word-level diffs, and queues entries for admin review
+- **Automated Watchdog** — Cron-scheduled pipeline fetches privacy policy URLs daily, detects changes via content hashing, and queues entries for admin review
 - **AI-Powered Review** — Cloudflare Queue-based system automatically reviews changelog entries for breaking changes and policy updates using AI
 - **Changelog with Admin Workflow** — Review pending changes, approve or reject, add notes, and notify subscribers
 - **Email Subscriptions** — Double opt-in subscription system for changelog alerts per company
@@ -56,11 +56,12 @@ flowchart TD
     subgraph WorkerInternal [" "]
         Router["Router\n(TanStack Start)"]
         ServerFns["Server Functions\n(API)"]
+        Watchdog["Watchdog (Cron)\nfetches & hashes"]
     end
     Worker -.-> Router
     Worker -.-> ServerFns
+    Worker -.-> Watchdog
 
-    Worker --> Watchdog
     Worker --> WatchdogQueue
     Worker --> AIReviewQueue
     Watchdog --> D1
@@ -69,7 +70,7 @@ flowchart TD
     AIReviewQueue -.->|failures| DLQ
 ```
 
-The app runs on **Cloudflare Workers** with server-side rendering via **TanStack Start**. Data is fetched through `createServerFn` calls — no direct database access from the client. A separate cron worker triggers the watchdog every 6 hours, which fetches privacy policies, detects changes via content hashing and line-level diffing, then queues results for AI-powered review and admin workflow. The AI review system processes changelog entries asynchronously via Cloudflare Queues with automatic retry and dead letter queue handling.
+The app runs on **Cloudflare Workers** with server-side rendering via **TanStack Start**. Data is fetched through `createServerFn` calls — no direct database access from the client. A scheduled cron trigger runs the watchdog daily, which fetches privacy policies, detects changes via content hashing, then queues results for AI-powered review and admin workflow. The AI review system processes changelog entries asynchronously via Cloudflare Queues with automatic retry and dead letter queue handling.
 
 > [!NOTE]
 > In development, the database runs on a local **libsql** (SQLite) file. In production, it uses **Cloudflare D1**. The same codebase handles both transparently via `getDb()`.
@@ -118,7 +119,9 @@ The app will be available at `http://localhost:3000`.
 
 ### Seeding the Database
 
-The file `src/lib/db/seedData.json` is the single source of truth for company privacy data. To update data:
+The file `src/lib/db/seedData.json` is an initial snapshot used to bootstrap or reset the database. Live updates to company privacy data are applied directly to the database via the admin review workflow.
+
+To manually add a new company or perform a full environment reset:
 
 1. Edit `seedData.json`
 2. Run `bun run src/lib/db/seed.ts`
@@ -149,7 +152,6 @@ src/
 │   ├── blog.index.tsx        # Blog listing page
 │   ├── blog.$slug.tsx        # Individual blog post
 │   ├── blog.feed[.]xml.ts    # Blog RSS feed
-│   ├── api.cron.watchdog.ts  # Cron-triggered watchdog endpoint
 │   ├── sitemap[.]xml.ts      # Sitemap XML endpoint
 │   ├── faq.tsx               # FAQ page
 │   ├── privacy.tsx           # Privacy policy page
@@ -202,19 +204,15 @@ The project is designed for [Cloudflare Workers](https://workers.cloudflare.com)
 ```bash
 # Deploy main application
 npx wrangler deploy
-
-# Deploy cron worker (separate deployment for watchdog)
-npx wrangler deploy --config wrangler.cron.jsonc
 ```
 
-Configuration is in `wrangler.jsonc` (main app) and `wrangler.cron.jsonc` (cron worker with 6-hour schedule).
+Configuration is in `wrangler.jsonc` (main app and scheduled cron triggers).
 
 ### Environment Variables
 
 | Variable                            | Description                                        |
 | ----------------------------------- | -------------------------------------------------- |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | HTTP Basic Auth for admin interface                |
-| `CRON_SECRET`                       | Shared secret for cron-triggered watchdog endpoint |
 | `APP_URL`                           | Public application URL                             |
 | `FIRECRAWL_API_KEY`                 | API key for Firecrawl JS fallback scraper          |
 | `AI_REVIEW_ENABLED`                 | Enable AI-powered changelog review (default: true) |
@@ -223,12 +221,12 @@ Configuration is in `wrangler.jsonc` (main app) and `wrangler.cron.jsonc` (cron 
 
 The application uses two Cloudflare Queues for async processing:
 
-| Queue                        | Purpose                                     |
-| ---------------------------- | ------------------------------------------- |
-| `privacygpt-watchdog-queue`  | Processes watchdog change detection results |
+| Queue                        | Purpose                                          |
+| ---------------------------- | ------------------------------------------------ |
+| `privacygpt-watchdog-queue`  | Processes watchdog change detection results      |
 | `privacygpt-watchdog-dlq`    | Dead letter queue for watchdog change detections |
-| `privacygpt-ai-review-queue` | AI-powered changelog entry review           |
-| `privacygpt-ai-review-dlq`   | Dead letter queue for failed AI reviews     |
+| `privacygpt-ai-review-queue` | AI-powered changelog entry review                |
+| `privacygpt-ai-review-dlq`   | Dead letter queue for failed AI reviews          |
 
 Queues are automatically created during CI/CD deployment.
 
