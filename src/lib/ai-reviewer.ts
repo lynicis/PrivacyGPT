@@ -38,8 +38,7 @@ const COMPANY_FIELDS = [
 export function buildAIPrompt(
   company: Record<string, any>,
   beforeText: string,
-  afterText: string,
-  diffHtml: string
+  afterText: string
 ): string {
   const currentProfile = COMPANY_FIELDS.map(
     (f) => `- ${f}: ${String(getProp(company, f) ?? "N/A")}`
@@ -51,16 +50,13 @@ Product: ${company.productName}
 CURRENT PROFILE:
 ${currentProfile}
 
-POLICY CHANGE DIFF:
-${diffHtml}
-
 BEFORE (first 3000 chars):
 ${beforeText.slice(0, 3000)}
 
 AFTER (first 3000 chars):
 ${afterText.slice(0, 3000)}
 
-Analyze the diff. Determine:
+Analyze the changes between the BEFORE and AFTER texts. Determine:
 1. Would any of the current profile fields above need to change?
 2. If yes, what should each field change to?
 3. Is this a breaking change (field values change) or non-breaking (wording/formatting only)?
@@ -137,8 +133,7 @@ export async function reviewChangelogWithAI(
   const prompt = buildAIPrompt(
     company,
     changelog.beforeText,
-    changelog.afterText,
-    changelog.diffHtml || ""
+    changelog.afterText
   )
 
   const response = await env.AI.run("@cf/meta/llama-3.2-3b-instruct", {

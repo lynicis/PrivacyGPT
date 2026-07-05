@@ -1,5 +1,5 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router"
-import { QueryClient, isServer } from "@tanstack/react-query"
+import { QueryClient, environmentManager } from "@tanstack/react-query"
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query"
 import { routeTree } from "./routeTree.gen"
 
@@ -17,7 +17,7 @@ function makeQueryClient() {
 let browserQueryClient: QueryClient | undefined
 
 export function getRouter() {
-  const queryClient = isServer
+  const queryClient = environmentManager.isServer()
     ? makeQueryClient()
     : (browserQueryClient ??= makeQueryClient())
 

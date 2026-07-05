@@ -92,7 +92,7 @@ describe("parseAIResponse", () => {
 })
 
 describe("buildAIPrompt", () => {
-  it("includes company fields and diff", () => {
+  it("includes company fields and texts", () => {
     const company = {
       companyName: "TestCo",
       productName: "TestProduct",
@@ -100,16 +100,10 @@ describe("buildAIPrompt", () => {
       optOutAvailable: false,
       sourceUrl: "https://example.com/privacy",
     }
-    const prompt = buildAIPrompt(
-      company,
-      "old text",
-      "new text",
-      "<span>diff</span>"
-    )
+    const prompt = buildAIPrompt(company, "old text", "new text")
     expect(prompt).toContain("TestCo")
     expect(prompt).toContain("TestProduct")
     expect(prompt).toContain("trainsOnDataByDefault: true")
-    expect(prompt).toContain("<span>diff</span>")
     expect(prompt).toContain("old text")
     expect(prompt).toContain("new text")
   })
@@ -138,7 +132,6 @@ describe("reviewChangelogWithAI", () => {
             companyId: 1,
             beforeText: "old",
             afterText: "new",
-            diffHtml: "<span>diff</span>",
             status: "pending_review",
           },
         ]).then(onfulfilled)
@@ -178,7 +171,6 @@ describe("reviewChangelogWithAI", () => {
             companyId: 1,
             beforeText: "old",
             afterText: "new",
-            diffHtml: "<span>diff</span>",
             status: "pending_review",
           },
         ]).then(onfulfilled)
@@ -217,7 +209,6 @@ describe("reviewChangelogWithAI", () => {
             companyId: 1,
             beforeText: "old",
             afterText: "new",
-            diffHtml: "<span>diff</span>",
             status: "pending_review",
           },
         ]).then(onfulfilled)

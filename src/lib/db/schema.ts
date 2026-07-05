@@ -79,7 +79,6 @@ export const changelogs = sqliteTable("changelogs", {
   detectedAt: text("detected_at").notNull(), // ISO Timestamp
   beforeText: text("before_text").notNull(),
   afterText: text("after_text").notNull(),
-  diffHtml: text("diff_html"), // HTML diff for visualization
   status: text("status").notNull(), // 'pending_review' | 'reviewed'
   reviewNotes: text("review_notes"),
   reviewedAt: text("reviewed_at"), // ISO Timestamp

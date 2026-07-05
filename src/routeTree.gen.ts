@@ -23,7 +23,6 @@ import { Route as CompanyCompanyKeyRouteImport } from './routes/company.$company
 import { Route as ChangelogFeedDotxmlRouteImport } from './routes/changelog.feed[.]xml'
 import { Route as BlogFeedDotxmlRouteImport } from './routes/blog.feed[.]xml'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
-import { Route as ApiCronWatchdogRouteImport } from './routes/api.cron.watchdog'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -95,11 +94,6 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCronWatchdogRoute = ApiCronWatchdogRouteImport.update({
-  id: '/api/cron/watchdog',
-  path: '/api/cron/watchdog',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -116,7 +110,6 @@ export interface FileRoutesByFullPath {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/blog/': typeof BlogIndexRoute
-  '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -133,7 +126,6 @@ export interface FileRoutesByTo {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/blog': typeof BlogIndexRoute
-  '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,7 +143,6 @@ export interface FileRoutesById {
   '/changelog/feed.xml': typeof ChangelogFeedDotxmlRoute
   '/company/$companyKey': typeof CompanyCompanyKeyRoute
   '/blog/': typeof BlogIndexRoute
-  '/api/cron/watchdog': typeof ApiCronWatchdogRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,7 +161,6 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/blog/'
-    | '/api/cron/watchdog'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -187,7 +177,6 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/blog'
-    | '/api/cron/watchdog'
   id:
     | '__root__'
     | '/'
@@ -204,7 +193,6 @@ export interface FileRouteTypes {
     | '/changelog/feed.xml'
     | '/company/$companyKey'
     | '/blog/'
-    | '/api/cron/watchdog'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -221,7 +209,6 @@ export interface RootRouteChildren {
   BlogFeedDotxmlRoute: typeof BlogFeedDotxmlRoute
   CompanyCompanyKeyRoute: typeof CompanyCompanyKeyRoute
   BlogIndexRoute: typeof BlogIndexRoute
-  ApiCronWatchdogRoute: typeof ApiCronWatchdogRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -324,13 +311,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/cron/watchdog': {
-      id: '/api/cron/watchdog'
-      path: '/api/cron/watchdog'
-      fullPath: '/api/cron/watchdog'
-      preLoaderRoute: typeof ApiCronWatchdogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -360,7 +340,6 @@ const rootRouteChildren: RootRouteChildren = {
   BlogFeedDotxmlRoute: BlogFeedDotxmlRoute,
   CompanyCompanyKeyRoute: CompanyCompanyKeyRoute,
   BlogIndexRoute: BlogIndexRoute,
-  ApiCronWatchdogRoute: ApiCronWatchdogRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

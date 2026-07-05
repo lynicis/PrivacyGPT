@@ -150,7 +150,6 @@ describe("getChangelogsFn API", () => {
         detectedAt: "2026-06-22T12:00:00Z",
         beforeText: "before",
         afterText: "after",
-        diffHtml: "diff",
         status: "pending_review",
         reviewNotes: null,
         reviewedAt: null,

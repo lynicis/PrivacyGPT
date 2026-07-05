@@ -6,7 +6,6 @@ import { getDb, companies } from "./db"
 import { changelogs, snapshots } from "./db/schema"
 import { eq, desc, and, asc, sql } from "drizzle-orm"
 import type { SQL } from "drizzle-orm"
-import escapeHtml from "escape-html"
 import { getBlogPosts, getBlogPostBySlug } from "./blog-data"
 import {
   calculateSubScores,
@@ -251,7 +250,6 @@ export async function getChangelogs(
         detectedAt: changelogs.detectedAt,
         beforeText: changelogs.beforeText,
         afterText: changelogs.afterText,
-        diffHtml: changelogs.diffHtml,
         status: changelogs.status,
         reviewNotes: changelogs.reviewNotes,
         reviewedAt: changelogs.reviewedAt,
@@ -426,7 +424,12 @@ export const reviewChangelogFn = createServerFn({ method: "POST" })
   })
 
 function escapeXml(str: string): string {
-  return escapeHtml(str)
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
 }
 
 export const getRssFeedFn = createServerFn({ method: "GET" }).handler(

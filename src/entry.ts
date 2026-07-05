@@ -4,6 +4,10 @@ import { reviewChangelogWithAI } from "./lib/ai-reviewer"
 
 export default {
   fetch: handler.fetch,
+  async scheduled(_event: any, env: any, _ctx: any) {
+    const { runWatchdog } = await import("./lib/watchdog")
+    await runWatchdog(env)
+  },
   async queue(batch: any, env: any, _ctx: any) {
     const queueName = batch.queue
 

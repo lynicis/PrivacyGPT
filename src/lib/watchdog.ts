@@ -3,53 +3,22 @@ import { getDb } from "./db"
 import { companies, snapshots, changelogs } from "./db/schema"
 import { eq, desc } from "drizzle-orm"
 import FirecrawlApp from "@mendable/firecrawl-js"
-import { convert } from "html-to-text"
-import escapeHtml from "escape-html"
-import { diffLines } from "diff"
-
-function decodeHtmlEntities(text: string): string {
-  return text
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&apos;/gi, "'")
-    .replace(/&nbsp;/gi, " ")
-}
 
 export function hashText(text: string): string {
   return createHash("sha256").update(text).digest("hex")
 }
 
 /**
- * Strips HTML of scripts, styles, nav, footer, and tag markup,
- * returning only the visible text content of the page.
+ * Lazy dev HTML stripper. Removes scripts, styles, and all tags.
+ * Good enough for change detection and diffing.
  */
 export function stripHtmlToText(html: string): string {
-  const options = {
-    selectors: [
-      { selector: "nav", format: "skip" },
-      { selector: "header", format: "skip" },
-      { selector: "footer", format: "skip" },
-      { selector: "aside", format: "skip" },
-      { selector: "form", format: "skip" },
-      { selector: "svg", format: "skip" },
-      { selector: "script", format: "skip" },
-      { selector: "style", format: "skip" },
-      { selector: "a", options: { ignoreHref: true } },
-      { selector: "img", format: "skip" },
-    ],
-    wordwrap: null,
-    preserveNewlines: true,
-  }
-
-  const converted = decodeHtmlEntities(convert(html, options))
-  return converted
-    .split("\n")
-    .map((line) => line.replace(/[ \t]+/g, " ").trim())
-    .filter((line) => line.length > 0)
-    .join("\n")
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
 }
 
 /**
@@ -57,9 +26,9 @@ export function stripHtmlToText(html: string): string {
  * Returns null if FIRECRAWL_API_KEY is not set or scraping fails.
  */
 async function scrapeWithFirecrawl(
-  url: string
+  url: string,
+  apiKey?: string
 ): Promise<{ text: string; raw: string } | null> {
-  const apiKey = process.env.FIRECRAWL_API_KEY
   if (!apiKey) return null
 
   try {
@@ -89,7 +58,8 @@ async function scrapeWithFirecrawl(
  * Uses plain fetch first; falls back to Firecrawl if blocked or on error.
  */
 export async function fetchPolicyText(
-  url: string
+  url: string,
+  firecrawlApiKey?: string
 ): Promise<{ text: string; raw: string } | null> {
   try {
     const response = await fetch(url, {
@@ -107,21 +77,19 @@ export async function fetchPolicyText(
       return { text, raw }
     }
 
-    // Fetch failed — try Firecrawl as fallback
     console.warn(
       `[watchdog] HTTP ${response.status} fetching ${url} — trying Firecrawl fallback`
     )
-    return await scrapeWithFirecrawl(url)
+    return await scrapeWithFirecrawl(url, firecrawlApiKey)
   } catch (error) {
-    // Network error or timeout — try Firecrawl as fallback
     console.warn(`[watchdog] Failed to fetch ${url}, trying Firecrawl:`, error)
-    return await scrapeWithFirecrawl(url)
+    return await scrapeWithFirecrawl(url, firecrawlApiKey)
   }
 }
 
 export async function checkCompany(
   companyId: number,
-  env?: { AI_REVIEW_QUEUE?: { send: (msg: any) => Promise<void> } }
+  env?: any
 ): Promise<"baseline" | "change" | "none"> {
   const db = await getDb()
   const company = await db
@@ -136,7 +104,13 @@ export async function checkCompany(
   }
 
   console.log(`[watchdog] Checking ${company.companyName}...`)
-  const result = await fetchPolicyText(company.sourceUrl)
+
+  // Use env.FIRECRAWL_API_KEY if passed, fallback to process.env for local CLI runs
+  const firecrawlKey =
+    env?.FIRECRAWL_API_KEY ||
+    (typeof process !== "undefined" ? process.env.FIRECRAWL_API_KEY : undefined)
+  const result = await fetchPolicyText(company.sourceUrl, firecrawlKey)
+
   if (!result) {
     throw new Error(`Failed to fetch policy text for ${company.companyName}`)
   }
@@ -163,15 +137,6 @@ export async function checkCompany(
     return "baseline"
   } else if (latestSnapshot.contentHash !== contentHash) {
     console.log(`[watchdog] ⚠ CHANGE DETECTED for ${company.companyName}!`)
-    const diffHtml = diffLines(latestSnapshot.rawContent, result.text)
-      .map((part) =>
-        part.added
-          ? `<span class="diff-added">${escapeHtml(part.value)}</span>`
-          : part.removed
-            ? `<span class="diff-removed">${escapeHtml(part.value)}</span>`
-            : `<span class="diff-unchanged">${escapeHtml(part.value)}</span>`
-      )
-      .join("\n")
 
     const [inserted] = await db
       .insert(changelogs)
@@ -180,7 +145,6 @@ export async function checkCompany(
         detectedAt: now,
         beforeText: latestSnapshot.rawContent.slice(0, 5000),
         afterText: result.text.slice(0, 5000),
-        diffHtml,
         status: "pending_review",
       })
       .returning({ id: changelogs.id })
@@ -210,12 +174,12 @@ export async function checkCompany(
 
 export async function handleWatchdogQueueMessage(
   body: { companyId: number } | null | undefined,
-  _env?: any
+  env?: any
 ): Promise<void> {
   if (typeof body?.companyId !== "number") {
     throw new Error("Invalid watchdog queue message body")
   }
-  await checkCompany(body.companyId)
+  await checkCompany(body.companyId, env)
 }
 
 /**
@@ -225,7 +189,7 @@ export async function handleWatchdogQueueMessage(
  * 3. Compare to the latest snapshot.
  * 4. If changed (or no baseline exists), store snapshot and changelog.
  */
-export async function runWatchdog(): Promise<{
+export async function runWatchdog(env?: any): Promise<{
   checked?: number
   baselines?: number
   changes?: number
@@ -238,17 +202,7 @@ export async function runWatchdog(): Promise<{
     .from(companies)
     .where(eq(companies.hasValidPrivacyPolicy, true))
 
-  // Attempt to check if queue binding exists (Cloudflare context)
-  let watchdogQueue: { send: (msg: any) => Promise<void> } | undefined
-  let aiReviewQueue: { send: (msg: any) => Promise<void> } | undefined
-  try {
-    const mod = await import("cloudflare:workers")
-    const env = mod.env as any
-    watchdogQueue = env.WATCHDOG_QUEUE
-    aiReviewQueue = env.AI_REVIEW_QUEUE
-  } catch {
-    // Fallback to direct synchronous execution if not in Worker context with Queue
-  }
+  const watchdogQueue = env?.WATCHDOG_QUEUE
 
   if (watchdogQueue) {
     console.log("[watchdog] Queue binding detected. Enqueuing checks...")
@@ -267,9 +221,7 @@ export async function runWatchdog(): Promise<{
 
   for (const company of allCompanies) {
     try {
-      const status = await checkCompany(company.id, {
-        AI_REVIEW_QUEUE: aiReviewQueue,
-      })
+      const status = await checkCompany(company.id, env)
       checked++
       if (status === "baseline") {
         baselines++
@@ -286,7 +238,11 @@ export async function runWatchdog(): Promise<{
 }
 
 // CLI entry point
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (
+  typeof process !== "undefined" &&
+  process.argv &&
+  import.meta.url === `file://${process.argv[1]}`
+) {
   console.log("[watchdog] Starting privacy policy watchdog run...")
   runWatchdog()
     .then((stats) => {
