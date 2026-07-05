@@ -66,6 +66,7 @@ flowchart TD
     Worker --> AIReviewQueue
     Watchdog --> D1
     WatchdogQueue --> D1
+    WatchdogQueue -.->|failures| DLQ
     AIReviewQueue --> D1
     AIReviewQueue -.->|failures| DLQ
 ```
