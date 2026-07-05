@@ -44,8 +44,7 @@ function BlogPost() {
   const PostComponent = useMemo(() => {
     const matchKey = `../content/blog/${post.slug}.mdx`
     const loadPost = getProp(postModules, matchKey) as
-      | (() => Promise<{ default: React.ComponentType<any> }>)
-      | undefined
+      (() => Promise<{ default: React.ComponentType<any> }>) | undefined
     if (!loadPost) return null
     return lazy(loadPost)
   }, [post.slug])
