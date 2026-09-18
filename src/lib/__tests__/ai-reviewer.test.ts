@@ -28,8 +28,11 @@ const mockDb = {
   }),
 }
 
-vi.mock(import("../db"), async (importOriginal) => {
-  const original = (await importOriginal()) as any
+vi.mock("../db", async (importOriginal) => {
+  const original =
+    typeof importOriginal === "function"
+      ? ((await importOriginal()) as any)
+      : {}
   return {
     ...original,
     getDb: () => Promise.resolve(mockDb),

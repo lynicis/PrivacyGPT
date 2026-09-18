@@ -9,6 +9,29 @@ import {
 } from "../watchdog"
 import FirecrawlApp from "@mendable/firecrawl-js"
 
+/* eslint-disable security/detect-object-injection */
+// Compatibility polyfills for Bun test runner where vi.stubGlobal / vi.mocked may be missing
+const originalGlobals: Record<string, any> = {}
+if (typeof vi.stubGlobal !== "function") {
+  ;(vi as any).stubGlobal = (key: string, val: any) => {
+    if (!(key in originalGlobals)) {
+      originalGlobals[key] = (globalThis as any)[key]
+    }
+    ;(globalThis as any)[key] = val
+  }
+}
+if (typeof vi.unstubAllGlobals !== "function") {
+  ;(vi as any).unstubAllGlobals = () => {
+    for (const [key, val] of Object.entries(originalGlobals)) {
+      ;(globalThis as any)[key] = val
+    }
+  }
+}
+if (typeof vi.mocked !== "function") {
+  ;(vi as any).mocked = (fn: any) => fn
+}
+/* eslint-enable security/detect-object-injection */
+
 const mockChain = {
   from: vi.fn().mockImplementation(() => mockChain),
   where: vi.fn().mockImplementation(() => mockChain),
@@ -34,8 +57,11 @@ const mockDb = {
   }),
 }
 
-vi.mock(import("../db"), async (importOriginal) => {
-  const original = (await importOriginal()) as any
+vi.mock("../db", async (importOriginal) => {
+  const original =
+    typeof importOriginal === "function"
+      ? ((await importOriginal()) as any)
+      : {}
   return {
     ...original,
     getDb: () => Promise.resolve(mockDb),
@@ -44,7 +70,9 @@ vi.mock(import("../db"), async (importOriginal) => {
 
 const mockQueueSend = vi.fn()
 
-vi.mock("@mendable/firecrawl-js")
+vi.mock("@mendable/firecrawl-js", () => ({
+  default: vi.fn(),
+}))
 
 describe("watchdog utilities", () => {
   describe("stripHtmlToText", () => {
@@ -188,6 +216,7 @@ describe("watchdog utilities", () => {
       })
       MockedFirecrawl.mockImplementation(function () {
         this.scrape = mockScrape
+        return this
       })
 
       process.env.FIRECRAWL_API_KEY = "test-key"
@@ -216,6 +245,7 @@ describe("watchdog utilities", () => {
       })
       MockedFirecrawl.mockImplementation(function () {
         this.scrape = mockScrape
+        return this
       })
 
       process.env.FIRECRAWL_API_KEY = "test-key"
@@ -237,6 +267,7 @@ describe("watchdog utilities", () => {
         .mockRejectedValue(new Error("Firecrawl API error"))
       MockedFirecrawl.mockImplementation(function () {
         this.scrape = mockScrape
+        return this
       })
 
       process.env.FIRECRAWL_API_KEY = "test-key"

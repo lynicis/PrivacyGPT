@@ -14437,8 +14437,8 @@ declare namespace Rpc {
   type Stubify<T> = T extends Stubable ? Stub<T> : T extends Map<infer K, infer V> ? Map<Stubify<K>, Stubify<V>> : T extends Set<infer V> ? Set<Stubify<V>> : T extends Array<infer V> ? Array<Stubify<V>> : T extends ReadonlyArray<infer V> ? ReadonlyArray<Stubify<V>> : T extends BaseType ? T : T extends {
         [key: string | number]: any;
     } ? {
-        [K in keyof T]: Stubify<T[K]>;
-    } : T;
+            [K in keyof T]: Stubify<T[K]>;
+        } : T;
   // Recursively rewrite all `Stub<T>`s with the corresponding `T`s.
   // Note we use `StubBase` instead of `Stub` here to avoid circular dependencies:
   // `Stub` depends on `Provider`, which depends on `Unstubify`, which would depend on `Stub`.
@@ -14446,8 +14446,8 @@ declare namespace Rpc {
   type Unstubify<T> = T extends StubBase<infer V> ? V : T extends Map<infer K, infer V> ? Map<Unstubify<K>, Unstubify<V>> : T extends Set<infer V> ? Set<Unstubify<V>> : T extends Array<infer V> ? Array<Unstubify<V>> : T extends ReadonlyArray<infer V> ? ReadonlyArray<Unstubify<V>> : T extends BaseType ? T : T extends {
         [key: string | number]: unknown;
     } ? {
-        [K in keyof T]: Unstubify<T[K]>;
-    } : T;
+            [K in keyof T]: Unstubify<T[K]>;
+        } : T;
   type UnstubifyAll<A extends any[]> = {
     [I in keyof A]: Unstubify<A[I]>
   }

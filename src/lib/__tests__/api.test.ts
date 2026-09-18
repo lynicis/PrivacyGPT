@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { getCompanies, getChangelogs } from "../api"
 
-const mockChain = {
+const mockChain: any = {
   from: vi.fn().mockImplementation(() => mockChain),
   leftJoin: vi.fn().mockImplementation(() => mockChain),
   where: vi.fn().mockImplementation(() => mockChain),
   orderBy: vi.fn().mockImplementation(() => mockChain),
   limit: vi.fn().mockImplementation(() => mockChain),
   offset: vi.fn().mockImplementation(() => mockChain),
-  then: vi.fn().mockImplementation((onfulfilled) => {
+  then: vi.fn().mockImplementation((onfulfilled: any) => {
     return Promise.resolve(mockChain.resolveValue).then(onfulfilled)
   }),
   resolveValue: [] as any[],
@@ -18,8 +18,11 @@ const mockDb = {
   select: vi.fn().mockReturnValue(mockChain),
 }
 
-vi.mock(import("../db"), async (importOriginal) => {
-  const original = (await importOriginal()) as any
+vi.mock("../db", async (importOriginal) => {
+  const original =
+    typeof importOriginal === "function"
+      ? ((await importOriginal()) as any)
+      : {}
   return {
     ...original,
     getDb: () => Promise.resolve(mockDb),
