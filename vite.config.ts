@@ -20,7 +20,7 @@ const config = defineConfig(({ command }) => {
         enforce: "pre",
         resolveId(id, importer) {
           if (id.startsWith("@/") && importer?.endsWith(".mdx")) {
-            const resolved = path.resolve(__dirname, id.replace("@/", "src/"))
+            const resolved = path.resolve(import.meta.dirname, id.replace("@/", "src/"))
             if (resolved.endsWith(".tsx") || resolved.endsWith(".ts")) {
               return resolved
             }
