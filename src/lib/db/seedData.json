@@ -7,7 +7,7 @@
     "trainsOnDataNuance": "Free, Plus, and Pro accounts train on your data by default. API, Team, and Enterprise accounts are excluded from training.",
     "optOutAvailable": true,
     "optOutHow": "Go to Settings > Data Controls and toggle off 'Improve the model for everyone'. If you do not have an account, you can submit a request through the OpenAI Privacy Center.",
-    "optOutUrl": "https://platform.openai.com/settings/organization/general",
+    "optOutUrl": "https://privacy.openai.com/",
     "retentionPeriod": "Chat history stays indefinitely if enabled. If disabled, data is kept for 30 days for abuse monitoring, then deleted.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "You can delete individual chats or your entire account. Deletion takes up to 30 days. Backup copies may remain for a short time after.",
@@ -18,8 +18,8 @@
     "childrenDataPolicy": "Minimum age is 13 (or regional equivalent). Users under 18 need parental or guardian consent. OpenAI does not knowingly collect data from children under 13.",
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise (Team and Enterprise tiers) and API accounts do not train on your data by default. They also offer custom retention agreements and compliance certifications such as SOC 2 and GDPR.",
-    "sourceUrl": "https://openai.com/policies/row-privacy-policy/",
-    "lastVerifiedDate": "2026-06-22",
+    "sourceUrl": "https://openai.com/policies/privacy-policy/",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -28,10 +28,10 @@
     "companyName": "Anthropic",
     "productName": "Claude / Console API",
     "trainsOnDataByDefault": false,
-    "trainsOnDataNuance": "Consumer chats on Claude Free and Pro require user opt-in for model training. Console API and Enterprise plans are excluded from training.",
+    "trainsOnDataNuance": "Consumer chats on Claude Free, Pro, and Max require user opt-in for model training. Claude Code sessions follow account settings. Console API and Claude for Work/Enterprise plans are excluded from training.",
     "optOutAvailable": true,
     "optOutHow": "Go to Claude Settings > Data Privacy Controls and toggle off 'Help improve Claude'. You can also request opt-out through the Privacy Center.",
-    "optOutUrl": "https://claude.ai/settings",
+    "optOutUrl": "https://claude.ai/settings/data-privacy-controls",
     "retentionPeriod": "If training is disabled, data is kept for 30 days. If enabled, de-identified data may be retained up to 5 years for research and model development.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "You can delete chats from the active UI. Account deletion requests are typically completed within 30 days.",
@@ -43,7 +43,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Console API and Claude Enterprise accounts do not train on your data by default. They offer custom retention options and HIPAA/SOC 2 compliance.",
     "sourceUrl": "https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -52,13 +52,13 @@
     "companyName": "Google",
     "productName": "Gemini Apps",
     "trainsOnDataByDefault": true,
-    "trainsOnDataNuance": "Consumer Gemini apps train on chats by default when Gemini Apps Activity is on. Audio and Gemini Live recordings are not used for training. Workspace and Cloud (Vertex AI) do not train on user data.",
+    "trainsOnDataNuance": "Consumer Gemini apps train on chats by default when Keep Activity is on. Audio recordings and Gemini Live video/screenshares have separate opt-in controls. Workspace and Vertex AI Cloud do not train on user data.",
     "optOutAvailable": true,
-    "optOutHow": "Turn off Gemini Apps Activity at myactivity.google.com. Future chats will not be used for training. You can also delete past chats or use Temporary Chats. EU/UK users have GDPR right to object.",
+    "optOutHow": "Turn off Keep Activity at myactivity.google.com/product/gemini. Future chats will not be saved or used for training. You can also delete past chats or use Temporary Chats (retained up to 72 hours). EU/UK users have GDPR right to object.",
     "optOutUrl": "https://myactivity.google.com/product/gemini",
-    "retentionPeriod": "Default 18 months, adjustable to 3 or 36 months. Temporary chats and Keep Activity off: 72 hours. Reviewed chats: up to 3 years, disconnected from account. Audio recordings: deleted after 3 years of inactivity.",
+    "retentionPeriod": "Default 18 months, adjustable to 3 or 36 months, or indefinite. Temporary chats and Keep Activity off: up to 72 hours. Reviewed chats: up to 3 years, disconnected from account.",
     "dataDeletedOnRequest": true,
-    "dataDeletedOnRequestTimeframe": "Delete individual chats or clear all Gemini Apps Activity anytime. Chats already reviewed by humans are retained up to 3 years disconnected from your account. Turning off Keep Activity does not delete data in other Google services.",
+    "dataDeletedOnRequestTimeframe": "Delete individual chats or clear all Keep Activity anytime. Chats already reviewed by human annotators are retained up to 3 years disconnected from your account.",
     "thirdPartySharing": "Shared with service providers for human review (disconnected from account first). Connected third-party apps receive data per their own privacy policies. Google does not sell personal data.",
     "humanReviewOfChats": true,
     "humanReviewConditions": "A subset of chats is reviewed by human annotators to improve models, reduce unintended activations, and keep Gemini safe. Reviewers assess response quality, accuracy, and safety. Turning off Keep Activity stops future chats from being reviewed for improvement.",
@@ -67,8 +67,8 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Workspace, Vertex AI, and Cloud customers are covered under enterprise agreements with no data training, no human review, and local residency support. Separate Generative AI in Google Workspace Privacy Hub applies.",
     "sourceUrl": "https://support.google.com/gemini/answer/13594961?hl=en",
-    "lastVerifiedDate": "2026-06-22",
-    "lastChangedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
+    "lastChangedDate": "2026-08-10",
     "confidence": "verified_from_policy_text"
   },
   {
@@ -79,7 +79,7 @@
     "trainsOnDataNuance": "Meta trains on public content (posts, comments, photos, audio) shared on Facebook and Instagram by default. Interactions with Meta AI features are also used for training. Information from partners, vendors, and third parties is also used.",
     "optOutAvailable": true,
     "optOutHow": "EU/UK users can use the Right to Object form in the Privacy Center under GDPR. US and other non-EU users can set accounts to private to restrict training data, but there is no general opt-out setting in the privacy policy.",
-    "optOutUrl": "https://www.facebook.com/privacy/policy/",
+    "optOutUrl": "https://privacycenter.meta.com/",
     "retentionPeriod": "Retained on a case-by-case basis. Meta considers whether data is needed to operate products, the feature and how it works, legal obligations, and other legitimate purposes such as preventing harm or investigating violations.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "Users can delete information or their account through provided tools. However, public posts already used in model training cannot be recalled.",
@@ -91,7 +91,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Meta does not offer a hosted enterprise AI service with dedicated B2B privacy guarantees. Llama models run on third-party enterprise platforms under those platforms' terms.",
     "sourceUrl": "https://www.facebook.com/privacy/policy/",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": "2026-06-22",
     "confidence": "verified_from_policy_text"
   },
@@ -115,7 +115,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Copilot for Microsoft 365 and Copilot with Enterprise Data Protection (EDP) enforce no model training, no human review of chats, and all data is encrypted at rest and in transit.",
     "sourceUrl": "https://support.microsoft.com/en-us/microsoft-copilot/privacy-faq-for-microsoft-copilot",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": "2026-06-22",
     "confidence": "verified_from_policy_text"
   },
@@ -126,8 +126,8 @@
     "trainsOnDataByDefault": true,
     "trainsOnDataNuance": "Chats on the consumer Le Chat interface are used for model training by default. Vibe Teams and Enterprise accounts are excluded from training by default. API platform usage is also excluded.",
     "optOutAvailable": true,
-    "optOutHow": "In Le Chat settings, open the Data & Account Controls panel and uncheck the 'Enable data sharing' checkbox. In the Admin Console, disable the toggle under Privacy to stop training on interactions.",
-    "optOutUrl": "https://chat.mistral.ai/chat/account",
+    "optOutHow": "In Le Chat settings or Mistral Admin panel (admin.mistral.ai under Privacy), disable \"Allow your interactions to be used to train our models\". For API, disable \"Anonymous improvement data\".",
+    "optOutUrl": "https://admin.mistral.ai",
     "retentionPeriod": "Conversations are saved to account history indefinitely until deleted by the user. If opted out, inputs and outputs are not collected for training.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "You can delete chats directly in the interface. Deletion is instantaneous in the active system. Backup copies are cleared per standard backup retention cycles.",
@@ -139,7 +139,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "The developer API platform does not train on query data by default. Enterprise contracts offer formal GDPR clauses and dedicated deployment options.",
     "sourceUrl": "https://help.mistral.ai/en/articles/455207-can-i-opt-out-of-my-input-or-output-data-being-used-for-training",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": "2026-06-22",
     "confidence": "verified_from_policy_text"
   },
@@ -163,7 +163,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Perplexity Enterprise Pro features SSO, data encryption, no data training by default, and immediate data deletion upon workspace deletion.",
     "sourceUrl": "https://www.perplexity.ai/hub/legal/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -187,7 +187,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Developer API platform services have separate terms where prompt inputs are not used for training and are subject to standard enterprise security policies.",
     "sourceUrl": "https://x.ai/legal/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -211,7 +211,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "DeepSeek API platform usage does not train on query data by default. It offers temporary data caching (up to 30 days) for abuse detection and complies with standard enterprise security expectations.",
     "sourceUrl": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html",
-    "lastVerifiedDate": "2026-06-25",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": "2026-06-25",
     "confidence": "verified_from_policy_text"
   },
@@ -223,7 +223,7 @@
     "trainsOnDataNuance": "AWS Bedrock does not use customer data (inputs, outputs, or custom model weights) to train or improve any base models by default. Other AWS AI services may collect data by default but allow account-level opt-out.",
     "optOutAvailable": true,
     "optOutHow": "Opt-out is the default for Bedrock (no action needed). For other AWS AI services, opt out via AWS Organizations by attaching an AI services opt-out policy.",
-    "optOutUrl": "https://console.aws.amazon.com/organizations/",
+    "optOutUrl": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_ai-opt-out.html",
     "retentionPeriod": "No conversational data is stored by AWS for Bedrock inference. Customer data remains within their selected AWS region VPC.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "You have full ownership and control over your data. It can be deleted instantly through standard AWS console or API commands.",
@@ -235,7 +235,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Bedrock is an enterprise developer service with comprehensive B2B compliance (HIPAA, SOC, GDPR), customer-managed encryption keys (KMS), and VPC connectivity.",
     "sourceUrl": "https://aws.amazon.com/bedrock/security-privacy-responsible-ai/",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -259,7 +259,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy policy for all users. Acts as a gateway only - data handling determined by selected model provider.",
     "sourceUrl": "https://openrouter.ai/privacy",
-    "lastVerifiedDate": "2026-06-25",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -283,7 +283,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users. Cloudflare acts as a data processor only.",
     "sourceUrl": "https://www.cloudflare.com/privacypolicy/",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -305,10 +305,11 @@
     "childrenDataPolicy": "Restricted to users 18 years or older.",
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users. No training on any customer data.",
-    "sourceUrl": "https://groq.com/privacy/",
-    "lastVerifiedDate": "2026-06-25",
+    "sourceUrl": "https://groq.com/privacy-policy",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
-    "confidence": "verified_from_policy_text"
+    "confidence": "verified_from_policy_text",
+    "optOutUrl": null
   },
   {
     "companyKey": "cerebras",
@@ -328,10 +329,11 @@
     "childrenDataPolicy": "Requires users to be at least 13 years old. Users under 18 need permission from a parent or guardian.",
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
-    "sourceUrl": "https://cerebras.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-25",
+    "sourceUrl": "https://www.cerebras.ai/privacy-policy",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
-    "confidence": "verified_from_policy_text"
+    "confidence": "verified_from_policy_text",
+    "optOutUrl": null
   },
   {
     "companyKey": "fireworks-ai",
@@ -352,9 +354,10 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise accounts offer custom data retention and compliance options.",
     "sourceUrl": "https://fireworks.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-25",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
-    "confidence": "verified_from_policy_text"
+    "confidence": "verified_from_policy_text",
+    "optOutUrl": null
   },
   {
     "companyKey": "together-ai",
@@ -375,9 +378,10 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise accounts offer custom data retention and compliance options.",
     "sourceUrl": "https://www.together.ai/privacy",
-    "lastVerifiedDate": "2026-06-25",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
-    "confidence": "verified_from_policy_text"
+    "confidence": "verified_from_policy_text",
+    "optOutUrl": null
   },
   {
     "companyKey": "nvidia-nim",
@@ -398,9 +402,10 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users. No training on customer data.",
     "sourceUrl": "https://www.nvidia.com/en-us/about-nvidia/privacy-center/",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
-    "confidence": "verified_from_policy_text"
+    "confidence": "verified_from_policy_text",
+    "optOutUrl": null
   },
   {
     "companyKey": "sarvam-ai",
@@ -421,8 +426,8 @@
     "childrenDataPolicy": "Restricted to users 18 years or older.",
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
-    "sourceUrl": "https://sarvam.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "sourceUrl": "https://www.sarvam.ai/privacy-policy",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -446,7 +451,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
     "sourceUrl": "https://docs.z.ai/legal-agreement/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -470,7 +475,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users. Acts as a processor only.",
     "sourceUrl": "https://konghq.com/legal/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -494,7 +499,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
     "sourceUrl": "https://portkey.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -518,7 +523,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users - self-hosted open-source software.",
     "sourceUrl": "https://docs.litellm.ai/docs/data_security#legalcompliance-faqs",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -542,7 +547,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users - self-hosted open-source software.",
     "sourceUrl": "https://github.com/deepset-ai/haystack",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text",
     "hasValidPrivacyPolicy": false
@@ -567,7 +572,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise accounts have formal data protection agreements, no training, and 30-day retention.",
     "sourceUrl": "https://cohere.com/privacy",
-    "lastVerifiedDate": "2026-06-25",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -591,7 +596,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise Hub accounts offer enhanced privacy controls and SOC 2 compliance.",
     "sourceUrl": "https://huggingface.co/privacy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -615,7 +620,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
     "sourceUrl": "https://replicate.com/privacy",
-    "lastVerifiedDate": "2026-06-25",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -639,7 +644,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
     "sourceUrl": "https://sambanova.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-25",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -662,8 +667,8 @@
     "childrenDataPolicy": "N/A - research organization.",
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "N/A - research organization.",
-    "sourceUrl": "https://nousresearch.com",
-    "lastVerifiedDate": "2026-06-22",
+    "sourceUrl": "https://nousresearch.com/",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text",
     "hasValidPrivacyPolicy": false
@@ -688,7 +693,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Explains processor role for commercial customers who serve as data controllers for their end users.",
     "sourceUrl": "https://platform.stepfun.ai/docs/en/agreement/userprivacy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -712,7 +717,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Requires developers to secure valid consent from their end users for data collection.",
     "sourceUrl": "https://maas.unisound.com/docs/protocol/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -736,7 +741,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "N/A - research organization.",
     "sourceUrl": "https://github.com/OpenBMB",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "unverified",
     "hasValidPrivacyPolicy": false
@@ -761,7 +766,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Local execution runs offline on user hardware. Optional cloud subscription services route requests to hosted models without training on prompts.",
     "sourceUrl": "https://ollama.com/privacy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -784,8 +789,8 @@
     "childrenDataPolicy": "N/A - developer tool.",
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "Same privacy terms for all users.",
-    "sourceUrl": "https://mlc.ai",
-    "lastVerifiedDate": "2026-06-25",
+    "sourceUrl": "https://mlc.ai/",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "hasValidPrivacyPolicy": false,
     "confidence": "unverified"
@@ -810,7 +815,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Privacy notice does not apply to Customer Data processed under the Platform Agreement.",
     "sourceUrl": "https://www.anyscale.com/privacy-policy",
-    "lastVerifiedDate": "2026-06-22",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -834,7 +839,7 @@
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Paid models use zero data retention; free tier models may retain data to improve models.",
     "sourceUrl": "https://opencode.ai/legal/privacy-policy",
-    "lastVerifiedDate": "2026-06-23",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -846,7 +851,7 @@
     "trainsOnDataNuance": "Free and Pro accounts train on your prompts and code. Business and Enterprise tiers turn off training by default.",
     "optOutAvailable": true,
     "optOutHow": "Toggle Privacy Mode in Cursor settings (General tab) or in your online account settings.",
-    "optOutUrl": "https://www.cursor.com/privacy",
+    "optOutUrl": "https://cursor.com/settings",
     "retentionPeriod": "Cursor retains data when Privacy Mode is off. Turning it on ensures zero data retention for upstream models, and Cursor avoids storing prompts.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "You can request account deletion to remove personal data, though the company keeps anonymous telemetry.",
@@ -857,8 +862,8 @@
     "childrenDataPolicy": "Requires users to be at least 13 years old.",
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise plans enable Privacy Mode by default, ensuring zero data retention and no model training.",
-    "sourceUrl": "https://www.cursor.com/privacy",
-    "lastVerifiedDate": "2026-06-23",
+    "sourceUrl": "https://cursor.com/privacy",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -882,7 +887,7 @@
     "enterpriseVsConsumerDifference": false,
     "enterpriseVsConsumerSummary": "All accounts use the same privacy policy. You can exclude specific files using a .aiignore file.",
     "sourceUrl": "https://www.trae.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-23",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -894,7 +899,7 @@
     "trainsOnDataNuance": "Does not train models on private user code. Zero Data Retention is active by default.",
     "optOutAvailable": true,
     "optOutHow": "Zero Data Retention is active by default. You can adjust telemetry settings in your web profile or extension options.",
-    "optOutUrl": "https://codeium.com/privacy-policy",
+    "optOutUrl": "https://cognition.com/legal/privacy-policy",
     "retentionPeriod": "The servers do not store plaintext code. The app keeps telemetry data to monitor performance.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "You can delete your account and associated metadata by contacting support.",
@@ -904,9 +909,9 @@
     "regionalVariation": "EU users have standard GDPR rights, including data access and deletion.",
     "childrenDataPolicy": "Intended for users 13 years of age or older.",
     "enterpriseVsConsumerDifference": true,
-    "enterpriseVsConsumerSummary": "Teams and Enterprise plans offer dedicated deployment options and guaranteed Zero Data Retention. Cognition acquired the brand in 2025.",
-    "sourceUrl": "https://codeium.com/privacy-policy",
-    "lastVerifiedDate": "2026-06-23",
+    "enterpriseVsConsumerSummary": "Teams and Enterprise plans offer dedicated deployment options and guaranteed Zero Data Retention. Codeium/Windsurf was acquired by Cognition in 2025.",
+    "sourceUrl": "https://cognition.com/legal/privacy-policy",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   },
@@ -918,7 +923,7 @@
     "trainsOnDataNuance": "Does not use customer data to train models unless you explicitly opt in.",
     "optOutAvailable": false,
     "optOutHow": "Not applicable because training is off by default. You can email security@cognition.ai for specific data requests.",
-    "optOutUrl": "https://www.cognition.ai/privacy-policy",
+    "optOutUrl": null,
     "retentionPeriod": "Retains customer data for the duration of the business relationship. The app keeps feedback and interaction logs as long as needed.",
     "dataDeletedOnRequest": true,
     "dataDeletedOnRequestTimeframe": "You can request account and data deletion by contacting support or emailing the privacy team.",
@@ -929,8 +934,8 @@
     "childrenDataPolicy": "Designed for users 18 years or older.",
     "enterpriseVsConsumerDifference": true,
     "enterpriseVsConsumerSummary": "Enterprise accounts use custom agreements that can specify private cloud deployments and custom data retention times.",
-    "sourceUrl": "https://www.cognition.ai/privacy-policy",
-    "lastVerifiedDate": "2026-06-23",
+    "sourceUrl": "https://cognition.com/legal/privacy-policy",
+    "lastVerifiedDate": "2026-09-19",
     "lastChangedDate": null,
     "confidence": "verified_from_policy_text"
   }

@@ -48,6 +48,10 @@ export function calculateSubScores(company: {
     retentionText.includes("never stored") ||
     retentionText.includes("not stored") ||
     retentionText.includes("zero retention") ||
+    retentionText.includes("zero data retention") ||
+    retentionText.includes("no data retention") ||
+    retentionText.includes("not retained") ||
+    retentionText.includes("7 days") ||
     retentionText.startsWith("0 ")
   ) {
     retentionScore = 100
